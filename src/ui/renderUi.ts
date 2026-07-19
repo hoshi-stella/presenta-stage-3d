@@ -1,11 +1,9 @@
 import type { PresentationSnapshot } from "../presentation/types";
+import type { PresenterCommand } from "../presentation/types";
 import { renderStatusPanel } from "./statusPanel";
 
 export type UiHandlers = {
-  onPrevious: () => void;
-  onNext: () => void;
-  onPlay: () => void;
-  onPause: () => void;
+  onCommand: (command: PresenterCommand) => void;
   onReset: () => void;
   onToggleNote: () => void;
   onAskMockAi: (text: string) => void;
@@ -27,10 +25,12 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
       <aside class="control-panel">
         <div id="status-panel"></div>
         <nav class="controls" aria-label="Presentation controls">
-          <button id="previous-button" type="button">Previous</button>
-          <button id="next-button" type="button" class="primary">Next</button>
-          <button id="play-button" type="button">Play Script</button>
-          <button id="pause-button" type="button">Pause</button>
+          <button data-command="back" type="button">Back</button>
+          <button data-command="next" type="button" class="primary">Next</button>
+          <button data-command="supplement" type="button">Supplement</button>
+          <button data-command="tsukkomi" type="button">Tsukkomi</button>
+          <button data-command="return_to_script" type="button">Return</button>
+          <button data-command="pause" type="button">Pause</button>
           <button id="reset-button" type="button">Reset</button>
           <button id="note-button" type="button">Toggle Speaker Note</button>
         </nav>
@@ -39,10 +39,10 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   `;
 
   const statusPanel = requireElement(root, "#status-panel");
-  root.querySelector("#previous-button")?.addEventListener("click", handlers.onPrevious);
-  root.querySelector("#next-button")?.addEventListener("click", handlers.onNext);
-  root.querySelector("#play-button")?.addEventListener("click", handlers.onPlay);
-  root.querySelector("#pause-button")?.addEventListener("click", handlers.onPause);
+  root.querySelectorAll<HTMLButtonElement>("[data-command]").forEach((button) => {
+    const command = button.dataset.command as PresenterCommand;
+    button.addEventListener("click", () => handlers.onCommand(command));
+  });
   root.querySelector("#reset-button")?.addEventListener("click", handlers.onReset);
   root.querySelector("#note-button")?.addEventListener("click", handlers.onToggleNote);
 

@@ -7,111 +7,161 @@ import {
   TransformNode,
   Vector3
 } from "@babylonjs/core";
+import type { CharacterId, CharacterRuntimeState } from "../presentation/types";
 
 export type CharacterMotionName = "idle" | "wave" | "think" | "point" | "present";
 
+type DummyCharacter = {
+  id: CharacterId;
+  root: TransformNode;
+  head: Mesh;
+  body: Mesh;
+  leftArm: Mesh;
+  rightArm: Mesh;
+  leftLeg: Mesh;
+  rightLeg: Mesh;
+  basePosition: Vector3;
+  motion: CharacterMotionName;
+  runtimeState: CharacterRuntimeState[CharacterId];
+};
+
 export class CharacterController {
-  private readonly root: TransformNode;
-  private readonly head: Mesh;
-  private readonly body: Mesh;
-  private readonly leftArm: Mesh;
-  private readonly rightArm: Mesh;
-  private readonly leftLeg: Mesh;
-  private readonly rightLeg: Mesh;
-  private motion: CharacterMotionName = "idle";
+  private readonly characters = new Map<CharacterId, DummyCharacter>();
 
   constructor(private readonly scene: Scene) {
     const skin = new StandardMaterial("dummyCharacterSkin", scene);
     skin.diffuseColor = Color3.FromHexString("#f6d7b0");
 
-    const suit = new StandardMaterial("dummyCharacterSuit", scene);
-    suit.diffuseColor = Color3.FromHexString("#3d7bd9");
-    suit.specularColor = Color3.FromHexString("#9ab7dd");
+    const reiSuit = new StandardMaterial("reiCharacterSuit", scene);
+    reiSuit.diffuseColor = Color3.FromHexString("#3d7bd9");
+    reiSuit.specularColor = Color3.FromHexString("#9ab7dd");
+
+    const mikotoSuit = new StandardMaterial("mikotoCharacterSuit", scene);
+    mikotoSuit.diffuseColor = Color3.FromHexString("#cf6f42");
+    mikotoSuit.specularColor = Color3.FromHexString("#f0b38e");
 
     const limb = new StandardMaterial("dummyCharacterLimbs", scene);
     limb.diffuseColor = Color3.FromHexString("#26324a");
 
-    this.root = new TransformNode("characterRoot", scene);
-    this.root.position = new Vector3(-0.65, 0.16, -0.15);
-
-    this.body = MeshBuilder.CreateCapsule("characterBody", { height: 1.25, radius: 0.34 }, scene);
-    this.body.position.y = 0.94;
-    this.body.material = suit;
-    this.body.parent = this.root;
-
-    this.head = MeshBuilder.CreateSphere("characterHead", { diameter: 0.58, segments: 32 }, scene);
-    this.head.position.y = 1.72;
-    this.head.material = skin;
-    this.head.parent = this.root;
-
-    this.leftArm = this.createLimb("leftArm", new Vector3(-0.46, 1.15, 0), limb);
-    this.rightArm = this.createLimb("rightArm", new Vector3(0.46, 1.15, 0), limb);
-    this.leftLeg = this.createLimb("leftLeg", new Vector3(-0.18, 0.32, 0), limb);
-    this.rightLeg = this.createLimb("rightLeg", new Vector3(0.18, 0.32, 0), limb);
+    this.characters.set("rei", this.createCharacter("rei", new Vector3(-0.82, 0.16, -0.15), skin, reiSuit, limb));
+    this.characters.set("mikoto", this.createCharacter("mikoto", new Vector3(0.82, 0.16, 0.05), skin, mikotoSuit, limb));
 
     scene.onBeforeRenderObservable.add(() => this.animate());
   }
 
-  playMotion(motion: CharacterMotionName): void {
-    this.motion = motion;
+  playMotion(motion: CharacterMotionName, speaker: CharacterId = "rei"): void {
+    this.characters.forEach((character) => {
+      character.motion = character.id === speaker ? motion : "idle";
+    });
   }
 
-  private createLimb(name: string, position: Vector3, material: StandardMaterial): Mesh {
+  applyCharacterStates(states: CharacterRuntimeState, speaker: CharacterId): void {
+    this.characters.forEach((character, characterId) => {
+      character.runtimeState = states[characterId];
+      character.root.rotation.y = characterId === speaker ? 0 : characterId === "rei" ? 0.18 : -0.18;
+    });
+  }
+
+  private createCharacter(
+    id: CharacterId,
+    basePosition: Vector3,
+    skin: StandardMaterial,
+    suit: StandardMaterial,
+    limb: StandardMaterial
+  ): DummyCharacter {
+    const root = new TransformNode(`${id}Root`, this.scene);
+    root.position = basePosition.clone();
+
+    const body = MeshBuilder.CreateCapsule(`${id}Body`, { height: 1.25, radius: 0.34 }, this.scene);
+    body.position.y = 0.94;
+    body.material = suit;
+    body.parent = root;
+
+    const head = MeshBuilder.CreateSphere(`${id}Head`, { diameter: 0.58, segments: 32 }, this.scene);
+    head.position.y = 1.72;
+    head.material = skin;
+    head.parent = root;
+
+    const leftArm = this.createLimb(`${id}LeftArm`, new Vector3(-0.46, 1.15, 0), limb, root);
+    const rightArm = this.createLimb(`${id}RightArm`, new Vector3(0.46, 1.15, 0), limb, root);
+    const leftLeg = this.createLimb(`${id}LeftLeg`, new Vector3(-0.18, 0.32, 0), limb, root);
+    const rightLeg = this.createLimb(`${id}RightLeg`, new Vector3(0.18, 0.32, 0), limb, root);
+
+    return {
+      id,
+      root,
+      head,
+      body,
+      leftArm,
+      rightArm,
+      leftLeg,
+      rightLeg,
+      basePosition,
+      motion: "idle",
+      runtimeState: "listening"
+    };
+  }
+
+  private createLimb(name: string, position: Vector3, material: StandardMaterial, root: TransformNode): Mesh {
     const mesh = MeshBuilder.CreateBox(name, { width: 0.14, height: 0.72, depth: 0.16 }, this.scene);
     mesh.position = position;
     mesh.material = material;
-    mesh.parent = this.root;
+    mesh.parent = root;
     return mesh;
   }
 
   private animate(): void {
     const seconds = performance.now() / 1000;
-    this.resetPose();
+    this.characters.forEach((character) => {
+      this.resetPose(character);
 
-    this.root.position.y = 0.16 + Math.sin(seconds * 2.2) * 0.035;
+      const bobAmount = character.runtimeState === "speaking" ? 0.045 : 0.018;
+      character.root.position.y = character.basePosition.y + Math.sin(seconds * 2.2) * bobAmount;
+      character.root.scaling.setAll(character.runtimeState === "speaking" ? 1.06 : 0.92);
 
-    switch (this.motion) {
-      case "wave":
-        this.rightArm.rotation.z = -1.55 + Math.sin(seconds * 8) * 0.45;
-        this.rightArm.position.y = 1.42;
-        this.head.rotation.z = Math.sin(seconds * 2.8) * 0.08;
-        break;
-      case "think":
-        this.root.rotation.z = -0.08;
-        this.head.rotation.z = -0.24;
-        this.rightArm.rotation.z = -0.5;
-        this.rightArm.position.x = 0.36;
-        this.rightArm.position.y = 1.42;
-        break;
-      case "point":
-        this.rightArm.rotation.x = Math.PI / 2;
-        this.rightArm.rotation.z = -0.18;
-        this.rightArm.position = new Vector3(0.42, 1.28, -0.28);
-        this.head.rotation.y = -0.16;
-        break;
-      case "present":
-        this.leftArm.rotation.z = 0.92;
-        this.rightArm.rotation.z = -0.92;
-        this.leftArm.position.y = 1.26;
-        this.rightArm.position.y = 1.26;
-        this.root.rotation.y = -0.18;
-        break;
-      case "idle":
-        this.leftArm.rotation.z = 0.08 + Math.sin(seconds * 2) * 0.04;
-        this.rightArm.rotation.z = -0.08 - Math.sin(seconds * 2) * 0.04;
-        break;
-    }
+      switch (character.motion) {
+        case "wave":
+          character.rightArm.rotation.z = -1.55 + Math.sin(seconds * 8) * 0.45;
+          character.rightArm.position.y = 1.42;
+          character.head.rotation.z = Math.sin(seconds * 2.8) * 0.08;
+          break;
+        case "think":
+          character.root.rotation.z = -0.08;
+          character.head.rotation.z = -0.24;
+          character.rightArm.rotation.z = -0.5;
+          character.rightArm.position.x = 0.36;
+          character.rightArm.position.y = 1.42;
+          break;
+        case "point":
+          character.rightArm.rotation.x = Math.PI / 2;
+          character.rightArm.rotation.z = -0.18;
+          character.rightArm.position = new Vector3(0.42, 1.28, -0.28);
+          character.head.rotation.y = -0.16;
+          break;
+        case "present":
+          character.leftArm.rotation.z = 0.92;
+          character.rightArm.rotation.z = -0.92;
+          character.leftArm.position.y = 1.26;
+          character.rightArm.position.y = 1.26;
+          character.root.rotation.y += character.id === "rei" ? -0.12 : 0.12;
+          break;
+        case "idle":
+          character.leftArm.rotation.z = 0.08 + Math.sin(seconds * 2) * 0.04;
+          character.rightArm.rotation.z = -0.08 - Math.sin(seconds * 2) * 0.04;
+          break;
+      }
+    });
   }
 
-  private resetPose(): void {
-    this.root.rotation.set(0, 0, 0);
-    this.head.rotation.set(0, 0, 0);
-    this.body.rotation.set(0, 0, 0);
-    this.leftArm.position = new Vector3(-0.46, 1.15, 0);
-    this.rightArm.position = new Vector3(0.46, 1.15, 0);
-    this.leftArm.rotation.set(0, 0.1, 0.12);
-    this.rightArm.rotation.set(0, -0.1, -0.12);
-    this.leftLeg.rotation.set(0, 0, 0.04);
-    this.rightLeg.rotation.set(0, 0, -0.04);
+  private resetPose(character: DummyCharacter): void {
+    character.root.rotation.set(0, character.root.rotation.y, 0);
+    character.head.rotation.set(0, 0, 0);
+    character.body.rotation.set(0, 0, 0);
+    character.leftArm.position = new Vector3(-0.46, 1.15, 0);
+    character.rightArm.position = new Vector3(0.46, 1.15, 0);
+    character.leftArm.rotation.set(0, 0.1, 0.12);
+    character.rightArm.rotation.set(0, -0.1, -0.12);
+    character.leftLeg.rotation.set(0, 0, 0.04);
+    character.rightLeg.rotation.set(0, 0, -0.04);
   }
 }

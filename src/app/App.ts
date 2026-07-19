@@ -1,7 +1,6 @@
 import { MockAiClient } from "../ai/mockAiClient";
-import { PresentationState } from "../presentation/state";
-import { sections } from "../presentation/sections";
-import { ScriptPlayer } from "../presentation/scriptPlayer";
+import { cues } from "../presentation/cues";
+import { CueRunner } from "../presentation/cueRunner";
 import { createStageScene, type StageScene } from "../scene/createScene";
 import { createUiRenderer, getStageCanvas } from "../ui/renderUi";
 import { createControls } from "./controls";
@@ -15,15 +14,11 @@ export class App {
   constructor(private readonly root: HTMLElement) {}
 
   start(): void {
-    const state = new PresentationState(sections);
-    const scriptPlayer = new ScriptPlayer(state);
+    const runner = new CueRunner(cues);
     const aiClient = new MockAiClient();
-    const controls = createControls(state, scriptPlayer, aiClient);
+    const controls = createControls(runner, aiClient);
     const ui = createUiRenderer(this.root, {
-      onPrevious: controls.previous,
-      onNext: controls.next,
-      onPlay: controls.play,
-      onPause: controls.pause,
+      onCommand: controls.command,
       onReset: controls.reset,
       onToggleNote: controls.toggleNote,
       onAskMockAi: (text) => {
@@ -33,10 +28,11 @@ export class App {
 
     this.stageScene = createStageScene(getStageCanvas(this.root));
     this.unbindKeyboard = bindKeyboardControls(controls);
-    this.unsubscribeState = state.subscribe((snapshot) => {
+    this.unsubscribeState = runner.subscribe((snapshot) => {
       ui.update(snapshot);
-      this.stageScene?.applySectionVisuals(snapshot.section.preset, snapshot.section.camera);
-      this.stageScene?.characterController.playMotion(snapshot.section.motion);
+      this.stageScene?.applySectionVisuals(snapshot.resolvedDirection.scenePreset, snapshot.resolvedDirection.camera);
+      this.stageScene?.characterController.playMotion(snapshot.resolvedDirection.motion, snapshot.cue.speaker);
+      this.stageScene?.characterController.applyCharacterStates(snapshot.characterStates, snapshot.cue.speaker);
     });
   }
 

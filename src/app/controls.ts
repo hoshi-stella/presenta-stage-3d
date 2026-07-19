@@ -1,59 +1,47 @@
 import type { MockAiClient } from "../ai/mockAiClient";
-import type { PresentationState } from "../presentation/state";
-import type { ScriptPlayer } from "../presentation/scriptPlayer";
+import type { CueRunner } from "../presentation/cueRunner";
+import type { PresenterCommand } from "../presentation/types";
 
 export type PresentationControls = {
-  previous: () => void;
-  next: () => void;
-  play: () => void;
-  pause: () => void;
+  command: (command: PresenterCommand) => void;
   reset: () => void;
   toggleNote: () => void;
-  toggleScript: () => void;
+  togglePause: () => void;
   askMockAi: (text: string) => Promise<void>;
 };
 
 export function createControls(
-  state: PresentationState,
-  scriptPlayer: ScriptPlayer,
+  runner: CueRunner,
   aiClient: MockAiClient
 ): PresentationControls {
   return {
-    previous: () => {
-      scriptPlayer.stopForManualControl();
-      state.previous();
+    command: (command) => {
+      runner.dispatch(command);
     },
-    next: () => {
-      scriptPlayer.stopForManualControl();
-      state.next();
-    },
-    play: () => scriptPlayer.play(),
-    pause: () => scriptPlayer.pause(),
     reset: () => {
-      scriptPlayer.pause();
-      state.reset();
+      runner.reset();
     },
-    toggleNote: () => state.toggleSpeakerNote(),
-    toggleScript: () => {
-      if (state.getSnapshot().isScriptPlaying) {
-        scriptPlayer.pause();
+    toggleNote: () => runner.toggleSpeakerNote(),
+    togglePause: () => {
+      if (runner.getSnapshot().isPaused || runner.getSnapshot().mode === "manual") {
+        runner.dispatch("resume");
         return;
       }
 
-      scriptPlayer.play();
+      runner.dispatch("pause");
     },
     askMockAi: async (text) => {
       if (!text) {
-        state.setAiMessage("Mock AI: 質問テキストを入力してください。");
+        runner.setAiMessage("Mock AI: 質問テキストを入力してください。");
         return;
       }
 
-      const section = state.getSnapshot().section;
+      const cue = runner.getSnapshot().cue;
       const response = await aiClient.ask({
-        currentSectionId: section.id,
+        currentCueId: cue.id,
         userText: text
       });
-      state.setAiMessage(response.text);
+      runner.setAiMessage(response.text);
     }
   };
 }
