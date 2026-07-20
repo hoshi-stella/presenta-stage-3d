@@ -49,6 +49,13 @@ type GlbCharacter = {
 export class CharacterController {
   private readonly characters = new Map<CharacterId, DummyCharacter>();
   private readonly glbCharacters = new Map<CharacterId, GlbCharacter>();
+  private currentMotion: CharacterMotionName = "idle";
+  private currentSpeaker: CharacterId = "rei";
+  private currentStates: CharacterRuntimeState = {
+    rei: "idle",
+    mikoto: "idle",
+    dummy: "idle"
+  };
 
   constructor(private readonly scene: Scene) {
     const skin = new StandardMaterial("dummyCharacterSkin", scene);
@@ -76,6 +83,8 @@ export class CharacterController {
   }
 
   playMotion(motion: CharacterMotionName, speaker: CharacterId = "rei"): void {
+    this.currentMotion = motion;
+    this.currentSpeaker = speaker;
     this.characters.forEach((character) => {
       character.motion = character.id === speaker ? motion : "idle";
     });
@@ -86,6 +95,8 @@ export class CharacterController {
   }
 
   applyCharacterStates(states: CharacterRuntimeState, speaker: CharacterId): void {
+    this.currentStates = states;
+    this.currentSpeaker = speaker;
     this.characters.forEach((character, characterId) => {
       character.runtimeState = states[characterId];
       character.root.rotation.y = characterId === speaker ? 0 : characterId === "rei" ? 0.18 : -0.18;
@@ -140,9 +151,10 @@ export class CharacterController {
         activeAnimationName: null,
         animationMode: config.animationMode,
         basePosition,
-        motion: "idle",
-        runtimeState: "listening"
+        motion: config.characterId === this.currentSpeaker ? this.currentMotion : "idle",
+        runtimeState: this.currentStates[config.characterId]
       };
+      glbCharacter.root.rotation.y = config.characterId === this.currentSpeaker ? 0 : config.characterId === "rei" ? 0.18 : -0.18;
       this.glbCharacters.set(config.characterId, glbCharacter);
       this.setDummyVisible(config.characterId, false);
       this.playGlbMotion(glbCharacter);
