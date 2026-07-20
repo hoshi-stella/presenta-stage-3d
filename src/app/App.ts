@@ -6,12 +6,14 @@ import { createUiRenderer, getStageCanvas } from "../ui/renderUi";
 import { getLive2DConfig } from "../live2d/config";
 import { createLive2DPresenterLayer } from "../live2d/live2dPresenterLayer";
 import type { Live2DPresenterLayer } from "../live2d/types";
+import { createEndingCreditsOverlay, type EndingCreditsOverlay } from "../ui/endingCredits";
 import { createControls } from "./controls";
 import { bindKeyboardControls } from "./keyboard";
 
 export class App {
   private stageScene: StageScene | null = null;
   private live2dLayer: Live2DPresenterLayer | null = null;
+  private endingCredits: EndingCreditsOverlay | null = null;
   private unbindKeyboard: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
   private isDisposed = false;
@@ -22,15 +24,19 @@ export class App {
     this.isDisposed = false;
     const runner = new CueRunner(cues);
     const aiClient = new MockAiClient();
-    const controls = createControls(runner, aiClient);
+    const controls = createControls(runner, aiClient, (variant) => {
+      this.endingCredits?.show(variant);
+    });
     const ui = createUiRenderer(this.root, {
       onCommand: controls.command,
       onReset: controls.reset,
       onToggleNote: controls.toggleNote,
+      onShowCredits: controls.showCredits,
       onAskMockAi: (text) => {
         void controls.askMockAi(text);
       }
     });
+    this.endingCredits = createEndingCreditsOverlay(this.root);
 
     this.stageScene = createStageScene(getStageCanvas(this.root));
     const live2dHost = this.root.querySelector<HTMLElement>("#live2d-host");
@@ -66,6 +72,7 @@ export class App {
     this.unbindKeyboard?.();
     this.unsubscribeState?.();
     this.live2dLayer?.dispose();
+    this.endingCredits?.dispose();
     this.stageScene?.dispose();
   }
 }

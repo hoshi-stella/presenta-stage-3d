@@ -56,6 +56,14 @@ export function bindKeyboardControls(controls: PresentationControls): () => void
     if (event.key.toLowerCase() === "n") {
       controls.toggleNote();
     }
+
+    if (event.key.toLowerCase() === "c") {
+      controls.showCredits("crawl");
+    }
+
+    if (event.key.toLowerCase() === "v") {
+      controls.showCredits("spiral");
+    }
   };
 
   window.addEventListener("keydown", handleKeyDown);

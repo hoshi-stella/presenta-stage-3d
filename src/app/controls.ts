@@ -1,18 +1,21 @@
 import type { MockAiClient } from "../ai/mockAiClient";
 import type { CueRunner } from "../presentation/cueRunner";
 import type { PresenterCommand } from "../presentation/types";
+import type { EndingCreditsVariant } from "../ui/endingCredits";
 
 export type PresentationControls = {
   command: (command: PresenterCommand) => void;
   reset: () => void;
   toggleNote: () => void;
   togglePause: () => void;
+  showCredits: (variant: EndingCreditsVariant) => void;
   askMockAi: (text: string) => Promise<void>;
 };
 
 export function createControls(
   runner: CueRunner,
-  aiClient: MockAiClient
+  aiClient: MockAiClient,
+  showCredits: (variant: EndingCreditsVariant) => void
 ): PresentationControls {
   return {
     command: (command) => {
@@ -30,6 +33,7 @@ export function createControls(
 
       runner.dispatch("pause");
     },
+    showCredits,
     askMockAi: async (text) => {
       if (!text) {
         runner.setAiMessage("Mock AI: 質問テキストを入力してください。");

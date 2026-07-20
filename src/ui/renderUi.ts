@@ -1,11 +1,13 @@
 import type { PresentationSnapshot } from "../presentation/types";
 import type { PresenterCommand } from "../presentation/types";
+import type { EndingCreditsVariant } from "./endingCredits";
 import { renderStatusPanel } from "./statusPanel";
 
 export type UiHandlers = {
   onCommand: (command: PresenterCommand) => void;
   onReset: () => void;
   onToggleNote: () => void;
+  onShowCredits: (variant: EndingCreditsVariant) => void;
   onAskMockAi: (text: string) => void;
 };
 
@@ -34,6 +36,8 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
           <button data-command="pause" type="button">Pause</button>
           <button id="reset-button" type="button">Reset</button>
           <button id="note-button" type="button">Toggle Speaker Note</button>
+          <button data-credits="crawl" type="button">Credits Crawl</button>
+          <button data-credits="spiral" type="button">Credits Spiral</button>
         </nav>
       </aside>
     </main>
@@ -43,6 +47,10 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   root.querySelectorAll<HTMLButtonElement>("[data-command]").forEach((button) => {
     const command = button.dataset.command as PresenterCommand;
     button.addEventListener("click", () => handlers.onCommand(command));
+  });
+  root.querySelectorAll<HTMLButtonElement>("[data-credits]").forEach((button) => {
+    const variant = button.dataset.credits as EndingCreditsVariant;
+    button.addEventListener("click", () => handlers.onShowCredits(variant));
   });
   root.querySelector("#reset-button")?.addEventListener("click", handlers.onReset);
   root.querySelector("#note-button")?.addEventListener("click", handlers.onToggleNote);
