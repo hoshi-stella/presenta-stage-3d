@@ -1,5 +1,6 @@
 import {
   AbstractMesh,
+  AnimationGroup,
   Color3,
   Mesh,
   MeshBuilder,
@@ -36,6 +37,10 @@ type GlbCharacter = {
   root: TransformNode;
   contentRoot: TransformNode;
   meshes: AbstractMesh[];
+  animationGroups: Map<string, AnimationGroup>;
+  motionAnimations: Partial<Record<CharacterMotionName, string>>;
+  activeAnimationName: string | null;
+  animationMode: "off" | "cue";
   basePosition: Vector3;
   motion: CharacterMotionName;
   runtimeState: CharacterRuntimeState[CharacterId];
@@ -76,6 +81,7 @@ export class CharacterController {
     });
     this.glbCharacters.forEach((character) => {
       character.motion = character.id === speaker ? motion : "idle";
+      this.playGlbMotion(character);
     });
   }
 
@@ -105,6 +111,7 @@ export class CharacterController {
       result.animationGroups.forEach((animationGroup) => {
         animationGroup.stop();
       });
+      const animationGroups = new Map(result.animationGroups.map((animationGroup) => [animationGroup.name, animationGroup]));
       const root = new TransformNode(`${config.characterId}GlbRoot`, this.scene);
       const contentRoot = new TransformNode(`${config.characterId}GlbContentRoot`, this.scene);
       contentRoot.parent = root;
@@ -126,16 +133,52 @@ export class CharacterController {
         root,
         contentRoot,
         meshes: result.meshes,
+        animationGroups,
+        motionAnimations: config.motionAnimations,
+        activeAnimationName: null,
+        animationMode: config.animationMode,
         basePosition,
         motion: "idle",
         runtimeState: "listening"
       };
       this.glbCharacters.set(config.characterId, glbCharacter);
       this.setDummyVisible(config.characterId, false);
+      this.playGlbMotion(glbCharacter);
     } catch (error) {
       console.warn(`Failed to load GLB character ${config.characterId}:`, error);
       this.setDummyVisible(config.characterId, true);
     }
+  }
+
+  private playGlbMotion(character: GlbCharacter): void {
+    if (character.animationMode === "off") {
+      this.stopGlbAnimations(character);
+      return;
+    }
+
+    const nextAnimationName = character.motionAnimations[character.motion];
+    if (!nextAnimationName || nextAnimationName === character.activeAnimationName) {
+      return;
+    }
+
+    const nextAnimation = character.animationGroups.get(nextAnimationName);
+    if (!nextAnimation) {
+      console.warn(`GLB animation "${nextAnimationName}" was not found for ${character.id}.`);
+      this.stopGlbAnimations(character);
+      return;
+    }
+
+    this.stopGlbAnimations(character);
+    character.activeAnimationName = nextAnimationName;
+    nextAnimation.reset();
+    nextAnimation.start(true);
+  }
+
+  private stopGlbAnimations(character: GlbCharacter): void {
+    character.animationGroups.forEach((animationGroup) => {
+      animationGroup.stop();
+    });
+    character.activeAnimationName = null;
   }
 
   private setDummyVisible(characterId: CharacterId, isVisible: boolean): void {
