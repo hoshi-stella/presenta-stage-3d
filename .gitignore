@@ -3,7 +3,12 @@ dist/
 .pnpm-store/
 
 *.log
+.env.local
 .DS_Store
 Thumbs.db
 
 item/*.unitypackage
+
+public/live2d/**
+!public/live2d/
+!public/live2d/.gitkeep

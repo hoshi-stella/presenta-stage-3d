@@ -51,6 +51,30 @@ npm run preview
 
 The app has no external API dependency and runs without 3D model files.
 
+## Local Live2D Presenter
+
+Live2D assets are local-only and ignored by Git. Put Cubism Core and the model files under `public/live2d`, then enable them with `.env.local`.
+
+```bash
+VITE_LIVE2D_MODEL_URL=/live2d/models/hosinonya/hosinonya.model3.json
+VITE_LIVE2D_CORE_URL=/live2d/vendor/live2dcubismcore.min.js
+```
+
+Expected local layout:
+
+```txt
+public/live2d/
+  vendor/live2dcubismcore.min.js
+  models/hosinonya/
+    hosinonya.model3.json
+    hosinonya.moc3
+    hosinonya.physics3.json
+    hosinonya.cdi3.json
+    hosinonya.4096/texture_00.png
+```
+
+If the Live2D Core or model is missing, the app falls back to the Babylon.js dummy presenters.
+
 ## Roadmap
 
 ### Phase 1
