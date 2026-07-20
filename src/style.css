@@ -390,13 +390,29 @@ h3 {
   background: #000;
 }
 
-.ending-credits__spiral span {
+.ending-credits__spiral-plane {
   position: absolute;
   z-index: 2;
   left: 50%;
   top: 50%;
   display: block;
-  min-width: max-content;
+  width: max-content;
+  padding: 0.45em 1.35em;
+  overflow: visible;
+  background: transparent;
+  backface-visibility: visible;
+  transform-style: preserve-3d;
+  opacity: 0;
+  transform:
+    translate(-50%, -50%)
+    translate3d(0, 62vh, 0)
+    rotateY(0deg);
+  animation: credits-spiral 90s linear infinite;
+  animation-delay: var(--credit-delay);
+}
+
+.ending-credits__spiral-text {
+  display: block;
   color: #ff5a1d;
   font-family: Georgia, "Times New Roman", serif;
   font-size: calc(clamp(24px, 3.8vw, 58px) * var(--credit-size));
@@ -408,15 +424,9 @@ h3 {
     0 0 24px rgba(255, 116, 36, 0.6),
     0 0 56px rgba(255, 90, 20, 0.28);
   background: transparent;
-  mix-blend-mode: screen;
+  mix-blend-mode: normal;
   backface-visibility: visible;
-  opacity: 0;
-  transform:
-    translate(-50%, -50%)
-    translate3d(0, 62vh, 0)
-    rotateY(0deg);
-  animation: credits-spiral 90s linear infinite;
-  animation-delay: var(--credit-delay);
+  transform: translateZ(0);
 }
 
 @keyframes credits-crawl {
@@ -473,7 +483,7 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .ending-credits__crawl,
-  .ending-credits__spiral span {
+  .ending-credits__spiral-plane {
     animation-play-state: paused;
   }
 }

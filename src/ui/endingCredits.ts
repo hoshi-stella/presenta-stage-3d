@@ -111,7 +111,9 @@ function renderSpiralCredits(): string {
     <div class="ending-credits__vignette"></div>
     <div class="ending-credits__spiral" aria-label="Technology credits spiral">
       ${spiralLines.map((line, index) => `
-        <span style="${getSpiralStyle(index)}">${escapeHtml(line)}</span>
+        <span class="ending-credits__spiral-plane" style="${getSpiralStyle(index)}">
+          <span class="ending-credits__spiral-text">${escapeHtml(line)}</span>
+        </span>
       `).join("")}
     </div>
     <button class="ending-credits__close" type="button" aria-label="Close credits">Close</button>
