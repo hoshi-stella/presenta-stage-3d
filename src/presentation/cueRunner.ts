@@ -112,6 +112,11 @@ export class CueRunner {
     this.emit();
   }
 
+  setStatusMessage(message: string | null): void {
+    this.statusMessage = message;
+    this.emit();
+  }
+
   private resume(): void {
     this.mode = "semiAuto";
     this.isPaused = false;

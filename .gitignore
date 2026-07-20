@@ -3,7 +3,12 @@ dist/
 .pnpm-store/
 
 *.log
+.env.local
 .DS_Store
 Thumbs.db
 
 item/*.unitypackage
+
+public/assets-local/**
+!public/assets-local/
+!public/assets-local/.gitkeep
