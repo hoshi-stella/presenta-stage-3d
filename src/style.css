@@ -407,7 +407,9 @@ h3 {
     0 0 8px rgba(255, 88, 24, 0.9),
     0 0 24px rgba(255, 116, 36, 0.6),
     0 0 56px rgba(255, 90, 20, 0.28);
-  filter: blur(0.45px);
+  background: transparent;
+  mix-blend-mode: screen;
+  backface-visibility: visible;
   opacity: 0;
   transform:
     translate(-50%, -50%)
@@ -430,7 +432,6 @@ h3 {
 @keyframes credits-spiral {
   0% {
     opacity: 0;
-    filter: blur(7px);
     transform:
       translate(-50%, -50%)
       translate3d(0, 66vh, -120px)
@@ -440,17 +441,14 @@ h3 {
 
   36% {
     opacity: 0;
-    filter: blur(7px);
   }
 
   46% {
     opacity: 0.86;
-    filter: blur(2px);
   }
 
   52% {
     opacity: 1;
-    filter: blur(0.35px);
     transform:
       translate(-50%, -50%)
       translate3d(0, 0, 0)
@@ -460,13 +458,11 @@ h3 {
 
   58% {
     opacity: 0.9;
-    filter: blur(1.4px);
   }
 
   64%,
   100% {
     opacity: 0;
-    filter: blur(10px);
     transform:
       translate(-50%, -50%)
       translate3d(0, -74vh, 120px)
