@@ -396,8 +396,8 @@ h3 {
   left: 50%;
   top: 50%;
   display: block;
-  width: max-content;
-  padding: 0.45em 1.35em;
+  width: min(150vw, 1800px);
+  padding: 0.45em 18vw;
   overflow: visible;
   background: transparent;
   backface-visibility: visible;
@@ -413,6 +413,9 @@ h3 {
 
 .ending-credits__spiral-text {
   display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
   color: #ff5a1d;
   font-family: Georgia, "Times New Roman", serif;
   font-size: calc(clamp(24px, 3.8vw, 58px) * var(--credit-size));
