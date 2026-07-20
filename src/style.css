@@ -413,7 +413,7 @@ h3 {
     translate(-50%, -50%)
     translate3d(0, 62vh, 0)
     rotateY(0deg);
-  animation: credits-spiral 34s linear infinite;
+  animation: credits-spiral 90s linear infinite;
   animation-delay: var(--credit-delay);
 }
 
@@ -438,12 +438,12 @@ h3 {
       scale(0.62);
   }
 
-  10% {
+  36% {
     opacity: 0;
     filter: blur(7px);
   }
 
-  24% {
+  46% {
     opacity: 0.86;
     filter: blur(2px);
   }
@@ -458,12 +458,12 @@ h3 {
       scale(1);
   }
 
-  72% {
+  58% {
     opacity: 0.9;
     filter: blur(1.4px);
   }
 
-  90%,
+  64%,
   100% {
     opacity: 0;
     filter: blur(10px);

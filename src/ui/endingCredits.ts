@@ -119,7 +119,7 @@ function renderSpiralCredits(): string {
 }
 
 function getSpiralStyle(index: number): string {
-  const delay = -index * 3.2;
+  const delay = -index * 8.2;
   const size = index % 3 === 0 ? 1.18 : index % 3 === 1 ? 0.9 : 1.02;
   return `--credit-delay:${delay}s;--credit-size:${size};`;
 }
