@@ -53,30 +53,33 @@ export async function createLive2DPresenterLayer(
 
   onStateChange("loading", "Loading Live2D presenter...");
   window.PIXI = PIXI;
-  await loadScript(config.coreUrl);
-
-  if (!window.Live2DCubismCore) {
-    onStateChange("missing-core", `Live2D Cubism Core was not found at ${config.coreUrl}.`);
-    return createNoopLayer();
-  }
-
-  const { Live2DModel } = await import("pixi-live2d-display/cubism4") as { Live2DModel: Live2DModelClass };
-  const app = new PIXI.Application({
-    autoStart: true,
-    backgroundAlpha: 0,
-    resizeTo: host,
-    antialias: true
-  });
-
-  app.view.classList.add("live2d-canvas");
-  host.appendChild(app.view);
+  let app: PIXI.Application | null = null;
 
   try {
+    await loadScript(config.coreUrl);
+
+    if (!window.Live2DCubismCore) {
+      onStateChange("missing-core", `Live2D Cubism Core was not found at ${config.coreUrl}.`);
+      return createNoopLayer();
+    }
+
+    const { Live2DModel } = await import("pixi-live2d-display/cubism4") as { Live2DModel: Live2DModelClass };
+    app = new PIXI.Application({
+      autoStart: true,
+      backgroundAlpha: 0,
+      resizeTo: host,
+      antialias: true
+    });
+
+    app.view.classList.add("live2d-canvas");
+    host.appendChild(app.view);
     const model = await Live2DModel.from(config.modelUrl);
     model.anchor.set(0.5, 1);
     app.stage.addChild(model);
     layoutModel(host, model);
-    window.addEventListener("resize", () => layoutModel(host, model));
+    const handleResize = () => layoutModel(host, model);
+    window.addEventListener("resize", handleResize);
+    const live2dApp = app;
     const runtimeState: Live2DRuntimeState = {
       speaker: "rei",
       states: {
@@ -93,13 +96,14 @@ export async function createLive2DPresenterLayer(
     return {
       update: (states, speaker) => updateModel(model, runtimeState, states, speaker),
       dispose: () => {
-        app.ticker.remove(animate);
-        app.destroy(true, { children: true, texture: false, baseTexture: false });
+        window.removeEventListener("resize", handleResize);
+        live2dApp.ticker.remove(animate);
+        live2dApp.destroy(true, { children: true, texture: false, baseTexture: false });
       }
     };
   } catch (error) {
-    app.destroy(true, { children: true, texture: false, baseTexture: false });
-    onStateChange("missing-model", `Live2D model could not be loaded: ${getErrorMessage(error)}`);
+    app?.destroy(true, { children: true, texture: false, baseTexture: false });
+    onStateChange("error", `Live2D presenter could not be initialized: ${getErrorMessage(error)}`);
     return createNoopLayer();
   }
 }

@@ -14,10 +14,12 @@ export class App {
   private live2dLayer: Live2DPresenterLayer | null = null;
   private unbindKeyboard: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
+  private isDisposed = false;
 
   constructor(private readonly root: HTMLElement) {}
 
   start(): void {
+    this.isDisposed = false;
     const runner = new CueRunner(cues);
     const aiClient = new MockAiClient();
     const controls = createControls(runner, aiClient);
@@ -36,9 +38,16 @@ export class App {
       void createLive2DPresenterLayer(live2dHost, getLive2DConfig(), (_state, message) => {
         runner.setStatusMessage(message);
       }).then((layer) => {
+        if (this.isDisposed) {
+          layer.dispose();
+          return;
+        }
+
         this.live2dLayer = layer;
         const snapshot = runner.getSnapshot();
         layer.update(snapshot.characterStates, snapshot.cue.speaker);
+      }).catch((error: unknown) => {
+        runner.setStatusMessage(`Live2D presenter failed: ${getErrorMessage(error)}`);
       });
     }
 
@@ -53,9 +62,14 @@ export class App {
   }
 
   dispose(): void {
+    this.isDisposed = true;
     this.unbindKeyboard?.();
     this.unsubscribeState?.();
     this.live2dLayer?.dispose();
     this.stageScene?.dispose();
   }
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
