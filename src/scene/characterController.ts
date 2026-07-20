@@ -14,6 +14,7 @@ import {
 import { GLTFFileLoader, GLTFLoaderAnimationStartMode } from "@babylonjs/loaders/glTF";
 import "@babylonjs/loaders/glTF";
 import type { CharacterId, CharacterRuntimeState } from "../presentation/types";
+import { characterRegistry, getCharacterInstance, type CharacterInstance } from "./characterRegistry";
 import type { GlbCharacterAssetConfig } from "./modelAssetConfig";
 
 export type CharacterMotionName = "idle" | "wave" | "think" | "point" | "present";
@@ -61,19 +62,17 @@ export class CharacterController {
     const skin = new StandardMaterial("dummyCharacterSkin", scene);
     skin.diffuseColor = Color3.FromHexString("#f6d7b0");
 
-    const reiSuit = new StandardMaterial("reiCharacterSuit", scene);
-    reiSuit.diffuseColor = Color3.FromHexString("#3d7bd9");
-    reiSuit.specularColor = Color3.FromHexString("#9ab7dd");
-
-    const mikotoSuit = new StandardMaterial("mikotoCharacterSuit", scene);
-    mikotoSuit.diffuseColor = Color3.FromHexString("#cf6f42");
-    mikotoSuit.specularColor = Color3.FromHexString("#f0b38e");
-
     const limb = new StandardMaterial("dummyCharacterLimbs", scene);
     limb.diffuseColor = Color3.FromHexString("#26324a");
 
-    this.characters.set("rei", this.createCharacter("rei", new Vector3(-0.82, 0.16, -0.15), skin, reiSuit, limb));
-    this.characters.set("mikoto", this.createCharacter("mikoto", new Vector3(0.82, 0.16, 0.05), skin, mikotoSuit, limb));
+    characterRegistry
+      .filter((character) => character.visualKind === "dummy-character")
+      .forEach((character) => {
+        const suit = new StandardMaterial(`${character.id}CharacterSuit`, scene);
+        suit.diffuseColor = Color3.FromHexString(character.suitColor);
+        suit.specularColor = Color3.FromHexString(character.specularColor);
+        this.characters.set(character.id, this.createCharacter(character, skin, suit, limb));
+      });
 
     scene.onBeforeRenderObservable.add(() => this.animate());
   }
@@ -99,11 +98,11 @@ export class CharacterController {
     this.currentSpeaker = speaker;
     this.characters.forEach((character, characterId) => {
       character.runtimeState = states[characterId];
-      character.root.rotation.y = characterId === speaker ? 0 : characterId === "rei" ? 0.18 : -0.18;
+      character.root.rotation.y = this.getFacingYaw(characterId, speaker);
     });
     this.glbCharacters.forEach((character, characterId) => {
       character.runtimeState = states[characterId];
-      character.root.rotation.y = characterId === speaker ? 0 : characterId === "rei" ? 0.18 : -0.18;
+      character.root.rotation.y = this.getFacingYaw(characterId, speaker);
     });
   }
 
@@ -154,7 +153,7 @@ export class CharacterController {
         motion: config.characterId === this.currentSpeaker ? this.currentMotion : "idle",
         runtimeState: this.currentStates[config.characterId]
       };
-      glbCharacter.root.rotation.y = config.characterId === this.currentSpeaker ? 0 : config.characterId === "rei" ? 0.18 : -0.18;
+      glbCharacter.root.rotation.y = this.getFacingYaw(config.characterId, this.currentSpeaker);
       this.glbCharacters.set(config.characterId, glbCharacter);
       this.setDummyVisible(config.characterId, false);
       this.playGlbMotion(glbCharacter);
@@ -241,12 +240,13 @@ export class CharacterController {
   }
 
   private createCharacter(
-    id: CharacterId,
-    basePosition: Vector3,
+    character: CharacterInstance,
     skin: StandardMaterial,
     suit: StandardMaterial,
     limb: StandardMaterial
   ): DummyCharacter {
+    const basePosition = Vector3.FromArray(character.basePosition);
+    const id = character.id;
     const root = new TransformNode(`${id}Root`, this.scene);
     root.position = basePosition.clone();
 
@@ -278,6 +278,10 @@ export class CharacterController {
       motion: "idle",
       runtimeState: "listening"
     };
+  }
+
+  private getFacingYaw(characterId: CharacterId, speaker: CharacterId): number {
+    return characterId === speaker ? 0 : getCharacterInstance(characterId).listeningYaw;
   }
 
   private createLimb(name: string, position: Vector3, material: StandardMaterial, root: TransformNode): Mesh {
