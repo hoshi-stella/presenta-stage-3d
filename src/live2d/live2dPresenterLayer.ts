@@ -28,6 +28,12 @@ type Live2DParameterModel = {
   rotation: number;
 };
 
+type Live2DRuntimeState = {
+  speaker: CharacterId;
+  states: CharacterRuntimeState;
+  startedAt: number;
+};
+
 declare global {
   interface Window {
     PIXI?: typeof PIXI;
@@ -71,11 +77,23 @@ export async function createLive2DPresenterLayer(
     app.stage.addChild(model);
     layoutModel(host, model);
     window.addEventListener("resize", () => layoutModel(host, model));
+    const runtimeState: Live2DRuntimeState = {
+      speaker: "rei",
+      states: {
+        rei: "speaking",
+        mikoto: "listening",
+        dummy: "idle"
+      },
+      startedAt: performance.now()
+    };
+    const animate = () => animateModel(model, runtimeState);
+    app.ticker.add(animate);
     onStateChange("ready", "Live2D presenter ready.");
 
     return {
-      update: (states, speaker) => updateModel(model, states, speaker),
+      update: (states, speaker) => updateModel(model, runtimeState, states, speaker),
       dispose: () => {
+        app.ticker.remove(animate);
         app.destroy(true, { children: true, texture: false, baseTexture: false });
       }
     };
@@ -88,15 +106,32 @@ export async function createLive2DPresenterLayer(
 
 function updateModel(
   model: Live2DParameterModel,
+  runtimeState: Live2DRuntimeState,
   states: CharacterRuntimeState,
   speaker: CharacterId
 ): void {
+  runtimeState.states = states;
+  runtimeState.speaker = speaker;
   const reiSpeaking = states.rei === "speaking" || speaker === "rei";
   model.alpha = reiSpeaking ? 1 : 0.72;
   model.rotation = speaker === "mikoto" ? 0.05 : 0;
-  model.internalModel.coreModel.setParameterValueById("PARAM_MOUTH_OPEN_Y", reiSpeaking ? 0.75 : 0);
-  model.internalModel.coreModel.setParameterValueById("PARAM_ANGLE_X", speaker === "mikoto" ? 12 : 0);
-  model.internalModel.coreModel.setParameterValueById("PARAM_BODY_ANGLE_Z", speaker === "mikoto" ? 4 : 0);
+}
+
+function animateModel(model: Live2DParameterModel, runtimeState: Live2DRuntimeState): void {
+  const seconds = (performance.now() - runtimeState.startedAt) / 1000;
+  const reiSpeaking = runtimeState.states.rei === "speaking" || runtimeState.speaker === "rei";
+  const mouth = reiSpeaking ? 0.28 + Math.max(0, Math.sin(seconds * 12)) * 0.62 : 0;
+  const attentionX = runtimeState.speaker === "mikoto" ? 10 : 0;
+  const idleX = Math.sin(seconds * 0.9) * 4;
+  const idleY = Math.sin(seconds * 0.7) * 3;
+  const bodyZ = runtimeState.speaker === "mikoto" ? 4 : Math.sin(seconds * 0.5) * 2;
+  const breath = 0.5 + Math.sin(seconds * 1.6) * 0.5;
+
+  model.internalModel.coreModel.setParameterValueById("PARAM_MOUTH_OPEN_Y", mouth);
+  model.internalModel.coreModel.setParameterValueById("PARAM_ANGLE_X", attentionX + idleX);
+  model.internalModel.coreModel.setParameterValueById("PARAM_ANGLE_Y", idleY);
+  model.internalModel.coreModel.setParameterValueById("PARAM_BODY_ANGLE_Z", bodyZ);
+  model.internalModel.coreModel.setParameterValueById("PARAM_BREATH", breath);
 }
 
 function layoutModel(host: HTMLElement, model: Live2DDisplayModel): void {
