@@ -1,13 +1,18 @@
 import {
+  AbstractMesh,
   Color3,
   Mesh,
   MeshBuilder,
+  PBRMaterial,
+  SceneLoader,
   Scene,
   StandardMaterial,
   TransformNode,
   Vector3
 } from "@babylonjs/core";
+import "@babylonjs/loaders/glTF";
 import type { CharacterId, CharacterRuntimeState } from "../presentation/types";
+import type { GlbCharacterAssetConfig } from "./modelAssetConfig";
 
 export type CharacterMotionName = "idle" | "wave" | "think" | "point" | "present";
 
@@ -25,8 +30,18 @@ type DummyCharacter = {
   runtimeState: CharacterRuntimeState[CharacterId];
 };
 
+type GlbCharacter = {
+  id: CharacterId;
+  root: TransformNode;
+  meshes: AbstractMesh[];
+  basePosition: Vector3;
+  motion: CharacterMotionName;
+  runtimeState: CharacterRuntimeState[CharacterId];
+};
+
 export class CharacterController {
   private readonly characters = new Map<CharacterId, DummyCharacter>();
+  private readonly glbCharacters = new Map<CharacterId, GlbCharacter>();
 
   constructor(private readonly scene: Scene) {
     const skin = new StandardMaterial("dummyCharacterSkin", scene);
@@ -49,8 +64,15 @@ export class CharacterController {
     scene.onBeforeRenderObservable.add(() => this.animate());
   }
 
+  async loadGlbCharacters(configs: GlbCharacterAssetConfig[]): Promise<void> {
+    await Promise.all(configs.map((config) => this.loadGlbCharacter(config)));
+  }
+
   playMotion(motion: CharacterMotionName, speaker: CharacterId = "rei"): void {
     this.characters.forEach((character) => {
+      character.motion = character.id === speaker ? motion : "idle";
+    });
+    this.glbCharacters.forEach((character) => {
       character.motion = character.id === speaker ? motion : "idle";
     });
   }
@@ -60,6 +82,78 @@ export class CharacterController {
       character.runtimeState = states[characterId];
       character.root.rotation.y = characterId === speaker ? 0 : characterId === "rei" ? 0.18 : -0.18;
     });
+    this.glbCharacters.forEach((character, characterId) => {
+      character.runtimeState = states[characterId];
+      character.root.rotation.y = characterId === speaker ? 0 : characterId === "rei" ? 0.18 : -0.18;
+    });
+  }
+
+  private async loadGlbCharacter(config: GlbCharacterAssetConfig): Promise<void> {
+    if (!config.url) {
+      return;
+    }
+
+    try {
+      const result = await SceneLoader.ImportMeshAsync("", config.url, "", this.scene);
+      const root = new TransformNode(`${config.characterId}GlbRoot`, this.scene);
+      const basePosition = new Vector3(-1.04, 0.02, -0.12);
+      root.position = basePosition.clone();
+      root.rotation = new Vector3(0, Math.PI, 0);
+      root.scaling.setAll(1.45);
+
+      result.meshes.forEach((mesh) => {
+        if (mesh !== root) {
+          mesh.parent = root;
+          this.tuneGlbMaterial(mesh);
+        }
+      });
+
+      const glbCharacter: GlbCharacter = {
+        id: config.characterId,
+        root,
+        meshes: result.meshes,
+        basePosition,
+        motion: "idle",
+        runtimeState: "listening"
+      };
+      this.glbCharacters.set(config.characterId, glbCharacter);
+      this.setDummyVisible(config.characterId, false);
+    } catch (error) {
+      console.warn(`Failed to load GLB character ${config.characterId}:`, error);
+      this.setDummyVisible(config.characterId, true);
+    }
+  }
+
+  private setDummyVisible(characterId: CharacterId, isVisible: boolean): void {
+    const character = this.characters.get(characterId);
+    if (!character) {
+      return;
+    }
+
+    [
+      character.head,
+      character.body,
+      character.leftArm,
+      character.rightArm,
+      character.leftLeg,
+      character.rightLeg
+    ].forEach((mesh) => {
+      mesh.isVisible = isVisible;
+    });
+  }
+
+  private tuneGlbMaterial(mesh: AbstractMesh): void {
+    const material = mesh.material;
+    if (material instanceof PBRMaterial) {
+      material.metallic = 0;
+      material.roughness = 0.72;
+      material.environmentIntensity = 0.85;
+      return;
+    }
+
+    if (material instanceof StandardMaterial) {
+      material.specularColor = Color3.FromHexString("#222222");
+    }
   }
 
   private createCharacter(
@@ -151,6 +245,27 @@ export class CharacterController {
           break;
       }
     });
+    this.glbCharacters.forEach((character) => {
+      const bobAmount = character.runtimeState === "speaking" ? 0.035 : 0.012;
+      character.root.position.y = character.basePosition.y + Math.sin(seconds * 2.2) * bobAmount;
+      character.root.scaling.setAll(character.runtimeState === "speaking" ? 1.52 : 1.38);
+      character.root.rotation.z = this.getGlbMotionLean(character.motion, seconds);
+    });
+  }
+
+  private getGlbMotionLean(motion: CharacterMotionName, seconds: number): number {
+    switch (motion) {
+      case "wave":
+        return Math.sin(seconds * 5) * 0.05;
+      case "think":
+        return -0.07;
+      case "point":
+        return 0.05;
+      case "present":
+        return Math.sin(seconds * 2) * 0.035;
+      case "idle":
+        return Math.sin(seconds * 1.4) * 0.018;
+    }
   }
 
   private resetPose(character: DummyCharacter): void {
