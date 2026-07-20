@@ -119,12 +119,14 @@ export class CharacterController {
       root.position = basePosition.clone();
       root.rotation = new Vector3(0, 0, 0);
       root.scaling.setAll(1.25);
-      contentRoot.rotation = new Vector3(0, 0, 0);
+      contentRoot.rotation = new Vector3(0, Math.PI, 0);
 
       result.meshes.forEach((mesh) => {
-        if (mesh !== root && mesh !== contentRoot) {
-          mesh.parent = contentRoot;
-          this.tuneGlbMaterial(mesh);
+        this.tuneGlbMaterial(mesh);
+      });
+      [...result.meshes, ...result.transformNodes].forEach((node) => {
+        if (!node.parent) {
+          node.parent = contentRoot;
         }
       });
 
@@ -152,7 +154,7 @@ export class CharacterController {
 
   private playGlbMotion(character: GlbCharacter): void {
     if (character.animationMode === "off") {
-      this.stopGlbAnimations(character);
+      this.applyGlbIdlePose(character);
       return;
     }
 
@@ -172,6 +174,19 @@ export class CharacterController {
     character.activeAnimationName = nextAnimationName;
     nextAnimation.reset();
     nextAnimation.start(true);
+  }
+
+  private applyGlbIdlePose(character: GlbCharacter): void {
+    this.stopGlbAnimations(character);
+    const idleAnimationName = character.motionAnimations.idle;
+    const idleAnimation = idleAnimationName ? character.animationGroups.get(idleAnimationName) : null;
+    if (!idleAnimation) {
+      return;
+    }
+
+    idleAnimation.start(false);
+    idleAnimation.goToFrame(0);
+    idleAnimation.pause();
   }
 
   private stopGlbAnimations(character: GlbCharacter): void {
