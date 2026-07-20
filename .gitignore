@@ -9,6 +9,6 @@ Thumbs.db
 
 item/*.unitypackage
 
-public/live2d/**
-!public/live2d/
-!public/live2d/.gitkeep
+public/assets-local/**
+!public/assets-local/
+!public/assets-local/.gitkeep

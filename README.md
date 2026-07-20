@@ -51,29 +51,36 @@ npm run preview
 
 The app has no external API dependency and runs without 3D model files.
 
-## Local Live2D Presenter
+## Local Character Assets
 
-Live2D assets are local-only and ignored by Git. Put Cubism Core and the model files under `public/live2d`, then enable them with `.env.local`.
+Character assets are local-only and ignored by Git. Keep 2D and 3D models in separate local folders so owned or licensed characters can be used without committing model files to GitHub.
 
 ```bash
-VITE_LIVE2D_MODEL_URL=/live2d/models/hosinonya/hosinonya.model3.json
-VITE_LIVE2D_CORE_URL=/live2d/vendor/live2dcubismcore.min.js
+VITE_LIVE2D_MODEL_URL=/assets-local/characters/2d/hosinonya/hosinonya.model3.json
+VITE_LIVE2D_CORE_URL=/assets-local/vendor/live2d/live2dcubismcore.min.js
 ```
 
 Expected local layout:
 
 ```txt
-public/live2d/
-  vendor/live2dcubismcore.min.js
-  models/hosinonya/
-    hosinonya.model3.json
-    hosinonya.moc3
-    hosinonya.physics3.json
-    hosinonya.cdi3.json
-    hosinonya.4096/texture_00.png
+public/assets-local/
+  vendor/live2d/live2dcubismcore.min.js
+  characters/
+    2d/
+      hosinonya/
+        hosinonya.model3.json
+        hosinonya.moc3
+        hosinonya.physics3.json
+        hosinonya.cdi3.json
+        hosinonya.4096/texture_00.png
+    3d/
+      unitychan/
+        unitychan.glb
+      rei/
+        rei.vrm
 ```
 
-If the Live2D Core or model is missing, the app falls back to the Babylon.js dummy presenters.
+If the Live2D Core or model is missing, the app falls back to the Babylon.js dummy presenters. Future GLB/VRM presenters should use the `characters/3d` folder in the same local-only asset root.
 
 ## Roadmap
 
