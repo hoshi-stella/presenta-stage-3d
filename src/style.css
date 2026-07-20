@@ -405,9 +405,9 @@ h3 {
   opacity: 0;
   transform:
     translate(-50%, -50%)
-    translate3d(0, 62vh, 0)
+    translate3d(0, 74vh, 0)
     rotateY(0deg);
-  animation: credits-spiral 90s linear infinite;
+  animation: credits-spiral 54s linear infinite;
   animation-delay: var(--credit-delay);
 }
 
@@ -447,40 +447,49 @@ h3 {
     opacity: 0;
     transform:
       translate(-50%, -50%)
-      translate3d(0, 66vh, -120px)
+      translate3d(calc(var(--credit-sway) * -0.75), 74vh, -80px)
       rotateY(0deg)
-      scale(0.62);
+      scale(0.82);
   }
 
-  36% {
-    opacity: 0;
+  8% {
+    opacity: 0.82;
   }
 
-  46% {
-    opacity: 0.86;
-  }
-
-  52% {
+  25% {
     opacity: 1;
     transform:
       translate(-50%, -50%)
-      translate3d(0, 0, 0)
+      translate3d(var(--credit-sway), 28vh, -25px)
+      rotateY(135deg)
+      scale(0.94);
+  }
+
+  50% {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      translate3d(calc(var(--credit-sway) * -0.35), -12vh, 0)
       rotateY(270deg)
       scale(1);
   }
 
-  58% {
+  75% {
     opacity: 0.9;
+    transform:
+      translate(-50%, -50%)
+      translate3d(calc(var(--credit-sway) * 0.5), -48vh, 35px)
+      rotateY(405deg)
+      scale(1.08);
   }
 
-  64%,
   100% {
     opacity: 0;
     transform:
       translate(-50%, -50%)
-      translate3d(0, -74vh, 120px)
+      translate3d(calc(var(--credit-sway) * -0.2), -92vh, 80px)
       rotateY(540deg)
-      scale(1.28);
+      scale(1.16);
   }
 }
 
