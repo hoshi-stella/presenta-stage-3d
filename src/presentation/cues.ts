@@ -1,0 +1,202 @@
+import type { Cue } from "./types";
+
+export const cues: Cue[] = [
+  {
+    id: "cue_intro_01",
+    kind: "talk",
+    speaker: "rei",
+    text: "今日は、スライドショーじゃない登壇について考えてみます。",
+    note: "導入。発表をUIとして考える話に入る。",
+    direction: {
+      intent: "neutral",
+      emotion: "calm",
+      intensity: "low"
+    },
+    stage: {
+      preset: "intro",
+      camera: "front",
+      motion: "wave"
+    },
+    after: {
+      mode: "wait_for_presenter",
+      durationMs: 8000
+    }
+  },
+  {
+    id: "cue_problem_01",
+    kind: "question",
+    speaker: "mikoto",
+    text: "でも、ブラウザで発表しても紙芝居のままでいいんですか？",
+    note: "疑問役。発表形式への違和感を出す。",
+    direction: {
+      intent: "question",
+      emotion: "mild_doubt",
+      intensity: "medium"
+    },
+    stage: {
+      preset: "problem",
+      camera: "side",
+      motion: "think"
+    },
+    after: {
+      mode: "wait_for_presenter",
+      durationMs: 8000
+    }
+  },
+  {
+    id: "cue_answer_01",
+    kind: "answer",
+    speaker: "rei",
+    text: "発表をページではなく、状態・入力・演出を持つUIとして考えると、別の形が見えてきます。",
+    note: "主張。登壇はUIである。",
+    direction: {
+      intent: "emphasis",
+      emotion: "confident",
+      intensity: "medium"
+    },
+    stage: {
+      preset: "deepDive",
+      camera: "medium",
+      motion: "present"
+    },
+    after: {
+      mode: "branch_available",
+      durationMs: 12000,
+      branches: [
+        {
+          command: "supplement",
+          label: "補足する",
+          targetCueId: "cue_supplement_01"
+        },
+        {
+          command: "tsukkomi",
+          label: "ツッコミを入れる",
+          targetCueId: "cue_tsukkomi_01"
+        },
+        {
+          command: "next",
+          label: "本筋へ進む",
+          targetCueId: "cue_main_02"
+        }
+      ]
+    }
+  },
+  {
+    id: "cue_supplement_01",
+    kind: "supplement",
+    speaker: "rei",
+    text: "たとえば、Stage View、Speaker View、Audience View、Archive View のように、同じ内容でも表示モードを分けられます。",
+    note: "補足ルート。終わったら本筋に戻る。",
+    direction: {
+      intent: "supplement",
+      emotion: "calm",
+      intensity: "low"
+    },
+    stage: {
+      preset: "idea",
+      camera: "medium",
+      motion: "point"
+    },
+    after: {
+      mode: "wait_for_presenter",
+      branches: [
+        {
+          command: "return_to_script",
+          label: "本筋へ戻る",
+          targetCueId: "cue_main_02"
+        }
+      ]
+    }
+  },
+  {
+    id: "cue_tsukkomi_01",
+    kind: "tsukkomi",
+    speaker: "mikoto",
+    text: "つまり、スライドを作っているつもりが、いつの間にか舞台を作っているわけですね。",
+    note: "ツッコミルート。会話劇感を出す。",
+    direction: {
+      intent: "tsukkomi",
+      emotion: "sharp",
+      intensity: "medium"
+    },
+    stage: {
+      preset: "demo",
+      camera: "side",
+      motion: "point"
+    },
+    after: {
+      mode: "wait_for_presenter",
+      branches: [
+        {
+          command: "return_to_script",
+          label: "本筋へ戻る",
+          targetCueId: "cue_main_02"
+        }
+      ]
+    }
+  },
+  {
+    id: "cue_main_02",
+    kind: "talk",
+    speaker: "rei",
+    text: "そこで、キュー単位で発話、モーション、カメラ、演出、分岐をまとめて管理します。",
+    note: "キュー駆動の説明。",
+    direction: {
+      intent: "summary",
+      emotion: "confident",
+      intensity: "medium"
+    },
+    stage: {
+      preset: "summary",
+      camera: "wide",
+      motion: "present"
+    },
+    after: {
+      mode: "auto_next",
+      durationMs: 9000
+    }
+  },
+  {
+    id: "cue_qa_01",
+    kind: "qa",
+    speaker: "mikoto",
+    text: "最後に、みなさんならどんな登壇UIを作るか、質問受付モードで考えてみましょう。",
+    note: "質問受付モードの見た目だけを示す。",
+    direction: {
+      intent: "question",
+      emotion: "open",
+      intensity: "medium"
+    },
+    stage: {
+      preset: "question",
+      camera: "wide",
+      motion: "wave"
+    },
+    after: {
+      mode: "wait_for_presenter",
+      branches: [
+        {
+          command: "summary",
+          label: "まとめる",
+          targetCueId: "cue_summary_01"
+        }
+      ]
+    }
+  },
+  {
+    id: "cue_summary_01",
+    kind: "summary",
+    speaker: "rei",
+    text: "3DやAIは主役ではなく、発表を自然に進めるための裏方として扱うのがよさそうです。",
+    note: "Phase 1 の締め。意味ベース演出の方針をまとめる。",
+    direction: {
+      intent: "summary",
+      emotion: "calm",
+      intensity: "medium"
+    },
+    after: {
+      mode: "wait_for_presenter",
+      durationMs: 10000
+    }
+  }
+];

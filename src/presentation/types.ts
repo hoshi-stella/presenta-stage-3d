@@ -1,7 +1,102 @@
 import type { CameraPresetName, ScenePresetName } from "../scene/presets";
 import type { CharacterMotionName } from "../scene/characterController";
 
-export type PresentationMode = "manual" | "script" | "liveAi";
+export type PresentationMode = "manual" | "semiAuto" | "liveAi";
+export type CueId = string;
+export type CharacterId = "rei" | "mikoto" | "dummy";
+
+export type CueKind =
+  | "talk"
+  | "question"
+  | "answer"
+  | "supplement"
+  | "reaction"
+  | "tsukkomi"
+  | "slide"
+  | "demo"
+  | "summary"
+  | "qa";
+
+export type DirectionIntent =
+  | "neutral"
+  | "emphasis"
+  | "question"
+  | "doubt"
+  | "supplement"
+  | "reaction"
+  | "tsukkomi"
+  | "deep_dive"
+  | "warning"
+  | "summary"
+  | "transition"
+  | "celebration";
+
+export type DirectionIntensity = "low" | "medium" | "high";
+
+export type ProgressionMode =
+  | "auto_next"
+  | "wait_for_presenter"
+  | "branch_available";
+
+export type PresenterCommand =
+  | "next"
+  | "back"
+  | "pause"
+  | "resume"
+  | "supplement"
+  | "example"
+  | "question"
+  | "tsukkomi"
+  | "summary"
+  | "qa"
+  | "return_to_script"
+  | "skip";
+
+export type CueBranch = {
+  command: PresenterCommand;
+  label: string;
+  targetCueId: CueId;
+};
+
+export type Cue = {
+  id: CueId;
+  kind: CueKind;
+  speaker: CharacterId;
+  text: string;
+  slideRef?: string;
+  note?: string;
+  direction: {
+    intent: DirectionIntent;
+    emotion?: string;
+    intensity: DirectionIntensity;
+  };
+  stage?: {
+    preset?: ScenePresetName;
+    camera?: CameraPresetName;
+    motion?: CharacterMotionName;
+    focusTarget?: string;
+  };
+  after: {
+    mode: ProgressionMode;
+    durationMs?: number;
+    branches?: CueBranch[];
+  };
+};
+
+export type CharacterState =
+  | "idle"
+  | "listening"
+  | "speaking"
+  | "reacting"
+  | "transitioning";
+
+export type CharacterRuntimeState = Record<CharacterId, CharacterState>;
+
+export type ResolvedDirection = {
+  motion: CharacterMotionName;
+  camera: CameraPresetName;
+  scenePreset: ScenePresetName;
+};
 
 export type PresentationSection = {
   id: string;
@@ -17,12 +112,15 @@ export type PresentationSection = {
 
 export type PresentationSnapshot = {
   mode: PresentationMode;
-  sectionIndex: number;
-  sectionCount: number;
+  cueIndex: number;
+  cueCount: number;
   showSpeakerNote: boolean;
   aiMessage: string | null;
-  isScriptPlaying: boolean;
-  section: PresentationSection;
+  statusMessage: string | null;
+  isPaused: boolean;
+  cue: Cue;
+  resolvedDirection: ResolvedDirection;
+  characterStates: CharacterRuntimeState;
 };
 
 export type PresentationListener = (snapshot: PresentationSnapshot) => void;

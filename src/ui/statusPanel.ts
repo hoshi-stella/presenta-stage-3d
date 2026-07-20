@@ -1,23 +1,46 @@
 import type { PresentationSnapshot } from "../presentation/types";
 
 export function renderStatusPanel(snapshot: PresentationSnapshot): string {
-  const modeLabel = snapshot.mode === "liveAi" ? "Live AI Mode (stub)" : snapshot.mode === "script" ? "Script Mode" : "Manual Mode";
+  const modeLabel = snapshot.mode === "liveAi" ? "Live AI Mode (stub)" : snapshot.mode === "semiAuto" ? "Semi-Auto Mode" : "Manual Mode";
   const noteMarkup = snapshot.showSpeakerNote
-    ? `<section class="speaker-note"><h3>Speaker Note</h3><p>${escapeHtml(snapshot.section.speakerNote)}</p></section>`
+    ? `<section class="speaker-note"><h3>Speaker Note</h3><p>${escapeHtml(snapshot.cue.note ?? "No note")}</p></section>`
     : "";
   const aiMarkup = snapshot.aiMessage ? `<p class="ai-response">${escapeHtml(snapshot.aiMessage)}</p>` : "";
+  const statusMarkup = snapshot.statusMessage ? `<p class="status-message">${escapeHtml(snapshot.statusMessage)}</p>` : "";
+  const branches = snapshot.cue.after.branches ?? [];
+  const branchMarkup = branches.length > 0
+    ? branches.map((branch) => `<li>${escapeHtml(branch.label)} <span>${escapeHtml(branch.command)}</span></li>`).join("")
+    : "<li>No branch commands</li>";
+  const characterStates = Object.entries(snapshot.characterStates)
+    .map(([characterId, state]) => `<li>${escapeHtml(characterId)} <span>${escapeHtml(state)}</span></li>`)
+    .join("");
 
   return `
     <div class="section-meta">
       <span>${modeLabel}</span>
-      <span>${snapshot.sectionIndex + 1} / ${snapshot.sectionCount}</span>
-      <span>${snapshot.isScriptPlaying ? "Playing" : "Paused"}</span>
+      <span>${snapshot.cueIndex + 1} / ${snapshot.cueCount}</span>
+      <span>${snapshot.isPaused ? "Paused" : "Ready"}</span>
     </div>
-    <h1>${escapeHtml(snapshot.section.title)}</h1>
-    <p class="stage-text">${escapeHtml(snapshot.section.stageText)}</p>
+    <h1>${escapeHtml(snapshot.cue.slideRef ?? snapshot.cue.kind)}</h1>
+    <p class="stage-text">${escapeHtml(snapshot.cue.text)}</p>
     <section class="character-line">
-      <h2>Character</h2>
-      <p>${escapeHtml(snapshot.section.characterLine)}</p>
+      <h2>Current Cue</h2>
+      <dl class="cue-details">
+        <div><dt>ID</dt><dd>${escapeHtml(snapshot.cue.id)}</dd></div>
+        <div><dt>Kind</dt><dd>${escapeHtml(snapshot.cue.kind)}</dd></div>
+        <div><dt>Speaker</dt><dd>${escapeHtml(snapshot.cue.speaker)}</dd></div>
+        <div><dt>Intent</dt><dd>${escapeHtml(snapshot.cue.direction.intent)}</dd></div>
+        <div><dt>Intensity</dt><dd>${escapeHtml(snapshot.cue.direction.intensity)}</dd></div>
+      </dl>
+      ${statusMarkup}
+    </section>
+    <section class="branch-list">
+      <h3>Available Branches</h3>
+      <ul>${branchMarkup}</ul>
+    </section>
+    <section class="character-state-list">
+      <h3>Character State</h3>
+      <ul>${characterStates}</ul>
     </section>
     ${noteMarkup}
     <section class="mock-ai">
