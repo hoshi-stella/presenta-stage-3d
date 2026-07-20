@@ -1,4 +1,4 @@
-import type { CharacterId, CharacterRuntimeState } from "../presentation/types";
+import type { CharacterId, CharacterRuntimeState, Cue } from "../presentation/types";
 
 export type Live2DConfig = {
   modelUrl: string | null;
@@ -6,7 +6,7 @@ export type Live2DConfig = {
 };
 
 export type Live2DPresenterLayer = {
-  update: (states: CharacterRuntimeState, speaker: CharacterId) => void;
+  update: (states: CharacterRuntimeState, speaker: CharacterId, cue?: Cue) => void;
   dispose: () => void;
 };
 

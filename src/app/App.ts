@@ -45,7 +45,7 @@ export class App {
 
         this.live2dLayer = layer;
         const snapshot = runner.getSnapshot();
-        layer.update(snapshot.characterStates, snapshot.cue.speaker);
+        layer.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
       }).catch((error: unknown) => {
         runner.setStatusMessage(`Live2D presenter failed: ${getErrorMessage(error)}`);
       });
@@ -57,7 +57,7 @@ export class App {
       this.stageScene?.applySectionVisuals(snapshot.resolvedDirection.scenePreset, snapshot.resolvedDirection.camera);
       this.stageScene?.characterController.playMotion(snapshot.resolvedDirection.motion, snapshot.cue.speaker);
       this.stageScene?.characterController.applyCharacterStates(snapshot.characterStates, snapshot.cue.speaker);
-      this.live2dLayer?.update(snapshot.characterStates, snapshot.cue.speaker);
+      this.live2dLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
     });
   }
 
