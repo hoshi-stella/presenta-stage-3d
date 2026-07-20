@@ -10,6 +10,7 @@ import {
   TransformNode,
   Vector3
 } from "@babylonjs/core";
+import { GLTFFileLoader, GLTFLoaderAnimationStartMode } from "@babylonjs/loaders/glTF";
 import "@babylonjs/loaders/glTF";
 import type { CharacterId, CharacterRuntimeState } from "../presentation/types";
 import type { GlbCharacterAssetConfig } from "./modelAssetConfig";
@@ -33,6 +34,7 @@ type DummyCharacter = {
 type GlbCharacter = {
   id: CharacterId;
   root: TransformNode;
+  contentRoot: TransformNode;
   meshes: AbstractMesh[];
   basePosition: Vector3;
   motion: CharacterMotionName;
@@ -94,16 +96,27 @@ export class CharacterController {
     }
 
     try {
+      SceneLoader.OnPluginActivatedObservable.addOnce((loader) => {
+        if (loader instanceof GLTFFileLoader) {
+          loader.animationStartMode = GLTFLoaderAnimationStartMode.NONE;
+        }
+      });
       const result = await SceneLoader.ImportMeshAsync("", config.url, "", this.scene);
+      result.animationGroups.forEach((animationGroup) => {
+        animationGroup.stop();
+      });
       const root = new TransformNode(`${config.characterId}GlbRoot`, this.scene);
-      const basePosition = new Vector3(-1.04, 0.02, -0.12);
+      const contentRoot = new TransformNode(`${config.characterId}GlbContentRoot`, this.scene);
+      contentRoot.parent = root;
+      const basePosition = new Vector3(-1.04, 0, -0.12);
       root.position = basePosition.clone();
-      root.rotation = new Vector3(0, Math.PI, 0);
-      root.scaling.setAll(1.45);
+      root.rotation = new Vector3(0, 0, 0);
+      root.scaling.setAll(1.25);
+      contentRoot.rotation = new Vector3(0, 0, 0);
 
       result.meshes.forEach((mesh) => {
-        if (mesh !== root) {
-          mesh.parent = root;
+        if (mesh !== root && mesh !== contentRoot) {
+          mesh.parent = contentRoot;
           this.tuneGlbMaterial(mesh);
         }
       });
@@ -111,6 +124,7 @@ export class CharacterController {
       const glbCharacter: GlbCharacter = {
         id: config.characterId,
         root,
+        contentRoot,
         meshes: result.meshes,
         basePosition,
         motion: "idle",
@@ -246,26 +260,10 @@ export class CharacterController {
       }
     });
     this.glbCharacters.forEach((character) => {
-      const bobAmount = character.runtimeState === "speaking" ? 0.035 : 0.012;
-      character.root.position.y = character.basePosition.y + Math.sin(seconds * 2.2) * bobAmount;
-      character.root.scaling.setAll(character.runtimeState === "speaking" ? 1.52 : 1.38);
-      character.root.rotation.z = this.getGlbMotionLean(character.motion, seconds);
+      character.root.position.y = character.basePosition.y;
+      character.root.scaling.setAll(character.runtimeState === "speaking" ? 1.26 : 1.22);
+      character.contentRoot.rotation.z = 0;
     });
-  }
-
-  private getGlbMotionLean(motion: CharacterMotionName, seconds: number): number {
-    switch (motion) {
-      case "wave":
-        return Math.sin(seconds * 5) * 0.05;
-      case "think":
-        return -0.07;
-      case "point":
-        return 0.05;
-      case "present":
-        return Math.sin(seconds * 2) * 0.035;
-      case "idle":
-        return Math.sin(seconds * 1.4) * 0.018;
-    }
   }
 
   private resetPose(character: DummyCharacter): void {
