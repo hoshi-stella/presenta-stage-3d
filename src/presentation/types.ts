@@ -7,7 +7,7 @@ import type {
   StageEffectInstruction
 } from "../assets/types";
 
-export type PresentationMode = "manual" | "semiAuto" | "liveAi";
+export type PresentationMode = "manual" | "semiAuto" | "qa" | "liveAi";
 export type CueId = string;
 export type CharacterId = "rei" | "mikoto" | "dummy";
 
@@ -141,6 +141,12 @@ export type PresentationSnapshot = {
   cue: Cue;
   resolvedDirection: ResolvedDirection;
   characterStates: CharacterRuntimeState;
+  flow: {
+    isQaActive: boolean;
+    returnCueId: CueId | null;
+    returnCueLabel: string | null;
+    shortcutCommands: PresenterCommand[];
+  };
 };
 
 export type PresentationListener = (snapshot: PresentationSnapshot) => void;

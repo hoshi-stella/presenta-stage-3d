@@ -20,6 +20,7 @@ export class CueRunner {
   private statusMessage: string | null = null;
   private isPaused = false;
   private timerId: number | null = null;
+  private qaReturnCueId: CueId | null = null;
   private readonly cueIndexById = new Map<CueId, number>();
   private readonly history: number[] = [];
   private readonly listeners = new Set<PresentationListener>();
@@ -50,7 +51,13 @@ export class CueRunner {
       isPaused: this.isPaused,
       cue,
       resolvedDirection: resolveDirection(cue),
-      characterStates: this.getCharacterStates(cue.speaker)
+      characterStates: this.getCharacterStates(cue.speaker),
+      flow: {
+        isQaActive: this.mode === "qa",
+        returnCueId: this.qaReturnCueId,
+        returnCueLabel: this.getCueLabel(this.qaReturnCueId),
+        shortcutCommands: this.getShortcutCommands()
+      }
     };
   }
 
@@ -69,8 +76,20 @@ export class CueRunner {
       return this.back();
     }
 
+    if (command === "qa") {
+      return this.enterQaMode();
+    }
+
+    if (command === "return_to_script" && this.qaReturnCueId) {
+      return this.returnToScript();
+    }
+
+    if (command === "summary") {
+      return this.goToFirstCueOfKind("summary", "Summary shortcut");
+    }
+
     if (command === "skip") {
-      return this.next();
+      return this.skipAhead();
     }
 
     const currentCue = this.cues[this.index];
@@ -93,6 +112,7 @@ export class CueRunner {
     this.index = 0;
     this.mode = "manual";
     this.isPaused = false;
+    this.qaReturnCueId = null;
     this.statusMessage = null;
     this.aiMessage = null;
     this.history.length = 0;
@@ -127,6 +147,7 @@ export class CueRunner {
     this.mode = "manual";
     this.isPaused = false;
     this.aiMessage = null;
+    this.qaReturnCueId = null;
     this.statusMessage = message;
     this.history.length = 0;
     this.rebuildCueIndex();
@@ -135,16 +156,18 @@ export class CueRunner {
   }
 
   private resume(): void {
-    this.mode = "semiAuto";
+    this.mode = this.qaReturnCueId && this.cues[this.index]?.kind === "qa" ? "qa" : "semiAuto";
     this.isPaused = false;
-    this.statusMessage = "Semi-Auto Mode";
+    this.statusMessage = this.mode === "qa" ? "QA Mode" : "Semi-Auto Mode";
     this.scheduleIfNeeded();
     this.emit();
   }
 
   private pause(): void {
     this.stopTimer();
-    this.mode = "manual";
+    if (this.mode !== "qa") {
+      this.mode = "manual";
+    }
     this.isPaused = true;
     this.statusMessage = "Paused";
     this.emit();
@@ -196,14 +219,74 @@ export class CueRunner {
     return this.setIndex(targetIndex, message);
   }
 
-  private setIndex(targetIndex: number, message: string): boolean {
+  private setIndex(targetIndex: number, message: string, options: { preserveQaMode?: boolean } = {}): boolean {
     this.stopTimer();
     this.history.push(this.index);
     this.index = targetIndex;
+    if (!options.preserveQaMode && this.mode === "qa") {
+      this.mode = "manual";
+      this.qaReturnCueId = null;
+    }
     this.statusMessage = message;
     this.scheduleIfNeeded();
     this.emit();
     return true;
+  }
+
+  private enterQaMode(): boolean {
+    const qaIndex = this.cues.findIndex((cue) => cue.kind === "qa");
+    if (qaIndex === -1) {
+      this.statusMessage = "QA cue is not available.";
+      this.emit();
+      return false;
+    }
+
+    this.stopTimer();
+    this.qaReturnCueId = this.findReturnCueId();
+    this.history.push(this.index);
+    this.index = qaIndex;
+    this.mode = "qa";
+    this.isPaused = false;
+    this.statusMessage = `QA Mode: return target is ${this.qaReturnCueId ?? "not set"}.`;
+    this.emit();
+    return true;
+  }
+
+  private returnToScript(): boolean {
+    if (!this.qaReturnCueId) {
+      this.statusMessage = "Return target is not set.";
+      this.emit();
+      return false;
+    }
+
+    const returnCueId = this.qaReturnCueId;
+    this.qaReturnCueId = null;
+    this.mode = "manual";
+    return this.goToCue(returnCueId, "Returned to script");
+  }
+
+  private skipAhead(): boolean {
+    if (this.mode === "qa" && this.qaReturnCueId) {
+      return this.returnToScript();
+    }
+
+    const summaryIndex = this.cues.findIndex((cue, cueIndex) => cueIndex > this.index && cue.kind === "summary");
+    if (summaryIndex !== -1) {
+      return this.setIndex(summaryIndex, "Skip to summary");
+    }
+
+    return this.next();
+  }
+
+  private goToFirstCueOfKind(kind: Cue["kind"], message: string): boolean {
+    const targetIndex = this.cues.findIndex((cue) => cue.kind === kind);
+    if (targetIndex === -1) {
+      this.statusMessage = `${kind} cue is not available.`;
+      this.emit();
+      return false;
+    }
+
+    return this.setIndex(targetIndex, message);
   }
 
   private scheduleIfNeeded(): void {
@@ -236,6 +319,42 @@ export class CueRunner {
     this.cues.forEach((cue, cueIndex) => {
       this.cueIndexById.set(cue.id, cueIndex);
     });
+  }
+
+  private findReturnCueId(): CueId | null {
+    return this.cues[this.index]?.id ?? null;
+  }
+
+  private getCueLabel(cueId: CueId | null): string | null {
+    if (!cueId) {
+      return null;
+    }
+
+    const cueIndex = this.cueIndexById.get(cueId);
+    if (cueIndex === undefined) {
+      return cueId;
+    }
+
+    const cue = this.cues[cueIndex];
+    return `${cue.id} / ${cue.kind}`;
+  }
+
+  private getShortcutCommands(): PresenterCommand[] {
+    const commands: PresenterCommand[] = [];
+    if (this.cues.some((cue) => cue.kind === "qa")) {
+      commands.push("qa");
+    }
+
+    if (this.qaReturnCueId) {
+      commands.push("return_to_script");
+    }
+
+    if (this.cues.some((cue) => cue.kind === "summary")) {
+      commands.push("summary");
+    }
+
+    commands.push("skip");
+    return commands;
   }
 
   private getCharacterStates(speaker: CharacterId): CharacterRuntimeState {
