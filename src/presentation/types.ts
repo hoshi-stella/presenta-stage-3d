@@ -1,6 +1,11 @@
 import type { CameraPresetName, ScenePresetName } from "../scene/presets";
 import type { CharacterMotionName } from "../scene/characterController";
-import type { PresentationObjectAction, PresentationObjectInstruction, StageEffectInstruction } from "../assets/types";
+import type {
+  AssetSelectionRejection,
+  PresentationObjectAction,
+  PresentationObjectInstruction,
+  StageEffectInstruction
+} from "../assets/types";
 
 export type PresentationMode = "manual" | "semiAuto" | "liveAi";
 export type CueId = string;
@@ -109,6 +114,7 @@ export type ResolvedDirection = {
     presetId: string | null;
     effectIds: string[];
     reason: string;
+    rejected: AssetSelectionRejection[];
   };
 };
 

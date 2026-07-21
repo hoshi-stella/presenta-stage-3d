@@ -21,6 +21,11 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
   const resolvedEffects = snapshot.resolvedDirection.effects.length > 0
     ? snapshot.resolvedDirection.effects.map((effect) => `<li>${escapeHtml(effect.id)} <span>${escapeHtml(effect.kind)}</span></li>`).join("")
     : "<li>No effects</li>";
+  const rejectedAssets = snapshot.resolvedDirection.assetDebug.rejected.length > 0
+    ? snapshot.resolvedDirection.assetDebug.rejected
+      .map((rejection) => `<li>${escapeHtml(rejection.assetId)} <span>${escapeHtml(rejection.reason)}</span></li>`)
+      .join("")
+    : "<li>No rejected candidates</li>";
   const object = snapshot.resolvedDirection.object;
   const objectMarkup = object
     ? `
@@ -69,6 +74,8 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
         <div><dt>Reason</dt><dd>${escapeHtml(snapshot.resolvedDirection.assetDebug.reason)}</dd></div>
       </dl>
       <ul>${resolvedEffects}</ul>
+      <h3>Rejected Assets</h3>
+      <ul>${rejectedAssets}</ul>
     </section>
     ${objectMarkup}
     ${noteMarkup}

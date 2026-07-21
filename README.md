@@ -43,6 +43,8 @@ The app resolves these semantic IDs through `AssetCatalog` into safe stage instr
 
 Local image/model files remain under `public/assets-local/**` and are ignored by Git. The committed catalog stores only reusable IDs, labels, tags, compatibility, duration, intensity, and simple renderer parameters. This keeps the same command layer usable later from OpenAI Realtime tool calls without letting AI directly control Babylon.js, DOM, or asset file paths.
 
+Direction asset selection starts from semantic AI output such as `intent`, `emotion`, `intensity`, and the active `speaker`. `selectDirectionAssets()` filters registered presets/effects by intent, compatible characters, cooldown metadata, and conflicts, then returns both the selected assets and rejected candidate reasons for debugging.
+
 ## AI Script Generation Contract
 
 Phase 3 の台本・掛け合い生成は `src/ai/scriptGenerationContract.ts` の型を境界にします。入力は発表タイトル、対象者、ゴール、登場スピーカー、アウトライン、制約を渡します。出力は実行済みの `Cue` ではなく、`AiGeneratedCueDraft` と `AiGeneratedBranchDraft` のドラフトです。
