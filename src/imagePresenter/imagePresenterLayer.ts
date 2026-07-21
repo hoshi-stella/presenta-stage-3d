@@ -18,15 +18,15 @@ export type ImagePresenterLayer = {
 };
 
 const imageFiles: Record<ImageExpression, string> = {
-  neutral: "airi_manju_neutral.png",
-  smile: "airi_manju_smile.png",
-  thinking: "airi_manju_thinking.png",
-  troubled: "airi_manju_troubled.png",
-  surprised: "airi_manju_surprised.png",
-  unimpressed: "airi_manju_unimpressed.png",
-  angry: "airi_manju_angry.png",
-  eyesClosed: "airi_manju_eyes_closed.png",
-  speaking: "airi_manju_speaking.png"
+  neutral: "neutral.png",
+  smile: "smile.png",
+  thinking: "thinking.png",
+  troubled: "troubled.png",
+  surprised: "surprised.png",
+  unimpressed: "unimpressed.png",
+  angry: "angry.png",
+  eyesClosed: "eyes-closed.png",
+  speaking: "speaking.png"
 };
 
 export function createImagePresenterLayer(
