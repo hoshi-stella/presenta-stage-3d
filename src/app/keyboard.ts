@@ -7,6 +7,22 @@ export function bindKeyboardControls(controls: PresentationControls): () => void
       return;
     }
 
+    const key = event.key.toLowerCase();
+
+    if (controls.isCreditsVisible()) {
+      if (key === "c") {
+        event.preventDefault();
+        controls.showCredits("crawl");
+      }
+
+      if (key === "v") {
+        event.preventDefault();
+        controls.showCredits("spiral");
+      }
+
+      return;
+    }
+
     if (event.code === "ArrowRight" || event.code === "Space") {
       event.preventDefault();
       controls.command("next");
@@ -17,7 +33,7 @@ export function bindKeyboardControls(controls: PresentationControls): () => void
       controls.command("back");
     }
 
-    if (event.key.toLowerCase() === "p") {
+    if (key === "p") {
       controls.togglePause();
     }
 
@@ -37,31 +53,31 @@ export function bindKeyboardControls(controls: PresentationControls): () => void
       controls.command("summary");
     }
 
-    if (event.key.toLowerCase() === "q") {
+    if (key === "q") {
       controls.command("qa");
     }
 
-    if (event.key.toLowerCase() === "w") {
+    if (key === "w") {
       controls.command("return_to_script");
     }
 
-    if (event.key.toLowerCase() === "s") {
+    if (key === "s") {
       controls.command("skip");
     }
 
-    if (event.key.toLowerCase() === "r") {
+    if (key === "r") {
       controls.reset();
     }
 
-    if (event.key.toLowerCase() === "n") {
+    if (key === "n") {
       controls.toggleNote();
     }
 
-    if (event.key.toLowerCase() === "c") {
+    if (key === "c") {
       controls.showCredits("crawl");
     }
 
-    if (event.key.toLowerCase() === "v") {
+    if (key === "v") {
       controls.showCredits("spiral");
     }
   };

@@ -26,7 +26,7 @@ export class App {
     const aiClient = new MockAiClient();
     const controls = createControls(runner, aiClient, (variant) => {
       this.endingCredits?.show(variant);
-    });
+    }, () => this.endingCredits?.isVisible() ?? false);
     const ui = createUiRenderer(this.root, {
       onCommand: controls.command,
       onReset: controls.reset,

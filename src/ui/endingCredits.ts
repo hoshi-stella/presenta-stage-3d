@@ -3,6 +3,7 @@ export type EndingCreditsVariant = "crawl" | "spiral";
 export type EndingCreditsOverlay = {
   show: (variant: EndingCreditsVariant) => void;
   hide: () => void;
+  isVisible: () => boolean;
   dispose: () => void;
 };
 
@@ -55,7 +56,10 @@ export function createEndingCreditsOverlay(root: HTMLElement): EndingCreditsOver
   overlay.setAttribute("aria-hidden", "true");
   root.appendChild(overlay);
 
+  let isVisible = false;
+
   const hide = (): void => {
+    isVisible = false;
     overlay.className = "ending-credits";
     overlay.setAttribute("aria-hidden", "true");
     overlay.innerHTML = "";
@@ -77,12 +81,15 @@ export function createEndingCreditsOverlay(root: HTMLElement): EndingCreditsOver
 
   return {
     show: (variant) => {
+      isVisible = true;
       overlay.className = `ending-credits ending-credits--visible ending-credits--${variant}`;
       overlay.setAttribute("aria-hidden", "false");
       overlay.innerHTML = variant === "crawl" ? renderCrawlCredits() : renderSpiralCredits();
     },
     hide,
+    isVisible: () => isVisible,
     dispose: () => {
+      isVisible = false;
       window.removeEventListener("keydown", handleKeyDown);
       overlay.removeEventListener("click", handleClick);
       overlay.remove();
