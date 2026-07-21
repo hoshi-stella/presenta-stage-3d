@@ -57,7 +57,9 @@ export const cues: Cue[] = [
     stage: {
       preset: "deepDive",
       camera: "medium",
-      motion: "present"
+      motion: "present",
+      objectRef: "browser_architecture",
+      objectAction: "show"
     },
     after: {
       mode: "branch_available",
@@ -95,7 +97,10 @@ export const cues: Cue[] = [
     stage: {
       preset: "idea",
       camera: "medium",
-      motion: "point"
+      motion: "point",
+      objectRef: "browser_architecture",
+      objectAction: "highlight_part",
+      objectPartId: "dom"
     },
     after: {
       mode: "wait_for_presenter",
@@ -122,7 +127,10 @@ export const cues: Cue[] = [
     stage: {
       preset: "demo",
       camera: "side",
-      motion: "point"
+      motion: "point",
+      objectRef: "browser_architecture",
+      objectAction: "explode",
+      objectPartId: "webgl"
     },
     after: {
       mode: "wait_for_presenter",
@@ -149,7 +157,10 @@ export const cues: Cue[] = [
     stage: {
       preset: "summary",
       camera: "wide",
-      motion: "present"
+      motion: "present",
+      objectRef: "browser_architecture",
+      objectAction: "rotate",
+      objectPartId: "gpu"
     },
     after: {
       mode: "auto_next",
@@ -193,6 +204,10 @@ export const cues: Cue[] = [
       intent: "summary",
       emotion: "calm",
       intensity: "medium"
+    },
+    stage: {
+      objectRef: "browser_architecture",
+      objectAction: "hide"
     },
     after: {
       mode: "wait_for_presenter",

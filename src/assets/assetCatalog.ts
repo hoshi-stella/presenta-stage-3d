@@ -1,5 +1,13 @@
 import { directionEffectAssets, directionPresets } from "./directionAssets";
-import type { DirectionEffectAsset, DirectionPresetAsset, StageEffectInstruction } from "./types";
+import { presentationObjectAssets } from "./presentationObjects";
+import type {
+  DirectionEffectAsset,
+  DirectionPresetAsset,
+  PresentationObjectAction,
+  PresentationObjectAsset,
+  PresentationObjectInstruction,
+  StageEffectInstruction
+} from "./types";
 import type { Cue, DirectionIntent, DirectionIntensity } from "../presentation/types";
 
 export type DirectionAssetResolution = {
@@ -14,6 +22,7 @@ export type DirectionAssetResolution = {
 
 const directionPresetById = new Map(directionPresets.map((preset) => [preset.id, preset]));
 const directionEffectById = new Map(directionEffectAssets.map((effect) => [effect.id, effect]));
+const presentationObjectById = new Map(presentationObjectAssets.map((object) => [object.id, object]));
 
 export function resolveDirectionAssets(cue: Cue): DirectionAssetResolution {
   const explicitPreset = cue.stage?.directionPreset
@@ -41,6 +50,30 @@ export function resolveDirectionAssets(cue: Cue): DirectionAssetResolution {
 
 export function getDirectionPreset(presetId: string): DirectionPresetAsset | null {
   return directionPresetById.get(presetId) ?? null;
+}
+
+export function resolvePresentationObject(cue: Cue): PresentationObjectInstruction | null {
+  const objectRef = cue.stage?.objectRef;
+  if (!objectRef) {
+    return null;
+  }
+
+  const object = presentationObjectById.get(objectRef);
+  if (!object) {
+    return null;
+  }
+
+  const action = cue.stage?.objectAction ?? "show";
+  const activePartId = resolveObjectPart(object, cue.stage?.objectPartId);
+
+  return {
+    objectId: object.id,
+    label: object.label,
+    action,
+    activePartId,
+    capabilities: object.capabilities,
+    parts: object.parts
+  };
 }
 
 function selectDirectionPreset(intent: DirectionIntent, intensity: DirectionIntensity): DirectionPresetAsset | null {
@@ -76,3 +109,13 @@ function scaleCount(count: number, intensity: DirectionIntensity): number {
       return count;
   }
 }
+
+function resolveObjectPart(object: PresentationObjectAsset, partId: string | undefined): string | null {
+  if (!partId) {
+    return null;
+  }
+
+  return object.parts.some((part) => part.id === partId) ? partId : null;
+}
+
+export type { PresentationObjectAction };

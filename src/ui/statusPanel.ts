@@ -21,6 +21,19 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
   const resolvedEffects = snapshot.resolvedDirection.effects.length > 0
     ? snapshot.resolvedDirection.effects.map((effect) => `<li>${escapeHtml(effect.id)} <span>${escapeHtml(effect.kind)}</span></li>`).join("")
     : "<li>No effects</li>";
+  const object = snapshot.resolvedDirection.object;
+  const objectMarkup = object
+    ? `
+      <section class="presentation-object-state">
+        <h3>Presentation Object</h3>
+        <dl class="cue-details">
+          <div><dt>ID</dt><dd>${escapeHtml(object.objectId)}</dd></div>
+          <div><dt>Action</dt><dd>${escapeHtml(object.action)}</dd></div>
+          <div><dt>Part</dt><dd>${escapeHtml(object.activePartId ?? "all")}</dd></div>
+        </dl>
+      </section>
+    `
+    : "";
 
   return `
     <div class="section-meta">
@@ -57,6 +70,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       </dl>
       <ul>${resolvedEffects}</ul>
     </section>
+    ${objectMarkup}
     ${noteMarkup}
     <section class="mock-ai">
       <h3>Mock AI</h3>

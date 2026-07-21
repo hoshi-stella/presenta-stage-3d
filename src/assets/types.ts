@@ -73,3 +73,42 @@ export type StageEffectInstruction = {
   intensity: DirectionIntensity;
   durationMs: number;
 };
+
+export type ObjectCapability =
+  | "show"
+  | "hide"
+  | "rotate"
+  | "highlight_part"
+  | "focus_part"
+  | "explode";
+
+export type PresentationObjectPart = {
+  id: string;
+  label: string;
+  tags: string[];
+  color: string;
+};
+
+export type PresentationObjectAsset = AssetMetadata & {
+  type: "object";
+  format: "procedural" | "glb";
+  capabilities: ObjectCapability[];
+  parts: PresentationObjectPart[];
+};
+
+export type PresentationObjectAction =
+  | "show"
+  | "hide"
+  | "rotate"
+  | "highlight_part"
+  | "focus_part"
+  | "explode";
+
+export type PresentationObjectInstruction = {
+  objectId: string;
+  label: string;
+  action: PresentationObjectAction;
+  activePartId: string | null;
+  capabilities: ObjectCapability[];
+  parts: PresentationObjectPart[];
+};
