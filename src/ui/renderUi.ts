@@ -8,6 +8,7 @@ export type UiHandlers = {
   onReset: () => void;
   onToggleNote: () => void;
   onShowCredits: (variant: EndingCreditsVariant) => void;
+  onLoadSampleScript: () => void;
   onAskMockAi: (text: string) => void;
 };
 
@@ -37,6 +38,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
           <button data-command="pause" type="button">Pause</button>
           <button id="reset-button" type="button">Reset</button>
           <button id="note-button" type="button">Toggle Speaker Note</button>
+          <button id="sample-script-button" type="button">Load Sample Script</button>
           <button data-credits="crawl" type="button">Credits Crawl</button>
           <button data-credits="spiral" type="button">Credits Spiral</button>
         </nav>
@@ -55,6 +57,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   });
   root.querySelector("#reset-button")?.addEventListener("click", handlers.onReset);
   root.querySelector("#note-button")?.addEventListener("click", handlers.onToggleNote);
+  root.querySelector("#sample-script-button")?.addEventListener("click", handlers.onLoadSampleScript);
 
   return {
     update: (snapshot) => {

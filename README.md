@@ -58,6 +58,20 @@ AI はモーション名、カメラ名、シーンプリセット名、GLB/VRM/
 
 固定レスポンスの `MockScriptGenerator` は `src/ai/mockScriptGenerator.ts` にあります。サンプル入出力は `examples/ai/script-generation-input.json` と `examples/ai/script-generation-output.json` を参照してください。
 
+## Presentation Object Assets
+
+3D explanation objects are also text-managed assets. The first procedural object is `browser_architecture`, a dummy browser structure with `dom`, `javascript`, `webgl`, and `gpu` parts.
+
+```ts
+stage: {
+  objectRef: "browser_architecture",
+  objectAction: "highlight_part",
+  objectPartId: "webgl"
+}
+```
+
+Supported object actions are `show`, `hide`, `rotate`, `highlight_part`, `focus_part`, and `explode`. The current implementation uses Babylon.js primitives as a prototype, so no GLB object assets are committed.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next

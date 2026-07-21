@@ -24,14 +24,12 @@ export class CueRunner {
   private readonly history: number[] = [];
   private readonly listeners = new Set<PresentationListener>();
 
-  constructor(private readonly cues: Cue[]) {
+  constructor(private cues: Cue[]) {
     if (cues.length === 0) {
       throw new Error("CueRunner requires at least one cue.");
     }
 
-    cues.forEach((cue, cueIndex) => {
-      this.cueIndexById.set(cue.id, cueIndex);
-    });
+    this.rebuildCueIndex();
   }
 
   subscribe(listener: PresentationListener): () => void {
@@ -114,6 +112,26 @@ export class CueRunner {
   setStatusMessage(message: string | null): void {
     this.statusMessage = message;
     this.emit();
+  }
+
+  loadCues(cues: Cue[], message = "Loaded generated cues"): boolean {
+    if (cues.length === 0) {
+      this.statusMessage = "Cue generation failed: no playable cues.";
+      this.emit();
+      return false;
+    }
+
+    this.stopTimer();
+    this.cues = cues;
+    this.index = 0;
+    this.mode = "manual";
+    this.isPaused = false;
+    this.aiMessage = null;
+    this.statusMessage = message;
+    this.history.length = 0;
+    this.rebuildCueIndex();
+    this.emit();
+    return true;
   }
 
   private resume(): void {
@@ -211,6 +229,13 @@ export class CueRunner {
 
     window.clearTimeout(this.timerId);
     this.timerId = null;
+  }
+
+  private rebuildCueIndex(): void {
+    this.cueIndexById.clear();
+    this.cues.forEach((cue, cueIndex) => {
+      this.cueIndexById.set(cue.id, cueIndex);
+    });
   }
 
   private getCharacterStates(speaker: CharacterId): CharacterRuntimeState {

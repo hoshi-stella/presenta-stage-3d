@@ -10,7 +10,9 @@ import { CameraController } from "./cameraController";
 import { CharacterController } from "./characterController";
 import { EffectsController } from "./effectsController";
 import { getGlbCharacterAssets } from "./modelAssetConfig";
+import { PresentationObjectController } from "./presentationObjectController";
 import { createStage } from "./stage";
+import type { PresentationObjectInstruction } from "../assets/types";
 import type { StageEffectInstruction } from "../assets/types";
 import type { CameraPresetName, ScenePresetName } from "./presets";
 
@@ -19,6 +21,7 @@ export type StageScene = {
   scene: Scene;
   characterController: CharacterController;
   applySectionVisuals: (preset: ScenePresetName, camera: CameraPresetName, effects?: StageEffectInstruction[]) => void;
+  applyPresentationObject: (instruction: PresentationObjectInstruction | null) => void;
   dispose: () => void;
 };
 
@@ -42,6 +45,7 @@ export function createStageScene(canvas: HTMLCanvasElement): StageScene {
   const characterController = new CharacterController(scene);
   void characterController.loadGlbCharacters(getGlbCharacterAssets());
   const effectsController = new EffectsController(scene, keyLight, stage);
+  const presentationObjectController = new PresentationObjectController(scene);
   effectsController.applyPreset("intro");
 
   engine.runRenderLoop(() => {
@@ -61,6 +65,9 @@ export function createStageScene(canvas: HTMLCanvasElement): StageScene {
       effectsController.applyPreset(preset);
       effectsController.applyDirectionEffects(effects);
       cameraController.applyPreset(camera);
+    },
+    applyPresentationObject: (instruction) => {
+      presentationObjectController.applyInstruction(instruction);
     },
     dispose: () => {
       window.removeEventListener("resize", handleResize);
