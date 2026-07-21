@@ -2,7 +2,13 @@ import type { CharacterId, PresentationSnapshot } from "../presentation/types";
 import { getCharacterInstance } from "../scene/characterRegistry";
 
 export function renderStatusPanel(snapshot: PresentationSnapshot): string {
-  const modeLabel = snapshot.mode === "liveAi" ? "Live AI Mode (stub)" : snapshot.mode === "semiAuto" ? "Semi-Auto Mode" : "Manual Mode";
+  const modeLabel = snapshot.mode === "liveAi"
+    ? "Live AI Mode (stub)"
+    : snapshot.mode === "qa"
+      ? "QA Mode"
+      : snapshot.mode === "semiAuto"
+        ? "Semi-Auto Mode"
+        : "Manual Mode";
   const noteMarkup = snapshot.showSpeakerNote
     ? `<section class="speaker-note"><h3>Speaker Note</h3><p>${escapeHtml(snapshot.cue.note ?? "No note")}</p></section>`
     : "";
@@ -39,6 +45,18 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       </section>
     `
     : "";
+  const flowMarkup = `
+    <section class="flow-state">
+      <h3>Flow State</h3>
+      <dl class="cue-details">
+        <div><dt>QA</dt><dd>${snapshot.flow.isQaActive ? "active" : "inactive"}</dd></div>
+        <div><dt>Return</dt><dd>${escapeHtml(snapshot.flow.returnCueLabel ?? "not set")}</dd></div>
+      </dl>
+      <ul>
+        ${snapshot.flow.shortcutCommands.map((command) => `<li>${escapeHtml(command)}</li>`).join("")}
+      </ul>
+    </section>
+  `;
 
   return `
     <div class="section-meta">
@@ -63,6 +81,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <h3>Available Branches</h3>
       <ul>${branchMarkup}</ul>
     </section>
+    ${flowMarkup}
     <section class="character-state-list">
       <h3>Character State</h3>
       <ul>${characterStates}</ul>

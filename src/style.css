@@ -201,6 +201,7 @@ h3 {
 
 .character-line,
 .branch-list,
+.flow-state,
 .character-state-list,
 .direction-asset-list,
 .presentation-object-state,
@@ -254,6 +255,7 @@ h3 {
 }
 
 .branch-list ul,
+.flow-state ul,
 .character-state-list ul,
 .direction-asset-list ul {
   display: grid;
@@ -264,6 +266,7 @@ h3 {
 }
 
 .branch-list li,
+.flow-state li,
 .character-state-list li,
 .direction-asset-list li {
   display: grid;

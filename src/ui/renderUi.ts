@@ -34,7 +34,10 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
           <button data-command="next" type="button" class="primary">Next</button>
           <button data-command="supplement" type="button">Supplement</button>
           <button data-command="tsukkomi" type="button">Tsukkomi</button>
+          <button data-command="qa" type="button">QA Mode</button>
+          <button data-command="summary" type="button">Summary</button>
           <button data-command="return_to_script" type="button">Return</button>
+          <button data-command="skip" type="button">Skip</button>
           <button data-command="pause" type="button">Pause</button>
           <button id="reset-button" type="button">Reset</button>
           <button id="note-button" type="button">Toggle Speaker Note</button>
