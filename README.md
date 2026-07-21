@@ -43,6 +43,21 @@ The app resolves these semantic IDs through `AssetCatalog` into safe stage instr
 
 Local image/model files remain under `public/assets-local/**` and are ignored by Git. The committed catalog stores only reusable IDs, labels, tags, compatibility, duration, intensity, and simple renderer parameters. This keeps the same command layer usable later from OpenAI Realtime tool calls without letting AI directly control Babylon.js, DOM, or asset file paths.
 
+## AI Script Generation Contract
+
+Phase 3 の台本・掛け合い生成は `src/ai/scriptGenerationContract.ts` の型を境界にします。入力は発表タイトル、対象者、ゴール、登場スピーカー、アウトライン、制約を渡します。出力は実行済みの `Cue` ではなく、`AiGeneratedCueDraft` と `AiGeneratedBranchDraft` のドラフトです。
+
+AI が返してよい情報は意味情報に限定します。
+
+- `Cue` 相当の `id`, `kind`, `text`, `note`
+- `speaker`
+- `direction.intent`, `direction.emotion`, `direction.intensity`
+- 発表者が選べる `Branch`
+
+AI はモーション名、カメラ名、シーンプリセット名、GLB/VRM/Live2D/音声などのファイル名、DOM 操作、Babylon.js API 呼び出しを返しません。実際の `motion`, `camera`, `preset`, `effects`, asset path はシステム側の resolver/catalog が意味情報から選択します。
+
+固定レスポンスの `MockScriptGenerator` は `src/ai/mockScriptGenerator.ts` にあります。サンプル入出力は `examples/ai/script-generation-input.json` と `examples/ai/script-generation-output.json` を参照してください。
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next

@@ -5,7 +5,6 @@ export class MockAiClient implements AiClient {
     return {
       text: `Mock AI: ${input.currentCueId} の文脈で「${input.userText}」を受け取りました。`,
       action: "speak",
-      suggestedMotion: "present",
       suggestedDirection: {
         intent: "supplement",
         emotion: "calm",

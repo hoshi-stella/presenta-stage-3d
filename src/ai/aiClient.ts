@@ -1,4 +1,3 @@
-import type { CharacterMotionName } from "../scene/characterController";
 import type { DirectionIntent, DirectionIntensity } from "../presentation/types";
 
 export type AiDirectionIntent = {
@@ -10,7 +9,6 @@ export type AiDirectionIntent = {
 export type AiResponse = {
   text: string;
   action?: "speak" | "nod" | "point" | "none";
-  suggestedMotion?: CharacterMotionName;
   suggestedDirection?: AiDirectionIntent;
 };
 

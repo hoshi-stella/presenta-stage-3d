@@ -1,0 +1,37 @@
+{
+  "presentation": {
+    "title": "3D登壇UIのAI台本設計",
+    "audience": "Web UIとAI機能を設計する開発者",
+    "goal": "AIが返すべき意味情報と、システム側が解決する実行情報を分ける",
+    "language": "ja",
+    "durationMinutes": 5
+  },
+  "speakers": [
+    {
+      "id": "rei",
+      "role": "main",
+      "persona": "落ち着いて設計方針を説明するメイン登壇者"
+    },
+    {
+      "id": "mikoto",
+      "role": "cohost",
+      "persona": "実装上のリスクを質問する掛け合い役"
+    }
+  ],
+  "outline": [
+    {
+      "id": "semantic_contract",
+      "title": "AIは意味だけを返す",
+      "keyPoints": [
+        "Cue、Speaker、DirectionIntent、Branch を返す",
+        "モーション名、カメラ名、ファイル名は返さない",
+        "発表者が分岐を選べる状態を維持する"
+      ]
+    }
+  ],
+  "constraints": {
+    "maxCues": 8,
+    "allowBranches": true,
+    "presenterControlRequired": true
+  }
+}
