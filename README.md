@@ -165,3 +165,15 @@ If the Live2D Core or model is missing, the app falls back to the Babylon.js dum
 - 観客質問へのリアルタイム回答
 - 観客反応に応じた演出調整
 - 半自律進行
+- 発表後 Archive / Re-Talk View
+
+## Archive / Re-Talk View
+
+Phase 4では、発表後にCue単位で読み直し、セクション単位でもう一度説明してもらう体験を別モードとして扱います。詳細方針は `docs/archive-retalk/phase-4-archive-retalk-view.md` にまとめています。
+
+静的モックは次のURLで表示できます。
+
+```txt
+/?view=archive-retalk
+/#archive-retalk
+```
