@@ -6,6 +6,8 @@ import { createUiRenderer, getStageCanvas } from "../ui/renderUi";
 import { getLive2DConfig } from "../live2d/config";
 import { createLive2DPresenterLayer } from "../live2d/live2dPresenterLayer";
 import type { Live2DPresenterLayer } from "../live2d/types";
+import { getAiriManjuConfig } from "../imagePresenter/config";
+import { createImagePresenterLayer, type ImagePresenterLayer } from "../imagePresenter/imagePresenterLayer";
 import { createEndingCreditsOverlay, type EndingCreditsOverlay } from "../ui/endingCredits";
 import { createControls } from "./controls";
 import { bindKeyboardControls } from "./keyboard";
@@ -13,6 +15,7 @@ import { bindKeyboardControls } from "./keyboard";
 export class App {
   private stageScene: StageScene | null = null;
   private live2dLayer: Live2DPresenterLayer | null = null;
+  private imagePresenterLayer: ImagePresenterLayer | null = null;
   private endingCredits: EndingCreditsOverlay | null = null;
   private unbindKeyboard: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
@@ -56,6 +59,12 @@ export class App {
         runner.setStatusMessage(`Live2D presenter failed: ${getErrorMessage(error)}`);
       });
     }
+    const imagePresenterHost = this.root.querySelector<HTMLElement>("#image-presenter-host");
+    if (imagePresenterHost) {
+      this.imagePresenterLayer = createImagePresenterLayer(imagePresenterHost, getAiriManjuConfig(), (message) => {
+        runner.setStatusMessage(message);
+      });
+    }
 
     this.unbindKeyboard = bindKeyboardControls(controls);
     this.unsubscribeState = runner.subscribe((snapshot) => {
@@ -64,6 +73,7 @@ export class App {
       this.stageScene?.characterController.playMotion(snapshot.resolvedDirection.motion, snapshot.cue.speaker);
       this.stageScene?.characterController.applyCharacterStates(snapshot.characterStates, snapshot.cue.speaker);
       this.live2dLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
+      this.imagePresenterLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
     });
   }
 
@@ -72,6 +82,7 @@ export class App {
     this.unbindKeyboard?.();
     this.unsubscribeState?.();
     this.live2dLayer?.dispose();
+    this.imagePresenterLayer?.dispose();
     this.endingCredits?.dispose();
     this.stageScene?.dispose();
   }

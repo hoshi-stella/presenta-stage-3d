@@ -99,6 +99,30 @@ input {
   height: 100%;
 }
 
+.image-presenter-host {
+  position: absolute;
+  right: clamp(18px, 3vw, 46px);
+  bottom: clamp(18px, 4vh, 52px);
+  z-index: 2;
+  width: clamp(128px, 18vw, 260px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  filter:
+    drop-shadow(0 18px 24px rgba(0, 0, 0, 0.36))
+    drop-shadow(0 0 18px rgba(147, 229, 255, 0.16));
+}
+
+.image-presenter-host--hidden {
+  display: none;
+}
+
+.image-presenter {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .stage-overlay {
   position: absolute;
   inset: 24px;
@@ -568,6 +592,12 @@ h3 {
 
   .stage-text {
     font-size: 24px;
+  }
+
+  .image-presenter-host {
+    right: 12px;
+    bottom: 12px;
+    width: clamp(96px, 30vw, 150px);
   }
 
   .character-line p {
