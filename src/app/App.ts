@@ -76,6 +76,7 @@ export class App {
       );
       this.stageScene?.characterController.playMotion(snapshot.resolvedDirection.motion, snapshot.cue.speaker);
       this.stageScene?.characterController.applyCharacterStates(snapshot.characterStates, snapshot.cue.speaker);
+      this.stageScene?.applyPresentationObject(snapshot.resolvedDirection.object);
       this.live2dLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
       this.imagePresenterLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
     });

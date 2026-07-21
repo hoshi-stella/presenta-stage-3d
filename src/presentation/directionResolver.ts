@@ -1,4 +1,4 @@
-import { resolveDirectionAssets } from "../assets/assetCatalog";
+import { resolveDirectionAssets, resolvePresentationObject } from "../assets/assetCatalog";
 import type { Cue, ResolvedDirection } from "./types";
 
 export function resolveDirection(cue: Cue): ResolvedDirection {
@@ -12,6 +12,7 @@ export function resolveDirection(cue: Cue): ResolvedDirection {
     scenePreset: cue.stage?.preset ?? preset?.scenePreset ?? baseDirection.scenePreset,
     directionPresetId: preset?.id ?? null,
     effects: assetResolution.effects,
+    object: resolvePresentationObject(cue),
     assetDebug: assetResolution.debug
   };
 }

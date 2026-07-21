@@ -43,6 +43,20 @@ The app resolves these semantic IDs through `AssetCatalog` into safe stage instr
 
 Local image/model files remain under `public/assets-local/**` and are ignored by Git. The committed catalog stores only reusable IDs, labels, tags, compatibility, duration, intensity, and simple renderer parameters. This keeps the same command layer usable later from OpenAI Realtime tool calls without letting AI directly control Babylon.js, DOM, or asset file paths.
 
+## Presentation Object Assets
+
+3D explanation objects are also text-managed assets. The first procedural object is `browser_architecture`, a dummy browser structure with `dom`, `javascript`, `webgl`, and `gpu` parts.
+
+```ts
+stage: {
+  objectRef: "browser_architecture",
+  objectAction: "highlight_part",
+  objectPartId: "webgl"
+}
+```
+
+Supported object actions are `show`, `hide`, `rotate`, `highlight_part`, `focus_part`, and `explode`. The current implementation uses Babylon.js primitives as a prototype, so no GLB object assets are committed.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next
