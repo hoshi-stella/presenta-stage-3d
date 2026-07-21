@@ -1,6 +1,8 @@
 import { directionEffectAssets, directionPresets } from "./directionAssets";
 import { presentationObjectAssets } from "./presentationObjects";
 import type {
+  AssetMetadata,
+  AssetSelectionRejection,
   DirectionEffectAsset,
   DirectionPresetAsset,
   PresentationObjectAction,
@@ -8,7 +10,18 @@ import type {
   PresentationObjectInstruction,
   StageEffectInstruction
 } from "./types";
-import type { Cue, DirectionIntent, DirectionIntensity } from "../presentation/types";
+import type { CharacterId, Cue, DirectionIntent, DirectionIntensity } from "../presentation/types";
+
+export type DirectionAssetSelectionInput = {
+  intent: DirectionIntent;
+  emotion?: string;
+  intensity: DirectionIntensity;
+  speaker: CharacterId;
+  explicitPresetId?: string;
+  explicitEffectIds?: string[];
+  recentlyUsedAssetIds?: Record<string, number>;
+  nowMs?: number;
+};
 
 export type DirectionAssetResolution = {
   preset: DirectionPresetAsset | null;
@@ -17,6 +30,7 @@ export type DirectionAssetResolution = {
     presetId: string | null;
     effectIds: string[];
     reason: string;
+    rejected: AssetSelectionRejection[];
   };
 };
 
@@ -25,17 +39,45 @@ const directionEffectById = new Map(directionEffectAssets.map((effect) => [effec
 const presentationObjectById = new Map(presentationObjectAssets.map((object) => [object.id, object]));
 
 export function resolveDirectionAssets(cue: Cue): DirectionAssetResolution {
-  const explicitPreset = cue.stage?.directionPreset
-    ? directionPresetById.get(cue.stage.directionPreset) ?? null
+  return selectDirectionAssets({
+    ...cue.direction,
+    speaker: cue.speaker,
+    explicitPresetId: cue.stage?.directionPreset,
+    explicitEffectIds: cue.stage?.effects
+  });
+}
+
+export function selectDirectionAssets(input: DirectionAssetSelectionInput): DirectionAssetResolution {
+  const nowMs = input.nowMs ?? Date.now();
+  const rejected: AssetSelectionRejection[] = [];
+  const explicitPreset = input.explicitPresetId
+    ? directionPresetById.get(input.explicitPresetId) ?? null
     : null;
-  const preset = explicitPreset ?? selectDirectionPreset(cue.direction.intent, cue.direction.intensity);
-  const explicitEffects = cue.stage?.effects ?? [];
+  const preset = explicitPreset ?? selectDirectionPreset(input, rejected, nowMs);
+  const explicitEffects = input.explicitEffectIds ?? [];
   const effectIds = [...new Set([...(preset?.effects ?? []), ...explicitEffects])];
+  const selectedEffectIds: string[] = [];
   const effects = effectIds
     .map((effectId) => directionEffectById.get(effectId) ?? null)
     .filter((effect): effect is DirectionEffectAsset => effect !== null)
-    .filter((effect) => effect.compatibleIntents.includes(cue.direction.intent) || explicitEffects.includes(effect.id))
-    .map((effect) => toStageEffectInstruction(effect, cue.direction.intensity));
+    .filter((effect) => {
+      const isExplicit = explicitEffects.includes(effect.id);
+      const selectionResult = canSelectAsset(effect, input, selectedEffectIds, rejected, nowMs);
+      if (!selectionResult && isExplicit) {
+        return false;
+      }
+
+      if (!isExplicit && !effect.compatibleIntents.includes(input.intent)) {
+        rejected.push({ assetId: effect.id, reason: "intent_mismatch" });
+        return false;
+      }
+
+      return selectionResult;
+    })
+    .map((effect) => {
+      selectedEffectIds.push(effect.id);
+      return toStageEffectInstruction(effect, input.intensity);
+    });
 
   return {
     preset,
@@ -43,7 +85,8 @@ export function resolveDirectionAssets(cue: Cue): DirectionAssetResolution {
     debug: {
       presetId: preset?.id ?? null,
       effectIds: effects.map((effect) => effect.id),
-      reason: explicitPreset ? "explicit cue preset" : preset ? "intent match" : "fallback direction only"
+      reason: getSelectionReason(input, preset, explicitPreset),
+      rejected
     }
   };
 }
@@ -76,13 +119,23 @@ export function resolvePresentationObject(cue: Cue): PresentationObjectInstructi
   };
 }
 
-function selectDirectionPreset(intent: DirectionIntent, intensity: DirectionIntensity): DirectionPresetAsset | null {
-  const compatible = directionPresets.filter((preset) => preset.compatibleIntents.includes(intent));
+function selectDirectionPreset(
+  input: DirectionAssetSelectionInput,
+  rejected: AssetSelectionRejection[],
+  nowMs: number
+): DirectionPresetAsset | null {
+  const compatible = directionPresets.filter((preset) => {
+    if (!preset.compatibleIntents.includes(input.intent)) {
+      return false;
+    }
+
+    return canSelectAsset(preset, input, [], rejected, nowMs);
+  });
   if (compatible.length === 0) {
     return null;
   }
 
-  return compatible.find((preset) => preset.intensity === intensity) ?? compatible[0];
+  return compatible.find((preset) => preset.intensity === input.intensity) ?? compatible[0];
 }
 
 function toStageEffectInstruction(effect: DirectionEffectAsset, cueIntensity: DirectionIntensity): StageEffectInstruction {
@@ -116,6 +169,50 @@ function resolveObjectPart(object: PresentationObjectAsset, partId: string | und
   }
 
   return object.parts.some((part) => part.id === partId) ? partId : null;
+}
+
+function canSelectAsset(
+  asset: AssetMetadata,
+  input: DirectionAssetSelectionInput,
+  selectedAssetIds: string[],
+  rejected: AssetSelectionRejection[],
+  nowMs: number
+): boolean {
+  if (asset.compatibleCharacters && !asset.compatibleCharacters.includes(input.speaker)) {
+    rejected.push({ assetId: asset.id, reason: "incompatible_character" });
+    return false;
+  }
+
+  const lastUsedAt = input.recentlyUsedAssetIds?.[asset.id];
+  if (lastUsedAt !== undefined && asset.cooldownMs !== undefined && nowMs - lastUsedAt < asset.cooldownMs) {
+    rejected.push({ assetId: asset.id, reason: "cooldown" });
+    return false;
+  }
+
+  const conflicts = asset.conflicts ?? [];
+  const hasConflict = conflicts.some((conflictId) => selectedAssetIds.includes(conflictId));
+  if (hasConflict) {
+    rejected.push({ assetId: asset.id, reason: "conflict" });
+    return false;
+  }
+
+  return true;
+}
+
+function getSelectionReason(
+  input: DirectionAssetSelectionInput,
+  preset: DirectionPresetAsset | null,
+  explicitPreset: DirectionPresetAsset | null
+): string {
+  if (explicitPreset) {
+    return `explicit preset ${explicitPreset.id} selected for ${input.speaker}`;
+  }
+
+  if (preset) {
+    return `${input.intent}/${input.intensity} selected ${preset.id} for ${input.speaker}`;
+  }
+
+  return `${input.intent}/${input.intensity} has no compatible preset for ${input.speaker}; fallback direction only`;
 }
 
 export type { PresentationObjectAction };

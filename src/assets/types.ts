@@ -74,6 +74,11 @@ export type StageEffectInstruction = {
   durationMs: number;
 };
 
+export type AssetSelectionRejection = {
+  assetId: string;
+  reason: "incompatible_character" | "cooldown" | "conflict" | "intent_mismatch";
+};
+
 export type ObjectCapability =
   | "show"
   | "hide"
