@@ -11,13 +11,14 @@ import { CharacterController } from "./characterController";
 import { EffectsController } from "./effectsController";
 import { getGlbCharacterAssets } from "./modelAssetConfig";
 import { createStage } from "./stage";
+import type { StageEffectInstruction } from "../assets/types";
 import type { CameraPresetName, ScenePresetName } from "./presets";
 
 export type StageScene = {
   engine: Engine;
   scene: Scene;
   characterController: CharacterController;
-  applySectionVisuals: (preset: ScenePresetName, camera: CameraPresetName) => void;
+  applySectionVisuals: (preset: ScenePresetName, camera: CameraPresetName, effects?: StageEffectInstruction[]) => void;
   dispose: () => void;
 };
 
@@ -56,8 +57,9 @@ export function createStageScene(canvas: HTMLCanvasElement): StageScene {
     engine,
     scene,
     characterController,
-    applySectionVisuals: (preset, camera) => {
+    applySectionVisuals: (preset, camera, effects = []) => {
       effectsController.applyPreset(preset);
+      effectsController.applyDirectionEffects(effects);
       cameraController.applyPreset(camera);
     },
     dispose: () => {

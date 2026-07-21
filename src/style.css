@@ -202,6 +202,7 @@ h3 {
 .character-line,
 .branch-list,
 .character-state-list,
+.direction-asset-list,
 .speaker-note,
 .mock-ai {
   padding: 16px 0;
@@ -252,7 +253,8 @@ h3 {
 }
 
 .branch-list ul,
-.character-state-list ul {
+.character-state-list ul,
+.direction-asset-list ul {
   display: grid;
   gap: 8px;
   padding: 0;
@@ -261,7 +263,8 @@ h3 {
 }
 
 .branch-list li,
-.character-state-list li {
+.character-state-list li,
+.direction-asset-list li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
@@ -291,7 +294,8 @@ h3 {
 }
 
 .branch-list span,
-.character-state-list span {
+.character-state-list span,
+.direction-asset-list span {
   grid-row: 1 / span 2;
   grid-column: 2;
   align-self: center;
