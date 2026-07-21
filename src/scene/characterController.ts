@@ -1,13 +1,21 @@
 import {
+  AbstractMesh,
+  AnimationGroup,
   Color3,
   Mesh,
   MeshBuilder,
+  PBRMaterial,
+  SceneLoader,
   Scene,
   StandardMaterial,
   TransformNode,
   Vector3
 } from "@babylonjs/core";
+import { GLTFFileLoader, GLTFLoaderAnimationStartMode } from "@babylonjs/loaders/glTF";
+import "@babylonjs/loaders/glTF";
 import type { CharacterId, CharacterRuntimeState } from "../presentation/types";
+import { characterRegistry, getCharacterInstance, type CharacterInstance } from "./characterRegistry";
+import type { GlbCharacterAssetConfig } from "./modelAssetConfig";
 
 export type CharacterMotionName = "idle" | "wave" | "think" | "point" | "present";
 
@@ -25,50 +33,220 @@ type DummyCharacter = {
   runtimeState: CharacterRuntimeState[CharacterId];
 };
 
+type GlbCharacter = {
+  id: CharacterId;
+  root: TransformNode;
+  contentRoot: TransformNode;
+  meshes: AbstractMesh[];
+  animationGroups: Map<string, AnimationGroup>;
+  motionAnimations: Partial<Record<CharacterMotionName, string>>;
+  activeAnimationName: string | null;
+  animationMode: "off" | "cue";
+  basePosition: Vector3;
+  motion: CharacterMotionName;
+  runtimeState: CharacterRuntimeState[CharacterId];
+};
+
 export class CharacterController {
   private readonly characters = new Map<CharacterId, DummyCharacter>();
+  private readonly glbCharacters = new Map<CharacterId, GlbCharacter>();
+  private currentMotion: CharacterMotionName = "idle";
+  private currentSpeaker: CharacterId = "rei";
+  private currentStates: CharacterRuntimeState = {
+    rei: "idle",
+    mikoto: "idle",
+    dummy: "idle"
+  };
 
   constructor(private readonly scene: Scene) {
     const skin = new StandardMaterial("dummyCharacterSkin", scene);
     skin.diffuseColor = Color3.FromHexString("#f6d7b0");
 
-    const reiSuit = new StandardMaterial("reiCharacterSuit", scene);
-    reiSuit.diffuseColor = Color3.FromHexString("#3d7bd9");
-    reiSuit.specularColor = Color3.FromHexString("#9ab7dd");
-
-    const mikotoSuit = new StandardMaterial("mikotoCharacterSuit", scene);
-    mikotoSuit.diffuseColor = Color3.FromHexString("#cf6f42");
-    mikotoSuit.specularColor = Color3.FromHexString("#f0b38e");
-
     const limb = new StandardMaterial("dummyCharacterLimbs", scene);
     limb.diffuseColor = Color3.FromHexString("#26324a");
 
-    this.characters.set("rei", this.createCharacter("rei", new Vector3(-0.82, 0.16, -0.15), skin, reiSuit, limb));
-    this.characters.set("mikoto", this.createCharacter("mikoto", new Vector3(0.82, 0.16, 0.05), skin, mikotoSuit, limb));
+    characterRegistry
+      .filter((character) => character.visualKind === "dummy-character")
+      .forEach((character) => {
+        const suit = new StandardMaterial(`${character.id}CharacterSuit`, scene);
+        suit.diffuseColor = Color3.FromHexString(character.suitColor);
+        suit.specularColor = Color3.FromHexString(character.specularColor);
+        this.characters.set(character.id, this.createCharacter(character, skin, suit, limb));
+      });
 
     scene.onBeforeRenderObservable.add(() => this.animate());
   }
 
+  async loadGlbCharacters(configs: GlbCharacterAssetConfig[]): Promise<void> {
+    await Promise.all(configs.map((config) => this.loadGlbCharacter(config)));
+  }
+
   playMotion(motion: CharacterMotionName, speaker: CharacterId = "rei"): void {
+    this.currentMotion = motion;
+    this.currentSpeaker = speaker;
     this.characters.forEach((character) => {
       character.motion = character.id === speaker ? motion : "idle";
+    });
+    this.glbCharacters.forEach((character) => {
+      character.motion = character.id === speaker ? motion : "idle";
+      this.playGlbMotion(character);
     });
   }
 
   applyCharacterStates(states: CharacterRuntimeState, speaker: CharacterId): void {
+    this.currentStates = states;
+    this.currentSpeaker = speaker;
     this.characters.forEach((character, characterId) => {
       character.runtimeState = states[characterId];
-      character.root.rotation.y = characterId === speaker ? 0 : characterId === "rei" ? 0.18 : -0.18;
+      character.root.rotation.y = this.getFacingYaw(characterId, speaker);
+    });
+    this.glbCharacters.forEach((character, characterId) => {
+      character.runtimeState = states[characterId];
+      character.root.rotation.y = this.getFacingYaw(characterId, speaker);
     });
   }
 
+  private async loadGlbCharacter(config: GlbCharacterAssetConfig): Promise<void> {
+    if (!config.url) {
+      return;
+    }
+
+    try {
+      SceneLoader.OnPluginActivatedObservable.addOnce((loader) => {
+        if (loader instanceof GLTFFileLoader) {
+          loader.animationStartMode = GLTFLoaderAnimationStartMode.NONE;
+        }
+      });
+      const result = await SceneLoader.ImportMeshAsync("", config.url, "", this.scene);
+      result.animationGroups.forEach((animationGroup) => {
+        animationGroup.stop();
+      });
+      const animationGroups = new Map(result.animationGroups.map((animationGroup) => [animationGroup.name, animationGroup]));
+      const root = new TransformNode(`${config.characterId}GlbRoot`, this.scene);
+      const contentRoot = new TransformNode(`${config.characterId}GlbContentRoot`, this.scene);
+      contentRoot.parent = root;
+      const basePosition = new Vector3(-1.04, 0, -0.12);
+      root.position = basePosition.clone();
+      root.rotation = new Vector3(0, 0, 0);
+      root.scaling.setAll(1.25);
+      contentRoot.rotation = new Vector3(0, Math.PI, 0);
+
+      result.meshes.forEach((mesh) => {
+        this.tuneGlbMaterial(mesh);
+      });
+      [...result.meshes, ...result.transformNodes].forEach((node) => {
+        if (!node.parent) {
+          node.parent = contentRoot;
+        }
+      });
+
+      const glbCharacter: GlbCharacter = {
+        id: config.characterId,
+        root,
+        contentRoot,
+        meshes: result.meshes,
+        animationGroups,
+        motionAnimations: config.motionAnimations,
+        activeAnimationName: null,
+        animationMode: config.animationMode,
+        basePosition,
+        motion: config.characterId === this.currentSpeaker ? this.currentMotion : "idle",
+        runtimeState: this.currentStates[config.characterId]
+      };
+      glbCharacter.root.rotation.y = this.getFacingYaw(config.characterId, this.currentSpeaker);
+      this.glbCharacters.set(config.characterId, glbCharacter);
+      this.setDummyVisible(config.characterId, false);
+      this.playGlbMotion(glbCharacter);
+    } catch (error) {
+      console.warn(`Failed to load GLB character ${config.characterId}:`, error);
+      this.setDummyVisible(config.characterId, true);
+    }
+  }
+
+  private playGlbMotion(character: GlbCharacter): void {
+    if (character.animationMode === "off") {
+      this.applyGlbIdlePose(character);
+      return;
+    }
+
+    const nextAnimationName = character.motionAnimations[character.motion];
+    if (!nextAnimationName || nextAnimationName === character.activeAnimationName) {
+      return;
+    }
+
+    const nextAnimation = character.animationGroups.get(nextAnimationName);
+    if (!nextAnimation) {
+      console.warn(`GLB animation "${nextAnimationName}" was not found for ${character.id}.`);
+      this.stopGlbAnimations(character);
+      return;
+    }
+
+    this.stopGlbAnimations(character);
+    character.activeAnimationName = nextAnimationName;
+    nextAnimation.reset();
+    nextAnimation.start(true);
+  }
+
+  private applyGlbIdlePose(character: GlbCharacter): void {
+    this.stopGlbAnimations(character);
+    const idleAnimationName = character.motionAnimations.idle;
+    const idleAnimation = idleAnimationName ? character.animationGroups.get(idleAnimationName) : null;
+    if (!idleAnimation) {
+      return;
+    }
+
+    idleAnimation.start(false);
+    idleAnimation.goToFrame(0);
+    idleAnimation.pause();
+  }
+
+  private stopGlbAnimations(character: GlbCharacter): void {
+    character.animationGroups.forEach((animationGroup) => {
+      animationGroup.stop();
+    });
+    character.activeAnimationName = null;
+  }
+
+  private setDummyVisible(characterId: CharacterId, isVisible: boolean): void {
+    const character = this.characters.get(characterId);
+    if (!character) {
+      return;
+    }
+
+    [
+      character.head,
+      character.body,
+      character.leftArm,
+      character.rightArm,
+      character.leftLeg,
+      character.rightLeg
+    ].forEach((mesh) => {
+      mesh.isVisible = isVisible;
+    });
+  }
+
+  private tuneGlbMaterial(mesh: AbstractMesh): void {
+    const material = mesh.material;
+    if (material instanceof PBRMaterial) {
+      material.metallic = 0;
+      material.roughness = 0.72;
+      material.environmentIntensity = 0.85;
+      return;
+    }
+
+    if (material instanceof StandardMaterial) {
+      material.specularColor = Color3.FromHexString("#222222");
+    }
+  }
+
   private createCharacter(
-    id: CharacterId,
-    basePosition: Vector3,
+    character: CharacterInstance,
     skin: StandardMaterial,
     suit: StandardMaterial,
     limb: StandardMaterial
   ): DummyCharacter {
+    const basePosition = Vector3.FromArray(character.basePosition);
+    const id = character.id;
     const root = new TransformNode(`${id}Root`, this.scene);
     root.position = basePosition.clone();
 
@@ -100,6 +278,10 @@ export class CharacterController {
       motion: "idle",
       runtimeState: "listening"
     };
+  }
+
+  private getFacingYaw(characterId: CharacterId, speaker: CharacterId): number {
+    return characterId === speaker ? 0 : getCharacterInstance(characterId).listeningYaw;
   }
 
   private createLimb(name: string, position: Vector3, material: StandardMaterial, root: TransformNode): Mesh {
@@ -150,6 +332,11 @@ export class CharacterController {
           character.rightArm.rotation.z = -0.08 - Math.sin(seconds * 2) * 0.04;
           break;
       }
+    });
+    this.glbCharacters.forEach((character) => {
+      character.root.position.y = character.basePosition.y;
+      character.root.scaling.setAll(character.runtimeState === "speaking" ? 1.26 : 1.22);
+      character.contentRoot.rotation.z = 0;
     });
   }
 

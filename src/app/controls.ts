@@ -1,28 +1,53 @@
 import type { MockAiClient } from "../ai/mockAiClient";
 import type { CueRunner } from "../presentation/cueRunner";
 import type { PresenterCommand } from "../presentation/types";
+import type { EndingCreditsVariant } from "../ui/endingCredits";
 
 export type PresentationControls = {
   command: (command: PresenterCommand) => void;
   reset: () => void;
   toggleNote: () => void;
   togglePause: () => void;
+  showCredits: (variant: EndingCreditsVariant) => void;
+  isCreditsVisible: () => boolean;
   askMockAi: (text: string) => Promise<void>;
 };
 
 export function createControls(
   runner: CueRunner,
-  aiClient: MockAiClient
+  aiClient: MockAiClient,
+  showCredits: (variant: EndingCreditsVariant) => void,
+  isCreditsVisible: () => boolean = () => false
 ): PresentationControls {
+  const shouldBlockPresentationControl = (): boolean => isCreditsVisible();
+
   return {
     command: (command) => {
+      if (shouldBlockPresentationControl()) {
+        return;
+      }
+
       runner.dispatch(command);
     },
     reset: () => {
+      if (shouldBlockPresentationControl()) {
+        return;
+      }
+
       runner.reset();
     },
-    toggleNote: () => runner.toggleSpeakerNote(),
+    toggleNote: () => {
+      if (shouldBlockPresentationControl()) {
+        return;
+      }
+
+      runner.toggleSpeakerNote();
+    },
     togglePause: () => {
+      if (shouldBlockPresentationControl()) {
+        return;
+      }
+
       if (runner.getSnapshot().isPaused || runner.getSnapshot().mode === "manual") {
         runner.dispatch("resume");
         return;
@@ -30,7 +55,13 @@ export function createControls(
 
       runner.dispatch("pause");
     },
+    showCredits,
+    isCreditsVisible,
     askMockAi: async (text) => {
+      if (shouldBlockPresentationControl()) {
+        return;
+      }
+
       if (!text) {
         runner.setAiMessage("Mock AI: 質問テキストを入力してください。");
         return;

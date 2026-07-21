@@ -1,4 +1,5 @@
-import type { PresentationSnapshot } from "../presentation/types";
+import type { CharacterId, PresentationSnapshot } from "../presentation/types";
+import { getCharacterInstance } from "../scene/characterRegistry";
 
 export function renderStatusPanel(snapshot: PresentationSnapshot): string {
   const modeLabel = snapshot.mode === "liveAi" ? "Live AI Mode (stub)" : snapshot.mode === "semiAuto" ? "Semi-Auto Mode" : "Manual Mode";
@@ -12,7 +13,10 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
     ? branches.map((branch) => `<li>${escapeHtml(branch.label)} <span>${escapeHtml(branch.command)}</span></li>`).join("")
     : "<li>No branch commands</li>";
   const characterStates = Object.entries(snapshot.characterStates)
-    .map(([characterId, state]) => `<li>${escapeHtml(characterId)} <span>${escapeHtml(state)}</span></li>`)
+    .map(([characterId, state]) => {
+      const character = getCharacterInstance(characterId as CharacterId);
+      return `<li><strong>${escapeHtml(character.displayName)}</strong><small>${escapeHtml(character.role)}</small><span>${escapeHtml(state)}</span></li>`;
+    })
     .join("");
 
   return `

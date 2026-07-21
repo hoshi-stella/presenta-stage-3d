@@ -9,6 +9,7 @@ import {
 import { CameraController } from "./cameraController";
 import { CharacterController } from "./characterController";
 import { EffectsController } from "./effectsController";
+import { getGlbCharacterAssets } from "./modelAssetConfig";
 import { createStage } from "./stage";
 import type { CameraPresetName, ScenePresetName } from "./presets";
 
@@ -38,6 +39,7 @@ export function createStageScene(canvas: HTMLCanvasElement): StageScene {
 
   const stage = createStage(scene);
   const characterController = new CharacterController(scene);
+  void characterController.loadGlbCharacters(getGlbCharacterAssets());
   const effectsController = new EffectsController(scene, keyLight, stage);
   effectsController.applyPreset("intro");
 

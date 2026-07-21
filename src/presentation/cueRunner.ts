@@ -1,4 +1,5 @@
 import { resolveDirection } from "./directionResolver";
+import { characterIds } from "../scene/characterRegistry";
 import type {
   CharacterId,
   CharacterRuntimeState,
@@ -10,8 +11,6 @@ import type {
   PresentationSnapshot,
   PresenterCommand
 } from "./types";
-
-const characterIds: CharacterId[] = ["rei", "mikoto", "dummy"];
 
 export class CueRunner {
   private index = 0;
@@ -109,6 +108,11 @@ export class CueRunner {
 
   setAiMessage(message: string | null): void {
     this.aiMessage = message;
+    this.emit();
+  }
+
+  setStatusMessage(message: string | null): void {
+    this.statusMessage = message;
     this.emit();
   }
 
