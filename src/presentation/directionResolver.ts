@@ -1,14 +1,22 @@
+import { resolveDirectionAssets } from "../assets/assetCatalog";
 import type { Cue, ResolvedDirection } from "./types";
 
 export function resolveDirection(cue: Cue): ResolvedDirection {
-  if (cue.stage?.motion && cue.stage.camera && cue.stage.preset) {
-    return {
-      motion: cue.stage.motion,
-      camera: cue.stage.camera,
-      scenePreset: cue.stage.preset
-    };
-  }
+  const baseDirection = resolveBaseDirection(cue);
+  const assetResolution = resolveDirectionAssets(cue);
+  const preset = assetResolution.preset;
 
+  return {
+    motion: cue.stage?.motion ?? preset?.motion ?? baseDirection.motion,
+    camera: cue.stage?.camera ?? preset?.camera ?? baseDirection.camera,
+    scenePreset: cue.stage?.preset ?? preset?.scenePreset ?? baseDirection.scenePreset,
+    directionPresetId: preset?.id ?? null,
+    effects: assetResolution.effects,
+    assetDebug: assetResolution.debug
+  };
+}
+
+function resolveBaseDirection(cue: Cue): Pick<ResolvedDirection, "motion" | "camera" | "scenePreset"> {
   switch (cue.direction.intent) {
     case "emphasis":
       return {

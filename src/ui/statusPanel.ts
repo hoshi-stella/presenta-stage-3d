@@ -18,6 +18,9 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       return `<li><strong>${escapeHtml(character.displayName)}</strong><small>${escapeHtml(character.role)}</small><span>${escapeHtml(state)}</span></li>`;
     })
     .join("");
+  const resolvedEffects = snapshot.resolvedDirection.effects.length > 0
+    ? snapshot.resolvedDirection.effects.map((effect) => `<li>${escapeHtml(effect.id)} <span>${escapeHtml(effect.kind)}</span></li>`).join("")
+    : "<li>No effects</li>";
 
   return `
     <div class="section-meta">
@@ -45,6 +48,14 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
     <section class="character-state-list">
       <h3>Character State</h3>
       <ul>${characterStates}</ul>
+    </section>
+    <section class="direction-asset-list">
+      <h3>Direction Assets</h3>
+      <dl class="cue-details">
+        <div><dt>Preset</dt><dd>${escapeHtml(snapshot.resolvedDirection.directionPresetId ?? "fallback")}</dd></div>
+        <div><dt>Reason</dt><dd>${escapeHtml(snapshot.resolvedDirection.assetDebug.reason)}</dd></div>
+      </dl>
+      <ul>${resolvedEffects}</ul>
     </section>
     ${noteMarkup}
     <section class="mock-ai">

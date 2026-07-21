@@ -23,6 +23,26 @@ WebGL / Babylon.js を使った 3D 登壇UIプロトタイプです。
 
 AI にも直接モーション名、カメラ名、ファイル名を選ばせません。AI は `DirectionIntent` と感情、強度のような意味を返し、システム側の `DirectionResolver` が登録済みモーション、カメラ、シーンプリセット、将来のアセットへ変換します。
 
+## Semantic Direction Assets
+
+Composite direction presets and stage effects are text-managed TypeScript assets. The cue can specify high-level meaning through `direction.intent` / `direction.intensity`, or explicitly request `stage.directionPreset` and `stage.effects`.
+
+```ts
+stage: {
+  directionPreset: "summary_wide",
+  effects: ["petal_soft_fall"]
+}
+```
+
+The app resolves these semantic IDs through `AssetCatalog` into safe stage instructions:
+
+- character motion
+- camera preset
+- scene preset
+- particle-like effects such as petals, bubbles, sparkles, focus pulses, and warning flashes
+
+Local image/model files remain under `public/assets-local/**` and are ignored by Git. The committed catalog stores only reusable IDs, labels, tags, compatibility, duration, intensity, and simple renderer parameters. This keeps the same command layer usable later from OpenAI Realtime tool calls without letting AI directly control Babylon.js, DOM, or asset file paths.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next

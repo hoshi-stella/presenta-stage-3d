@@ -1,5 +1,6 @@
 import type { CameraPresetName, ScenePresetName } from "../scene/presets";
 import type { CharacterMotionName } from "../scene/characterController";
+import type { StageEffectInstruction } from "../assets/types";
 
 export type PresentationMode = "manual" | "semiAuto" | "liveAi";
 export type CueId = string;
@@ -75,6 +76,8 @@ export type Cue = {
     camera?: CameraPresetName;
     motion?: CharacterMotionName;
     focusTarget?: string;
+    directionPreset?: string;
+    effects?: string[];
   };
   after: {
     mode: ProgressionMode;
@@ -96,6 +99,13 @@ export type ResolvedDirection = {
   motion: CharacterMotionName;
   camera: CameraPresetName;
   scenePreset: ScenePresetName;
+  directionPresetId: string | null;
+  effects: StageEffectInstruction[];
+  assetDebug: {
+    presetId: string | null;
+    effectIds: string[];
+    reason: string;
+  };
 };
 
 export type PresentationSection = {
