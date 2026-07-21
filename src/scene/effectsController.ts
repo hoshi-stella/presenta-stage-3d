@@ -127,6 +127,7 @@ export class EffectsController {
     const active = scenePresets[this.presetName].particles;
     this.stage.centerOrb.rotation.y += 0.01;
     this.stage.centerOrb.position.y = 1.45 + Math.sin(seconds * 1.5) * 0.05;
+    this.animateDirectionEffects(seconds);
 
     if (!active) {
       return;
@@ -139,21 +140,27 @@ export class EffectsController {
         mesh.position.y = 0.35;
       }
     });
-    this.animateDirectionEffects(seconds);
   }
 
   private animateDirectionEffects(seconds: number): void {
     this.effectParticles.forEach((particle, index) => {
-      const age = (performance.now() - particle.startedAt) / particle.instruction.durationMs;
-      if (age >= 1) {
-        particle.mesh.isVisible = false;
-        return;
-      }
+      const elapsedMs = performance.now() - particle.startedAt;
+      const age = (elapsedMs % particle.instruction.durationMs) / particle.instruction.durationMs;
 
       const sway = Math.sin(seconds * 1.8 + particle.seed) * 0.22;
+      particle.mesh.isVisible = true;
       particle.mesh.position.x = particle.basePosition.x + particle.instruction.velocity[0] * age * 42 + sway;
-      particle.mesh.position.y = particle.basePosition.y + particle.instruction.velocity[1] * age * 42;
+      particle.mesh.position.y = this.getEffectYPosition(particle, age);
       particle.mesh.position.z = particle.basePosition.z + particle.instruction.velocity[2] * age * 42 + Math.cos(seconds + particle.seed) * 0.08;
+
+      if (particle.instruction.kind === "petal_fall") {
+        const flutter = Math.sin(seconds * 5 + particle.seed) * 0.42;
+        particle.mesh.position.x += flutter;
+        particle.mesh.rotation.x += 0.035 + (index % 3) * 0.008;
+        particle.mesh.rotation.y += 0.05 + (index % 5) * 0.006;
+        particle.mesh.rotation.z = Math.sin(seconds * 4 + particle.seed) * 0.72;
+        return;
+      }
 
       if (particle.instruction.kind === "focus_pulse") {
         const pulse = 1 + Math.sin(seconds * 8 + index) * 0.28;
@@ -167,6 +174,15 @@ export class EffectsController {
       particle.mesh.rotation.x += 0.008 + (index % 3) * 0.002;
       particle.mesh.rotation.y += 0.012 + (index % 5) * 0.002;
     });
+  }
+
+  private getEffectYPosition(particle: ActiveEffectParticle, age: number): number {
+    if (particle.instruction.kind !== "petal_fall") {
+      return particle.basePosition.y + particle.instruction.velocity[1] * age * 42;
+    }
+
+    const fallDistance = particle.instruction.spread[1] + 2.4;
+    return 3.8 - fallDistance * age + Math.sin(age * Math.PI * 2 + particle.seed) * 0.16;
   }
 }
 

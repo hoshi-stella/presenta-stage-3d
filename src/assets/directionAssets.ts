@@ -44,10 +44,10 @@ export const directionEffectAssets: DirectionEffectAsset[] = [
     durationMs: 8500,
     cooldownMs: 1600,
     color: "#ffd6e7",
-    count: 54,
-    size: [0.045, 0.11],
-    spread: [5.8, 3.2, 2.6],
-    velocity: [0.012, -0.012, 0.004]
+    count: 72,
+    size: [0.07, 0.16],
+    spread: [6.2, 3.4, 2.8],
+    velocity: [0.018, -0.05, 0.006]
   },
   {
     id: "focus_emphasis_pulse",
