@@ -4,12 +4,14 @@ import { CueRunner } from "../presentation/cueRunner";
 import sampleScriptMarkdown from "../presentation/sampleScript.md?raw";
 import { parseMarkdownToCues } from "../presentation/markdownCueParser";
 import { createStageScene, type StageScene } from "../scene/createScene";
-import { createUiRenderer, getStageCanvas } from "../ui/renderUi";
+import { createUiRenderer, getStageCanvas, getStaticIllustrationHost } from "../ui/renderUi";
 import { getLive2DConfig } from "../live2d/config";
 import { createLive2DPresenterLayer } from "../live2d/live2dPresenterLayer";
 import type { Live2DPresenterLayer } from "../live2d/types";
 import { getAiriManjuConfig } from "../imagePresenter/config";
 import { createImagePresenterLayer, type ImagePresenterLayer } from "../imagePresenter/imagePresenterLayer";
+import { getStaticIllustrationConfig } from "../staticIllustration/config";
+import { createStaticIllustrationPresenter, type StaticIllustrationPresenter } from "../staticIllustration/staticIllustrationPresenter";
 import { createEndingCreditsOverlay, type EndingCreditsOverlay } from "../ui/endingCredits";
 import { createControls } from "./controls";
 import { bindKeyboardControls } from "./keyboard";
@@ -18,6 +20,7 @@ export class App {
   private stageScene: StageScene | null = null;
   private live2dLayer: Live2DPresenterLayer | null = null;
   private imagePresenterLayer: ImagePresenterLayer | null = null;
+  private staticIllustrationPresenter: StaticIllustrationPresenter | null = null;
   private endingCredits: EndingCreditsOverlay | null = null;
   private unbindKeyboard: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
@@ -71,6 +74,13 @@ export class App {
         runner.setStatusMessage(message);
       });
     }
+    this.staticIllustrationPresenter = createStaticIllustrationPresenter(
+      getStaticIllustrationHost(this.root),
+      getStaticIllustrationConfig(),
+      (message) => {
+        runner.setStatusMessage(message);
+      }
+    );
 
     this.unbindKeyboard = bindKeyboardControls(controls);
     this.unsubscribeState = runner.subscribe((snapshot) => {
@@ -85,6 +95,7 @@ export class App {
       this.stageScene?.applyPresentationObject(snapshot.resolvedDirection.object);
       this.live2dLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
       this.imagePresenterLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
+      this.staticIllustrationPresenter?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
     });
   }
 
@@ -94,6 +105,7 @@ export class App {
     this.unsubscribeState?.();
     this.live2dLayer?.dispose();
     this.imagePresenterLayer?.dispose();
+    this.staticIllustrationPresenter?.dispose();
     this.endingCredits?.dispose();
     this.stageScene?.dispose();
   }

@@ -23,6 +23,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
         <canvas id="stage-canvas" aria-label="3D presentation stage"></canvas>
         <div id="live2d-host" class="live2d-host" aria-hidden="true"></div>
         <div id="image-presenter-host" class="image-presenter-host" aria-hidden="true"></div>
+        <div id="static-illustration-host" class="static-illustration-host" aria-hidden="true"></div>
         <div class="stage-overlay">
           <div class="live-badge">3D Stage UI</div>
         </div>
@@ -74,6 +75,10 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
 
 export function getStageCanvas(root: HTMLElement): HTMLCanvasElement {
   return requireElement(root, "#stage-canvas") as HTMLCanvasElement;
+}
+
+export function getStaticIllustrationHost(root: HTMLElement): HTMLElement {
+  return requireElement(root, "#static-illustration-host");
 }
 
 function requireElement(root: HTMLElement, selector: string): HTMLElement {
