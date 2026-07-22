@@ -18,13 +18,22 @@ export function createControls(
   runner: CueRunner,
   aiClient: MockAiClient,
   showCredits: (variant: EndingCreditsVariant) => void,
-  isCreditsVisible: () => boolean = () => false
+  isCreditsVisible: () => boolean = () => false,
+  isTransitioning: () => boolean = () => false
 ): PresentationControls {
   const shouldBlockPresentationControl = (): boolean => isCreditsVisible();
+  const canRunDuringTransition = (command: PresenterCommand): boolean => {
+    return command === "pause" || command === "skip";
+  };
 
   return {
     command: (command) => {
       if (shouldBlockPresentationControl()) {
+        return;
+      }
+
+      if (isTransitioning() && !canRunDuringTransition(command)) {
+        runner.setStatusMessage("Transition in progress. Use Skip or Pause if needed.");
         return;
       }
 

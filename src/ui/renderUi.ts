@@ -29,6 +29,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
         <div id="static-illustration-host" class="static-illustration-host" aria-hidden="true"></div>
         <div class="stage-overlay">
           <div class="live-badge">3D Stage UI</div>
+          <div id="transition-debug" class="transition-debug">Transition: idle</div>
         </div>
       </section>
       <aside class="control-panel">

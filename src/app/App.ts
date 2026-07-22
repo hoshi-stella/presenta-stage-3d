@@ -4,6 +4,7 @@ import { CueRunner } from "../presentation/cueRunner";
 import sampleScriptMarkdown from "../presentation/sampleScript.md?raw";
 import { parseMarkdownToCues } from "../presentation/markdownCueParser";
 import { applyPresentationComposition } from "../presentation/presentationComposer";
+import { createPresentationTransitionCoordinator, type PresentationTransitionCoordinator } from "../presentation/transitionCoordinator";
 import { createStageScene, type StageScene } from "../scene/createScene";
 import { createUiRenderer, getSlideLayerHost, getStageCanvas, getStaticIllustrationHost, getSubtitleLayerHost } from "../ui/renderUi";
 import { createSlideLayer, type SlideLayer } from "../slides/slideLayer";
@@ -27,6 +28,7 @@ export class App {
   private imagePresenterLayer: ImagePresenterLayer | null = null;
   private staticIllustrationPresenter: StaticIllustrationPresenter | null = null;
   private endingCredits: EndingCreditsOverlay | null = null;
+  private transitionCoordinator: PresentationTransitionCoordinator | null = null;
   private unbindKeyboard: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
   private isDisposed = false;
@@ -39,7 +41,7 @@ export class App {
     const aiClient = new MockAiClient();
     const controls = createControls(runner, aiClient, (variant) => {
       this.endingCredits?.show(variant);
-    }, () => this.endingCredits?.isVisible() ?? false);
+    }, () => this.endingCredits?.isVisible() ?? false, () => this.transitionCoordinator?.isTransitioning() ?? false);
     const ui = createUiRenderer(this.root, {
       onCommand: controls.command,
       onReset: controls.reset,
@@ -54,6 +56,7 @@ export class App {
         void controls.askMockAi(text);
       }
     });
+    this.transitionCoordinator = createPresentationTransitionCoordinator(this.root);
     this.endingCredits = createEndingCreditsOverlay(this.root);
 
     this.stageScene = createStageScene(getStageCanvas(this.root));
@@ -93,6 +96,7 @@ export class App {
     this.unbindKeyboard = bindKeyboardControls(controls);
     this.unsubscribeState = runner.subscribe((snapshot) => {
       applyPresentationComposition(this.root, snapshot);
+      this.transitionCoordinator?.apply(snapshot);
       ui.update(snapshot);
       this.slideLayer?.update(snapshot);
       this.subtitleLayer?.update(snapshot);
@@ -120,6 +124,7 @@ export class App {
     this.imagePresenterLayer?.dispose();
     this.staticIllustrationPresenter?.dispose();
     this.endingCredits?.dispose();
+    this.transitionCoordinator?.dispose();
     this.stageScene?.dispose();
   }
 }
