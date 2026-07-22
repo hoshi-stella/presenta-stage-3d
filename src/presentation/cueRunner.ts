@@ -7,6 +7,7 @@ import type {
   CharacterState,
   Cue,
   CueId,
+  FallbackLevel,
   PresentationListener,
   PresentationMode,
   PresentationSnapshot,
@@ -18,6 +19,7 @@ export class CueRunner {
   private mode: PresentationMode = "manual";
   private showSpeakerNote = true;
   private showSubtitles = true;
+  private fallbackLevel: FallbackLevel = "full";
   private aiMessage: string | null = null;
   private statusMessage: string | null = null;
   private isPaused = false;
@@ -43,13 +45,14 @@ export class CueRunner {
 
   getSnapshot(): PresentationSnapshot {
     const cue = this.cues[this.index];
-    const presentation = resolvePresentationComposition(cue);
+    const presentation = resolvePresentationComposition(cue, this.fallbackLevel);
     return {
       mode: this.mode,
       cueIndex: this.index,
       cueCount: this.cues.length,
       showSpeakerNote: this.showSpeakerNote,
       showSubtitles: this.showSubtitles,
+      fallbackLevel: this.fallbackLevel,
       aiMessage: this.aiMessage,
       statusMessage: this.statusMessage,
       isPaused: this.isPaused,
@@ -74,6 +77,11 @@ export class CueRunner {
 
     if (command === "resume") {
       this.resume();
+      return true;
+    }
+
+    if (command === "demo") {
+      this.startDemoScript();
       return true;
     }
 
@@ -134,6 +142,12 @@ export class CueRunner {
     this.emit();
   }
 
+  setFallbackLevel(level: FallbackLevel): void {
+    this.fallbackLevel = level;
+    this.statusMessage = `Fallback level: ${level}`;
+    this.emit();
+  }
+
   setAiMessage(message: string | null): void {
     this.aiMessage = message;
     this.emit();
@@ -173,6 +187,14 @@ export class CueRunner {
     this.emit();
   }
 
+  private startDemoScript(): void {
+    this.mode = "demoScript";
+    this.isPaused = false;
+    this.statusMessage = "Demo Script Mode";
+    this.scheduleIfNeeded();
+    this.emit();
+  }
+
   private pause(): void {
     this.stopTimer();
     if (this.mode !== "qa") {
@@ -184,6 +206,10 @@ export class CueRunner {
   }
 
   private next(): boolean {
+    if (this.mode === "demoScript") {
+      return this.nextDemoStep();
+    }
+
     if (this.index >= this.cues.length - 1) {
       this.statusMessage = "最後のキューです。";
       this.stopTimer();
@@ -192,6 +218,24 @@ export class CueRunner {
     }
 
     return this.setIndex(this.index + 1, "Next");
+  }
+
+  private nextDemoStep(): boolean {
+    const currentStep = this.cues[this.index].demo?.step ?? 0;
+    const nextDemoIndex = this.cues
+      .map((cue, cueIndex) => ({ cue, cueIndex }))
+      .filter(({ cue }) => (cue.demo?.step ?? 0) > currentStep)
+      .sort((left, right) => (left.cue.demo?.step ?? 0) - (right.cue.demo?.step ?? 0))[0]?.cueIndex;
+
+    if (nextDemoIndex === undefined) {
+      this.statusMessage = "Demo Script Mode finished.";
+      this.stopTimer();
+      this.mode = "manual";
+      this.emit();
+      return false;
+    }
+
+    return this.setIndex(nextDemoIndex, "Demo Script Next");
   }
 
   private back(): boolean {
@@ -300,16 +344,16 @@ export class CueRunner {
   }
 
   private scheduleIfNeeded(): void {
-    if (this.mode !== "semiAuto" || this.isPaused) {
+    if ((this.mode !== "semiAuto" && this.mode !== "demoScript") || this.isPaused) {
       return;
     }
 
     const cue = this.cues[this.index];
-    if (cue.after.mode !== "auto_next") {
+    if (this.mode === "semiAuto" && cue.after.mode !== "auto_next") {
       return;
     }
 
-    const durationMs = cue.after.durationMs ?? 8000;
+    const durationMs = cue.after.durationMs ?? (this.mode === "demoScript" ? 7000 : 8000);
     this.timerId = window.setTimeout(() => {
       this.next();
     }, durationMs);
@@ -363,6 +407,7 @@ export class CueRunner {
       commands.push("summary");
     }
 
+    commands.push("demo");
     commands.push("skip");
     return commands;
   }

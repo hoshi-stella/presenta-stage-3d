@@ -1,6 +1,6 @@
 import type { MockAiClient } from "../ai/mockAiClient";
 import type { CueRunner } from "../presentation/cueRunner";
-import type { PresenterCommand } from "../presentation/types";
+import type { FallbackLevel, PresenterCommand } from "../presentation/types";
 import type { EndingCreditsVariant } from "../ui/endingCredits";
 
 export type PresentationControls = {
@@ -9,6 +9,7 @@ export type PresentationControls = {
   toggleNote: () => void;
   toggleSubtitles: () => void;
   togglePause: () => void;
+  setFallbackLevel: (level: FallbackLevel) => void;
   showCredits: (variant: EndingCreditsVariant) => void;
   isCreditsVisible: () => boolean;
   askMockAi: (text: string) => Promise<void>;
@@ -71,6 +72,13 @@ export function createControls(
       }
 
       runner.dispatch("pause");
+    },
+    setFallbackLevel: (level) => {
+      if (shouldBlockPresentationControl()) {
+        return;
+      }
+
+      runner.setFallbackLevel(level);
     },
     showCredits,
     isCreditsVisible,

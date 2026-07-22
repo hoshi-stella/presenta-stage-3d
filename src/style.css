@@ -611,6 +611,7 @@ h3 {
 
 .character-line,
 .branch-list,
+.demo-track-state,
 .flow-state,
 .character-state-list,
 .direction-asset-list,
@@ -722,6 +723,25 @@ h3 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
+}
+
+.fallback-select {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 6px;
+  color: rgba(244, 247, 251, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.fallback-select select {
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  color: #f7fbff;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0 10px;
 }
 
 .ai-response {

@@ -108,6 +108,10 @@ Subtitle visibility is presenter-controlled with `T` or the `Toggle Subtitles` b
 
 During the short transition window, normal forward/back/branch commands are guarded against repeated input. `Skip`, `Pause`, and `Reset` remain available for live recovery. Reduced-motion environments use immediate/simple switching by disabling transition transforms.
 
+## LT Showcase
+
+The 15-minute local demo track is documented in `docs/demo-track/lt-showcase-runbook.md`. It covers the intended layer order, Demo Script Mode, fallback levels, preflight checks, and live recovery steps.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next
@@ -117,6 +121,7 @@ During the short transition window, normal forward/back/branch commands are guar
 - `2`: Example
 - `3`: Tsukkomi
 - `4`: Summary
+- `D`: Demo Script Mode
 - `Q`: QA
 - `W`: Return to script
 - `S`: Skip
@@ -124,7 +129,7 @@ During the short transition window, normal forward/back/branch commands are guar
 - `N`: Toggle Speaker Note
 - `T`: Toggle Subtitles
 
-The screen also exposes `Next`, `Back`, `Supplement`, `Tsukkomi`, `Return`, `Pause`, `Reset`, `Toggle Speaker Note`, and `Toggle Subtitles`.
+The screen also exposes `Next`, `Back`, `Supplement`, `Tsukkomi`, `Demo Script`, `Return`, `Pause`, `Reset`, `Toggle Speaker Note`, `Toggle Subtitles`, and fallback level selection.
 
 ## Development
 

@@ -19,11 +19,19 @@ export const cues: Cue[] = [
       motion: "wave"
     },
     presentation: {
-      layout: "slide_only"
+      layout: "slide_only",
+      fallback: {
+        static: { layout: "slide_only" }
+      }
+    },
+    demo: {
+      step: 1,
+      label: "slide_only",
+      targetSeconds: 60
     },
     after: {
       mode: "wait_for_presenter",
-      durationMs: 8000
+      durationMs: 7000
     }
   },
   {
@@ -44,7 +52,15 @@ export const cues: Cue[] = [
       motion: "think"
     },
     presentation: {
-      layout: "slide_with_manju"
+      layout: "slide_with_manju",
+      fallback: {
+        static: { layout: "slide_with_caption" }
+      }
+    },
+    demo: {
+      step: 2,
+      label: "slide_with_manju + subtitle",
+      targetSeconds: 150
     },
     after: {
       mode: "wait_for_presenter",
@@ -71,7 +87,15 @@ export const cues: Cue[] = [
       objectAction: "show"
     },
     presentation: {
-      layout: "stage_with_overlay"
+      layout: "slide_with_character",
+      fallback: {
+        static: { layout: "slide_with_caption" }
+      }
+    },
+    demo: {
+      step: 3,
+      label: "static illustration",
+      targetSeconds: 240
     },
     after: {
       mode: "branch_available",
@@ -116,7 +140,16 @@ export const cues: Cue[] = [
       objectPartId: "dom"
     },
     presentation: {
-      layout: "stage_with_overlay"
+      layout: "stage_with_overlay",
+      fallback: {
+        "no-live2d": { layers: ["slide", "subtitle", "stage3d", "manju", "static_illustration", "effects"] },
+        static: { layout: "slide_with_caption" }
+      }
+    },
+    demo: {
+      step: 4,
+      label: "supplement route",
+      targetSeconds: 360
     },
     after: {
       mode: "wait_for_presenter",
@@ -150,7 +183,15 @@ export const cues: Cue[] = [
       objectPartId: "webgl"
     },
     presentation: {
-      layout: "dialogue_split"
+      layout: "dialogue_split",
+      fallback: {
+        static: { layout: "slide_with_caption" }
+      }
+    },
+    demo: {
+      step: 6,
+      label: "multi-character dialogue",
+      targetSeconds: 600
     },
     after: {
       mode: "wait_for_presenter",
@@ -184,11 +225,29 @@ export const cues: Cue[] = [
       objectPartId: "gpu"
     },
     presentation: {
-      layout: "stage_full"
+      layout: "stage_full",
+      fallback: {
+        "no-live2d": { layers: ["stage3d", "manju", "effects"] },
+        "no-3d-model": { layout: "slide_with_manju" },
+        offline: { layout: "slide_with_manju" },
+        static: { layout: "slide_with_caption" }
+      }
+    },
+    demo: {
+      step: 5,
+      label: "stage3d + live layers",
+      targetSeconds: 480
     },
     after: {
       mode: "auto_next",
-      durationMs: 9000
+      durationMs: 9000,
+      branches: [
+        {
+          command: "skip",
+          label: "質問受付へ飛ばす",
+          targetCueId: "cue_qa_01"
+        }
+      ]
     }
   },
   {
@@ -209,7 +268,16 @@ export const cues: Cue[] = [
       motion: "wave"
     },
     presentation: {
-      layout: "stage_with_overlay"
+      layout: "stage_with_overlay",
+      fallback: {
+        "no-live2d": { layers: ["slide", "subtitle", "stage3d", "manju", "static_illustration", "effects"] },
+        static: { layout: "slide_with_caption" }
+      }
+    },
+    demo: {
+      step: 7,
+      label: "dialogue + semantic effects",
+      targetSeconds: 720
     },
     after: {
       mode: "wait_for_presenter",
@@ -242,7 +310,15 @@ export const cues: Cue[] = [
       objectAction: "hide"
     },
     presentation: {
-      layout: "stage_with_overlay"
+      layout: "stage_with_overlay",
+      fallback: {
+        static: { layout: "slide_with_caption" }
+      }
+    },
+    demo: {
+      step: 8,
+      label: "credits handoff",
+      targetSeconds: 820
     },
     after: {
       mode: "wait_for_presenter",
@@ -272,7 +348,16 @@ export const cues: Cue[] = [
       objectAction: "hide"
     },
     presentation: {
-      layout: "stage_with_overlay"
+      layout: "stage_with_overlay",
+      creditsVariant: "spiral",
+      fallback: {
+        static: { layout: "slide_with_caption", layers: ["slide", "subtitle", "ending_credits"] }
+      }
+    },
+    demo: {
+      step: 9,
+      label: "ending credits",
+      targetSeconds: 900
     },
     after: {
       mode: "wait_for_presenter",

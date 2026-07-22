@@ -53,6 +53,10 @@ export function bindKeyboardControls(controls: PresentationControls): () => void
       controls.command("summary");
     }
 
+    if (key === "d") {
+      controls.command("demo");
+    }
+
     if (key === "q") {
       controls.command("qa");
     }

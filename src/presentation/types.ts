@@ -7,9 +7,10 @@ import type {
   StageEffectInstruction
 } from "../assets/types";
 
-export type PresentationMode = "manual" | "semiAuto" | "qa" | "liveAi";
+export type PresentationMode = "manual" | "semiAuto" | "demoScript" | "qa" | "liveAi";
 export type CueId = string;
 export type CharacterId = "rei" | "mikoto" | "dummy";
+export type FallbackLevel = "full" | "no-live2d" | "no-3d-model" | "offline" | "static";
 
 export type CueKind =
   | "talk"
@@ -73,6 +74,7 @@ export type PresenterCommand =
   | "question"
   | "tsukkomi"
   | "summary"
+  | "demo"
   | "qa"
   | "return_to_script"
   | "skip";
@@ -109,6 +111,16 @@ export type Cue = {
   presentation?: {
     layers?: PresentationLayer[];
     layout?: LayoutPreset;
+    fallback?: Partial<Record<FallbackLevel, {
+      layers?: PresentationLayer[];
+      layout?: LayoutPreset;
+    }>>;
+    creditsVariant?: "crawl" | "spiral";
+  };
+  demo?: {
+    step: number;
+    label: string;
+    targetSeconds: number;
   };
   after: {
     mode: ProgressionMode;
@@ -159,6 +171,7 @@ export type PresentationSnapshot = {
   cueCount: number;
   showSpeakerNote: boolean;
   showSubtitles: boolean;
+  fallbackLevel: FallbackLevel;
   aiMessage: string | null;
   statusMessage: string | null;
   isPaused: boolean;
@@ -175,6 +188,7 @@ export type PresentationSnapshot = {
     activeLayers: PresentationLayer[];
     layout: LayoutPreset;
     debugReason: string;
+    creditsVariant: "crawl" | "spiral" | null;
   };
 };
 

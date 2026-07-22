@@ -47,6 +47,7 @@ export class App {
       onReset: controls.reset,
       onToggleNote: controls.toggleNote,
       onToggleSubtitles: controls.toggleSubtitles,
+      onFallbackLevel: controls.setFallbackLevel,
       onShowCredits: controls.showCredits,
       onLoadSampleScript: () => {
         const generatedCues = parseMarkdownToCues(sampleScriptMarkdown);
@@ -111,6 +112,9 @@ export class App {
       this.live2dLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
       this.imagePresenterLayer?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
       this.staticIllustrationPresenter?.update(snapshot.characterStates, snapshot.cue.speaker, snapshot.cue);
+      if (snapshot.presentation.creditsVariant && !this.endingCredits?.isVisible()) {
+        this.endingCredits?.show(snapshot.presentation.creditsVariant);
+      }
     });
   }
 

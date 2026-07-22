@@ -1,5 +1,5 @@
 import type { PresentationSnapshot } from "../presentation/types";
-import type { PresenterCommand } from "../presentation/types";
+import type { FallbackLevel, PresenterCommand } from "../presentation/types";
 import type { EndingCreditsVariant } from "./endingCredits";
 import { renderStatusPanel } from "./statusPanel";
 
@@ -8,6 +8,7 @@ export type UiHandlers = {
   onReset: () => void;
   onToggleNote: () => void;
   onToggleSubtitles: () => void;
+  onFallbackLevel: (level: FallbackLevel) => void;
   onShowCredits: (variant: EndingCreditsVariant) => void;
   onLoadSampleScript: () => void;
   onAskMockAi: (text: string) => void;
@@ -41,6 +42,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
           <button data-command="tsukkomi" type="button">Tsukkomi</button>
           <button data-command="qa" type="button">QA Mode</button>
           <button data-command="summary" type="button">Summary</button>
+          <button data-command="demo" type="button">Demo Script</button>
           <button data-command="return_to_script" type="button">Return</button>
           <button data-command="skip" type="button">Skip</button>
           <button data-command="pause" type="button">Pause</button>
@@ -50,6 +52,16 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
           <button id="sample-script-button" type="button">Load Sample Script</button>
           <button data-credits="crawl" type="button">Credits Crawl</button>
           <button data-credits="spiral" type="button">Credits Spiral</button>
+          <label class="fallback-select">
+            <span>Fallback</span>
+            <select id="fallback-level-select">
+              <option value="full">full</option>
+              <option value="no-live2d">no-live2d</option>
+              <option value="no-3d-model">no-3d-model</option>
+              <option value="offline">offline</option>
+              <option value="static">static</option>
+            </select>
+          </label>
         </nav>
       </aside>
     </main>
@@ -68,10 +80,17 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   root.querySelector("#note-button")?.addEventListener("click", handlers.onToggleNote);
   root.querySelector("#subtitle-button")?.addEventListener("click", handlers.onToggleSubtitles);
   root.querySelector("#sample-script-button")?.addEventListener("click", handlers.onLoadSampleScript);
+  root.querySelector<HTMLSelectElement>("#fallback-level-select")?.addEventListener("change", (event) => {
+    handlers.onFallbackLevel((event.target as HTMLSelectElement).value as FallbackLevel);
+  });
 
   return {
     update: (snapshot) => {
       statusPanel.innerHTML = renderStatusPanel(snapshot);
+      const fallbackSelect = root.querySelector<HTMLSelectElement>("#fallback-level-select");
+      if (fallbackSelect && fallbackSelect.value !== snapshot.fallbackLevel) {
+        fallbackSelect.value = snapshot.fallbackLevel;
+      }
       const askButton = statusPanel.querySelector<HTMLButtonElement>("#mock-ai-button");
       const input = statusPanel.querySelector<HTMLInputElement>("#mock-ai-input");
       askButton?.addEventListener("click", () => handlers.onAskMockAi(input?.value.trim() ?? ""));
