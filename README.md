@@ -96,6 +96,12 @@ Current layout presets:
 
 For one-off tuning, `presentation.layers` can explicitly list layer IDs instead of using the preset defaults. This keeps display composition text-managed while character/model files stay local-only under `public/assets-local/**`.
 
+## Subtitle Layer
+
+`SubtitleLayer` renders `Cue.text` as a separate commentary layer from slide content. It shows the active speaker display name, the cue kind, and a projection-friendly subtitle block. Long lines automatically use denser sizing and are clamped so the stage view does not overflow.
+
+Subtitle visibility is presenter-controlled with `T` or the `Toggle Subtitles` button. The active state is also shown in the status panel and exposed on the app root as `data-subtitles`.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next
@@ -110,8 +116,9 @@ For one-off tuning, `presentation.layers` can explicitly list layer IDs instead 
 - `S`: Skip
 - `R`: Reset
 - `N`: Toggle Speaker Note
+- `T`: Toggle Subtitles
 
-The screen also exposes `Next`, `Back`, `Supplement`, `Tsukkomi`, `Return`, `Pause`, `Reset`, and `Toggle Speaker Note`.
+The screen also exposes `Next`, `Back`, `Supplement`, `Tsukkomi`, `Return`, `Pause`, `Reset`, `Toggle Speaker Note`, and `Toggle Subtitles`.
 
 ## Development
 

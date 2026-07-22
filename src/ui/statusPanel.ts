@@ -62,6 +62,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <h3>Presentation Layers</h3>
       <dl class="cue-details">
         <div><dt>Layout</dt><dd>${escapeHtml(snapshot.presentation.layout)}</dd></div>
+        <div><dt>Subtitle</dt><dd>${snapshot.showSubtitles ? "on" : "off"}</dd></div>
         <div><dt>Reason</dt><dd>${escapeHtml(snapshot.presentation.debugReason)}</dd></div>
       </dl>
       <ul>

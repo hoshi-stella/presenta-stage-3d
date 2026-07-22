@@ -7,6 +7,7 @@ export type UiHandlers = {
   onCommand: (command: PresenterCommand) => void;
   onReset: () => void;
   onToggleNote: () => void;
+  onToggleSubtitles: () => void;
   onShowCredits: (variant: EndingCreditsVariant) => void;
   onLoadSampleScript: () => void;
   onAskMockAi: (text: string) => void;
@@ -22,6 +23,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
       <section class="stage-shell">
         <canvas id="stage-canvas" aria-label="3D presentation stage"></canvas>
         <div id="slide-layer-host" class="slide-layer-host" aria-live="polite"></div>
+        <div id="subtitle-layer-host" class="subtitle-layer-host"></div>
         <div id="live2d-host" class="live2d-host" aria-hidden="true"></div>
         <div id="image-presenter-host" class="image-presenter-host" aria-hidden="true"></div>
         <div id="static-illustration-host" class="static-illustration-host" aria-hidden="true"></div>
@@ -43,6 +45,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
           <button data-command="pause" type="button">Pause</button>
           <button id="reset-button" type="button">Reset</button>
           <button id="note-button" type="button">Toggle Speaker Note</button>
+          <button id="subtitle-button" type="button">Toggle Subtitles</button>
           <button id="sample-script-button" type="button">Load Sample Script</button>
           <button data-credits="crawl" type="button">Credits Crawl</button>
           <button data-credits="spiral" type="button">Credits Spiral</button>
@@ -62,6 +65,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   });
   root.querySelector("#reset-button")?.addEventListener("click", handlers.onReset);
   root.querySelector("#note-button")?.addEventListener("click", handlers.onToggleNote);
+  root.querySelector("#subtitle-button")?.addEventListener("click", handlers.onToggleSubtitles);
   root.querySelector("#sample-script-button")?.addEventListener("click", handlers.onLoadSampleScript);
 
   return {
@@ -88,6 +92,10 @@ export function getStageShell(root: HTMLElement): HTMLElement {
 
 export function getSlideLayerHost(root: HTMLElement): HTMLElement {
   return requireElement(root, "#slide-layer-host");
+}
+
+export function getSubtitleLayerHost(root: HTMLElement): HTMLElement {
+  return requireElement(root, "#subtitle-layer-host");
 }
 
 function requireElement(root: HTMLElement, selector: string): HTMLElement {

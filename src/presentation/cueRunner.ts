@@ -17,6 +17,7 @@ export class CueRunner {
   private index = 0;
   private mode: PresentationMode = "manual";
   private showSpeakerNote = true;
+  private showSubtitles = true;
   private aiMessage: string | null = null;
   private statusMessage: string | null = null;
   private isPaused = false;
@@ -48,6 +49,7 @@ export class CueRunner {
       cueIndex: this.index,
       cueCount: this.cues.length,
       showSpeakerNote: this.showSpeakerNote,
+      showSubtitles: this.showSubtitles,
       aiMessage: this.aiMessage,
       statusMessage: this.statusMessage,
       isPaused: this.isPaused,
@@ -124,6 +126,11 @@ export class CueRunner {
 
   toggleSpeakerNote(): void {
     this.showSpeakerNote = !this.showSpeakerNote;
+    this.emit();
+  }
+
+  toggleSubtitles(): void {
+    this.showSubtitles = !this.showSubtitles;
     this.emit();
   }
 

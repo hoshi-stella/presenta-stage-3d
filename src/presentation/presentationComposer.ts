@@ -43,10 +43,12 @@ export function resolvePresentationComposition(cue: Cue): PresentationCompositio
 export function applyPresentationComposition(root: HTMLElement, snapshot: PresentationSnapshot): void {
   root.dataset.layout = snapshot.presentation.layout;
   root.dataset.layers = snapshot.presentation.activeLayers.join(" ");
+  root.dataset.subtitles = snapshot.showSubtitles ? "on" : "off";
 
   allLayers.forEach((layer) => {
     root.classList.toggle(`presentation-layer--${layer}`, snapshot.presentation.activeLayers.includes(layer));
   });
+  root.classList.toggle("presentation-subtitles--hidden", !snapshot.showSubtitles);
 }
 
 function inferLayout(cue: Cue): LayoutPreset {

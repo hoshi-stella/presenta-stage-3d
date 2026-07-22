@@ -7,6 +7,7 @@ export type PresentationControls = {
   command: (command: PresenterCommand) => void;
   reset: () => void;
   toggleNote: () => void;
+  toggleSubtitles: () => void;
   togglePause: () => void;
   showCredits: (variant: EndingCreditsVariant) => void;
   isCreditsVisible: () => boolean;
@@ -42,6 +43,13 @@ export function createControls(
       }
 
       runner.toggleSpeakerNote();
+    },
+    toggleSubtitles: () => {
+      if (shouldBlockPresentationControl()) {
+        return;
+      }
+
+      runner.toggleSubtitles();
     },
     togglePause: () => {
       if (shouldBlockPresentationControl()) {
