@@ -4,7 +4,8 @@ import { CueRunner } from "../presentation/cueRunner";
 import sampleScriptMarkdown from "../presentation/sampleScript.md?raw";
 import { parseMarkdownToCues } from "../presentation/markdownCueParser";
 import { createStageScene, type StageScene } from "../scene/createScene";
-import { createUiRenderer, getStageCanvas } from "../ui/renderUi";
+import { createUiRenderer, getSlideLayerHost, getStageCanvas, getStageShell } from "../ui/renderUi";
+import { createSlideLayer, type SlideLayer } from "../slides/slideLayer";
 import { getLive2DConfig } from "../live2d/config";
 import { createLive2DPresenterLayer } from "../live2d/live2dPresenterLayer";
 import type { Live2DPresenterLayer } from "../live2d/types";
@@ -16,6 +17,7 @@ import { bindKeyboardControls } from "./keyboard";
 
 export class App {
   private stageScene: StageScene | null = null;
+  private slideLayer: SlideLayer | null = null;
   private live2dLayer: Live2DPresenterLayer | null = null;
   private imagePresenterLayer: ImagePresenterLayer | null = null;
   private endingCredits: EndingCreditsOverlay | null = null;
@@ -48,6 +50,7 @@ export class App {
     this.endingCredits = createEndingCreditsOverlay(this.root);
 
     this.stageScene = createStageScene(getStageCanvas(this.root));
+    this.slideLayer = createSlideLayer(getSlideLayerHost(this.root), getStageShell(this.root));
     const live2dHost = this.root.querySelector<HTMLElement>("#live2d-host");
     if (live2dHost) {
       void createLive2DPresenterLayer(live2dHost, getLive2DConfig(), (_state, message) => {
@@ -75,6 +78,7 @@ export class App {
     this.unbindKeyboard = bindKeyboardControls(controls);
     this.unsubscribeState = runner.subscribe((snapshot) => {
       ui.update(snapshot);
+      this.slideLayer?.update(snapshot);
       this.stageScene?.applySectionVisuals(
         snapshot.resolvedDirection.scenePreset,
         snapshot.resolvedDirection.camera,
@@ -93,6 +97,7 @@ export class App {
     this.unbindKeyboard?.();
     this.unsubscribeState?.();
     this.live2dLayer?.dispose();
+    this.slideLayer?.dispose();
     this.imagePresenterLayer?.dispose();
     this.endingCredits?.dispose();
     this.stageScene?.dispose();

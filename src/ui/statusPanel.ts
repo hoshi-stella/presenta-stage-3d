@@ -72,6 +72,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
         <div><dt>ID</dt><dd>${escapeHtml(snapshot.cue.id)}</dd></div>
         <div><dt>Kind</dt><dd>${escapeHtml(snapshot.cue.kind)}</dd></div>
         <div><dt>Speaker</dt><dd>${escapeHtml(snapshot.cue.speaker)}</dd></div>
+        <div><dt>Slide</dt><dd>${escapeHtml(snapshot.cue.slideRef ?? "none")}</dd></div>
         <div><dt>Intent</dt><dd>${escapeHtml(snapshot.cue.direction.intent)}</dd></div>
         <div><dt>Intensity</dt><dd>${escapeHtml(snapshot.cue.direction.intensity)}</dd></div>
       </dl>
