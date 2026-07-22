@@ -5,6 +5,7 @@ export const cues: Cue[] = [
     id: "cue_intro_01",
     kind: "talk",
     speaker: "rei",
+    slideRef: "slide_intro",
     text: "今日は、スライドショーじゃない登壇について考えてみます。",
     note: "導入。発表をUIとして考える話に入る。",
     direction: {
@@ -26,6 +27,7 @@ export const cues: Cue[] = [
     id: "cue_problem_01",
     kind: "question",
     speaker: "mikoto",
+    slideRef: "slide_problem",
     text: "でも、ブラウザで発表しても紙芝居のままでいいんですか？",
     note: "疑問役。発表形式への違和感を出す。",
     direction: {
@@ -47,6 +49,7 @@ export const cues: Cue[] = [
     id: "cue_answer_01",
     kind: "answer",
     speaker: "rei",
+    slideRef: "slide_cue_runtime",
     text: "発表をページではなく、状態・入力・演出を持つUIとして考えると、別の形が見えてきます。",
     note: "主張。登壇はUIである。",
     direction: {
@@ -87,6 +90,7 @@ export const cues: Cue[] = [
     id: "cue_supplement_01",
     kind: "supplement",
     speaker: "rei",
+    slideRef: "slide_cue_runtime",
     text: "たとえば、Stage View、Speaker View、Audience View、Archive View のように、同じ内容でも表示モードを分けられます。",
     note: "補足ルート。終わったら本筋に戻る。",
     direction: {
@@ -117,6 +121,7 @@ export const cues: Cue[] = [
     id: "cue_tsukkomi_01",
     kind: "tsukkomi",
     speaker: "mikoto",
+    slideRef: "slide_cue_runtime",
     text: "つまり、スライドを作っているつもりが、いつの間にか舞台を作っているわけですね。",
     note: "ツッコミルート。会話劇感を出す。",
     direction: {
@@ -147,6 +152,7 @@ export const cues: Cue[] = [
     id: "cue_main_02",
     kind: "talk",
     speaker: "rei",
+    slideRef: "slide_archive",
     text: "そこで、キュー単位で発話、モーション、カメラ、演出、分岐をまとめて管理します。",
     note: "キュー駆動の説明。",
     direction: {
@@ -171,6 +177,7 @@ export const cues: Cue[] = [
     id: "cue_qa_01",
     kind: "qa",
     speaker: "mikoto",
+    slideRef: "slide_summary",
     text: "最後に、みなさんならどんな登壇UIを作るか、質問受付モードで考えてみましょう。",
     note: "質問受付モードの見た目だけを示す。",
     direction: {
@@ -198,6 +205,7 @@ export const cues: Cue[] = [
     id: "cue_summary_01",
     kind: "summary",
     speaker: "rei",
+    slideRef: "slide_summary",
     text: "3DやAIは主役ではなく、発表を自然に進めるための裏方として扱うのがよさそうです。",
     note: "Phase 1 の締め。意味ベース演出の方針をまとめる。",
     direction: {
