@@ -1,9 +1,10 @@
-import type { Cue, LayoutPreset, PresentationLayer, PresentationSnapshot } from "./types";
+import type { Cue, FallbackLevel, LayoutPreset, PresentationLayer, PresentationSnapshot } from "./types";
 
 export type PresentationComposition = {
   activeLayers: PresentationLayer[];
   layout: LayoutPreset;
   debugReason: string;
+  creditsVariant: "crawl" | "spiral" | null;
 };
 
 const allLayers: PresentationLayer[] = [
@@ -27,16 +28,20 @@ const defaultLayouts: Record<LayoutPreset, PresentationLayer[]> = {
   stage_with_overlay: ["slide", "subtitle", "stage3d", "live2d", "manju", "static_illustration", "effects"]
 };
 
-export function resolvePresentationComposition(cue: Cue): PresentationComposition {
+export function resolvePresentationComposition(cue: Cue, fallbackLevel: FallbackLevel = "full"): PresentationComposition {
   const explicitLayout = cue.presentation?.layout;
   const inferredLayout = explicitLayout ?? inferLayout(cue);
   const explicitLayers = cue.presentation?.layers;
-  const layers = normalizeLayers(explicitLayers ?? defaultLayouts[inferredLayout]);
+  const fallback = fallbackLevel === "full" ? undefined : cue.presentation?.fallback?.[fallbackLevel];
+  const fallbackLayout = fallback?.layout;
+  const resolvedLayout = fallbackLayout ?? inferredLayout;
+  const layers = normalizeLayers(fallback?.layers ?? explicitLayers ?? defaultLayouts[resolvedLayout]);
 
   return {
     activeLayers: layers,
-    layout: inferredLayout,
-    debugReason: explicitLayout || explicitLayers ? "explicit cue presentation" : "inferred from cue"
+    layout: resolvedLayout,
+    debugReason: getDebugReason(fallbackLevel, fallback !== undefined, explicitLayout !== undefined || explicitLayers !== undefined),
+    creditsVariant: cue.presentation?.creditsVariant ?? null
   };
 }
 
@@ -73,4 +78,12 @@ function inferLayout(cue: Cue): LayoutPreset {
 
 function normalizeLayers(layers: PresentationLayer[]): PresentationLayer[] {
   return layers.filter((layer, index) => allLayers.includes(layer) && layers.indexOf(layer) === index);
+}
+
+function getDebugReason(fallbackLevel: FallbackLevel, usedFallback: boolean, explicit: boolean): string {
+  if (usedFallback) {
+    return `fallback:${fallbackLevel}`;
+  }
+
+  return explicit ? "explicit cue presentation" : "inferred from cue";
 }

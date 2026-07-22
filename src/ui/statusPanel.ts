@@ -6,9 +6,11 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
     ? "Live AI Mode (stub)"
     : snapshot.mode === "qa"
       ? "QA Mode"
-      : snapshot.mode === "semiAuto"
-        ? "Semi-Auto Mode"
-        : "Manual Mode";
+      : snapshot.mode === "demoScript"
+        ? "Demo Script Mode"
+        : snapshot.mode === "semiAuto"
+          ? "Semi-Auto Mode"
+          : "Manual Mode";
   const noteMarkup = snapshot.showSpeakerNote
     ? `<section class="speaker-note"><h3>Speaker Note</h3><p>${escapeHtml(snapshot.cue.note ?? "No note")}</p></section>`
     : "";
@@ -63,6 +65,8 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <dl class="cue-details">
         <div><dt>Layout</dt><dd>${escapeHtml(snapshot.presentation.layout)}</dd></div>
         <div><dt>Subtitle</dt><dd>${snapshot.showSubtitles ? "on" : "off"}</dd></div>
+        <div><dt>Fallback</dt><dd>${escapeHtml(snapshot.fallbackLevel)}</dd></div>
+        <div><dt>Credits</dt><dd>${escapeHtml(snapshot.presentation.creditsVariant ?? "none")}</dd></div>
         <div><dt>Reason</dt><dd>${escapeHtml(snapshot.presentation.debugReason)}</dd></div>
       </dl>
       <ul>
@@ -70,6 +74,18 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       </ul>
     </section>
   `;
+  const demoMarkup = snapshot.cue.demo
+    ? `
+      <section class="demo-track-state">
+        <h3>Demo Track</h3>
+        <dl class="cue-details">
+          <div><dt>Step</dt><dd>${snapshot.cue.demo.step}</dd></div>
+          <div><dt>Label</dt><dd>${escapeHtml(snapshot.cue.demo.label)}</dd></div>
+          <div><dt>Target</dt><dd>${snapshot.cue.demo.targetSeconds}s</dd></div>
+        </dl>
+      </section>
+    `
+    : "";
 
   return `
     <div class="section-meta">
@@ -95,6 +111,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <h3>Available Branches</h3>
       <ul>${branchMarkup}</ul>
     </section>
+    ${demoMarkup}
     ${presentationMarkup}
     ${flowMarkup}
     <section class="character-state-list">
