@@ -85,11 +85,16 @@ input {
   outline: none;
   touch-action: none;
   opacity: 0;
-  transition: opacity 260ms ease;
+  transform: scale(1.015);
+  transform-origin: 50% 50%;
+  transition:
+    opacity 360ms ease,
+    transform 420ms ease;
 }
 
 #app.presentation-layer--stage3d #stage-canvas {
   opacity: 1;
+  transform: scale(1);
 }
 
 .slide-layer-host {
@@ -98,9 +103,21 @@ input {
   z-index: 1;
   display: none;
   pointer-events: none;
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+  transition:
+    opacity 320ms ease,
+    transform 420ms ease;
 }
 
 #app.presentation-layer--slide .slide-layer-host--visible {
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+#app.presentation-layer-exit--slide .slide-layer-host--visible {
   display: grid;
   place-items: center;
 }
@@ -113,9 +130,20 @@ input {
   z-index: 5;
   display: none;
   pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 240ms ease,
+    transform 300ms ease;
 }
 
 #app.presentation-layer--subtitle:not(.presentation-subtitles--hidden) .subtitle-layer-host:not(.subtitle-layer-host--hidden) {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#app.presentation-layer-exit--subtitle .subtitle-layer-host:not(.subtitle-layer-host--hidden) {
   display: block;
 }
 
@@ -349,11 +377,15 @@ input {
   pointer-events: none;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 260ms ease;
+  transform: translateY(10px) scale(0.985);
+  transition:
+    opacity 320ms ease,
+    transform 420ms ease;
 }
 
 #app.presentation-layer--live2d .live2d-host {
   opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .live2d-canvas {
@@ -374,11 +406,15 @@ input {
     drop-shadow(0 18px 24px rgba(0, 0, 0, 0.36))
     drop-shadow(0 0 18px rgba(147, 229, 255, 0.16));
   opacity: 0;
-  transition: opacity 260ms ease;
+  transform: translateY(10px) scale(0.96);
+  transition:
+    opacity 280ms ease,
+    transform 360ms ease;
 }
 
 #app.presentation-layer--manju .image-presenter-host {
   opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .image-presenter-host--hidden {
@@ -398,11 +434,15 @@ input {
   z-index: 2;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 260ms ease;
+  transform: translateY(10px) scale(0.985);
+  transition:
+    opacity 300ms ease,
+    transform 420ms ease;
 }
 
 #app.presentation-layer--static_illustration .static-illustration-host {
   opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .static-illustration-host--hidden {
@@ -482,6 +522,33 @@ input {
   color: rgba(244, 247, 251, 0.84);
   background: rgba(8, 11, 16, 0.42);
   backdrop-filter: blur(14px);
+}
+
+.transition-debug {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  display: inline-flex;
+  max-width: min(520px, 70vw);
+  min-height: 28px;
+  align-items: center;
+  padding: 4px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 8px;
+  color: rgba(244, 247, 251, 0.66);
+  background: rgba(8, 11, 16, 0.34);
+  font-size: 12px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  backdrop-filter: blur(14px);
+}
+
+#app.presentation-transition--active .transition-debug {
+  color: #ffcf7a;
+  border-color: rgba(255, 207, 122, 0.28);
+  background: rgba(44, 28, 6, 0.34);
 }
 
 .control-panel {
@@ -944,10 +1011,17 @@ h3 {
     transition: none;
   }
 
-.static-illustration[data-state="speaking"],
-.static-illustration[data-state="listening"],
-.static-illustration[data-state="reacting"],
-.static-illustration--react-once {
+  #stage-canvas,
+  .slide-layer-host,
+  .subtitle-layer-host,
+  .live2d-host,
+  .image-presenter-host,
+  .static-illustration-host,
+  .static-illustration[data-state="speaking"],
+  .static-illustration[data-state="listening"],
+  .static-illustration[data-state="reacting"],
+  .static-illustration--react-once {
+    transition: none;
     transform: none;
   }
 

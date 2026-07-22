@@ -102,6 +102,12 @@ For one-off tuning, `presentation.layers` can explicitly list layer IDs instead 
 
 Subtitle visibility is presenter-controlled with `T` or the `Toggle Subtitles` button. The active state is also shown in the status panel and exposed on the app root as `data-subtitles`.
 
+## Presentation Transitions
+
+`TransitionCoordinator` keeps cue progression separate from visual transitions. `CueRunner` still moves immediately between cues, while the coordinator marks the app root with `data-transition-*` and `presentation-transition--*` classes so layers can crossfade, slide, and lightly zoom without a full black-frame reset.
+
+During the short transition window, normal forward/back/branch commands are guarded against repeated input. `Skip`, `Pause`, and `Reset` remain available for live recovery. Reduced-motion environments use immediate/simple switching by disabling transition transforms.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next

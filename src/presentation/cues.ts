@@ -217,6 +217,39 @@ export const cues: Cue[] = [
         {
           command: "summary",
           label: "まとめる",
+          targetCueId: "cue_credits_transition_01"
+        }
+      ]
+    }
+  },
+  {
+    id: "cue_credits_transition_01",
+    kind: "demo",
+    speaker: "rei",
+    slideRef: "slide_summary",
+    text: "最後は、使った技術と素材に感謝して、ひとつの発表Runtimeとして締めに入ります。",
+    note: "Ending Creditsへ入る前のtransition cue。本番ショーケースではここからCredits起動へつなげる。",
+    direction: {
+      intent: "transition",
+      emotion: "calm",
+      intensity: "low"
+    },
+    stage: {
+      preset: "summary",
+      camera: "wide",
+      motion: "present",
+      objectRef: "browser_architecture",
+      objectAction: "hide"
+    },
+    presentation: {
+      layout: "stage_with_overlay"
+    },
+    after: {
+      mode: "wait_for_presenter",
+      branches: [
+        {
+          command: "summary",
+          label: "締めへ進む",
           targetCueId: "cue_summary_01"
         }
       ]
