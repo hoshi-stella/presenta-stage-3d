@@ -57,6 +57,18 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       </ul>
     </section>
   `;
+  const presentationMarkup = `
+    <section class="presentation-composition-state">
+      <h3>Presentation Layers</h3>
+      <dl class="cue-details">
+        <div><dt>Layout</dt><dd>${escapeHtml(snapshot.presentation.layout)}</dd></div>
+        <div><dt>Reason</dt><dd>${escapeHtml(snapshot.presentation.debugReason)}</dd></div>
+      </dl>
+      <ul>
+        ${snapshot.presentation.activeLayers.map((layer) => `<li>${escapeHtml(layer)}</li>`).join("")}
+      </ul>
+    </section>
+  `;
 
   return `
     <div class="section-meta">
@@ -82,6 +94,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <h3>Available Branches</h3>
       <ul>${branchMarkup}</ul>
     </section>
+    ${presentationMarkup}
     ${flowMarkup}
     <section class="character-state-list">
       <h3>Character State</h3>

@@ -18,6 +18,9 @@ export const cues: Cue[] = [
       camera: "front",
       motion: "wave"
     },
+    presentation: {
+      layout: "slide_only"
+    },
     after: {
       mode: "wait_for_presenter",
       durationMs: 8000
@@ -39,6 +42,9 @@ export const cues: Cue[] = [
       preset: "problem",
       camera: "side",
       motion: "think"
+    },
+    presentation: {
+      layout: "slide_with_manju"
     },
     after: {
       mode: "wait_for_presenter",
@@ -63,6 +69,9 @@ export const cues: Cue[] = [
       motion: "present",
       objectRef: "browser_architecture",
       objectAction: "show"
+    },
+    presentation: {
+      layout: "stage_with_overlay"
     },
     after: {
       mode: "branch_available",
@@ -106,6 +115,9 @@ export const cues: Cue[] = [
       objectAction: "highlight_part",
       objectPartId: "dom"
     },
+    presentation: {
+      layout: "stage_with_overlay"
+    },
     after: {
       mode: "wait_for_presenter",
       branches: [
@@ -136,6 +148,9 @@ export const cues: Cue[] = [
       objectRef: "browser_architecture",
       objectAction: "explode",
       objectPartId: "webgl"
+    },
+    presentation: {
+      layout: "dialogue_split"
     },
     after: {
       mode: "wait_for_presenter",
@@ -168,6 +183,9 @@ export const cues: Cue[] = [
       objectAction: "rotate",
       objectPartId: "gpu"
     },
+    presentation: {
+      layout: "stage_full"
+    },
     after: {
       mode: "auto_next",
       durationMs: 9000
@@ -189,6 +207,9 @@ export const cues: Cue[] = [
       preset: "question",
       camera: "wide",
       motion: "wave"
+    },
+    presentation: {
+      layout: "stage_with_overlay"
     },
     after: {
       mode: "wait_for_presenter",
@@ -216,6 +237,9 @@ export const cues: Cue[] = [
     stage: {
       objectRef: "browser_architecture",
       objectAction: "hide"
+    },
+    presentation: {
+      layout: "stage_with_overlay"
     },
     after: {
       mode: "wait_for_presenter",

@@ -1,4 +1,5 @@
 import { resolveDirection } from "./directionResolver";
+import { resolvePresentationComposition } from "./presentationComposer";
 import { characterIds } from "../scene/characterRegistry";
 import type {
   CharacterId,
@@ -41,6 +42,7 @@ export class CueRunner {
 
   getSnapshot(): PresentationSnapshot {
     const cue = this.cues[this.index];
+    const presentation = resolvePresentationComposition(cue);
     return {
       mode: this.mode,
       cueIndex: this.index,
@@ -57,7 +59,8 @@ export class CueRunner {
         returnCueId: this.qaReturnCueId,
         returnCueLabel: this.getCueLabel(this.qaReturnCueId),
         shortcutCommands: this.getShortcutCommands()
-      }
+      },
+      presentation
     };
   }
 
