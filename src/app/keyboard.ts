@@ -73,6 +73,10 @@ export function bindKeyboardControls(controls: PresentationControls): () => void
       controls.toggleNote();
     }
 
+    if (key === "t") {
+      controls.toggleSubtitles();
+    }
+
     if (key === "c") {
       controls.showCredits("crawl");
     }

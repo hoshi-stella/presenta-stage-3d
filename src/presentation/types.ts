@@ -158,6 +158,7 @@ export type PresentationSnapshot = {
   cueIndex: number;
   cueCount: number;
   showSpeakerNote: boolean;
+  showSubtitles: boolean;
   aiMessage: string | null;
   statusMessage: string | null;
   isPaused: boolean;

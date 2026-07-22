@@ -105,6 +105,124 @@ input {
   place-items: center;
 }
 
+.subtitle-layer-host {
+  position: absolute;
+  left: clamp(24px, 4vw, 72px);
+  right: clamp(24px, 4vw, 72px);
+  bottom: clamp(24px, 5vh, 64px);
+  z-index: 5;
+  display: none;
+  pointer-events: none;
+}
+
+#app.presentation-layer--subtitle:not(.presentation-subtitles--hidden) .subtitle-layer-host:not(.subtitle-layer-host--hidden) {
+  display: block;
+}
+
+.subtitle-card {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  padding: clamp(16px, 2.2vw, 24px) clamp(20px, 3vw, 34px);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-left: 8px solid #93e5ff;
+  border-radius: 8px;
+  color: #f9fcff;
+  background:
+    linear-gradient(90deg, rgba(9, 14, 22, 0.96), rgba(9, 14, 22, 0.82)),
+    rgba(9, 14, 22, 0.92);
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.44),
+    0 0 32px rgba(147, 229, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.subtitle-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: rgba(244, 247, 251, 0.72);
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.subtitle-card__speaker {
+  color: #93e5ff;
+  font-size: 16px;
+}
+
+.subtitle-card__kind {
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.subtitle-card__text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #fff;
+  font-size: clamp(26px, 2.4vw, 40px);
+  font-weight: 800;
+  line-height: 1.28;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.42),
+    0 0 16px rgba(0, 0, 0, 0.36);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.subtitle-card--compact .subtitle-card__text {
+  font-size: clamp(23px, 2.1vw, 34px);
+  line-height: 1.26;
+}
+
+.subtitle-card--dense .subtitle-card__text {
+  font-size: clamp(20px, 1.8vw, 28px);
+  line-height: 1.24;
+  -webkit-line-clamp: 4;
+}
+
+.subtitle-layer-host[data-speaker="mikoto"] .subtitle-card {
+  border-left-color: #ffcf7a;
+  box-shadow:
+    0 20px 54px rgba(0, 0, 0, 0.44),
+    0 0 32px rgba(255, 207, 122, 0.12);
+}
+
+.subtitle-layer-host[data-speaker="mikoto"] .subtitle-card__speaker {
+  color: #ffcf7a;
+}
+
+.subtitle-layer-host[data-kind="question"] .subtitle-card,
+.subtitle-layer-host[data-kind="qa"] .subtitle-card {
+  border-left-color: #93e5ff;
+}
+
+.subtitle-layer-host[data-kind="answer"] .subtitle-card,
+.subtitle-layer-host[data-kind="summary"] .subtitle-card {
+  border-left-color: #9df2bd;
+}
+
+.subtitle-layer-host[data-kind="supplement"] .subtitle-card {
+  border-left-color: #b9a5ff;
+}
+
+.subtitle-layer-host[data-kind="tsukkomi"] .subtitle-card {
+  border-left-color: #ff8f70;
+}
+
+.subtitle-layer-host[data-layout="dialogue_split"] {
+  bottom: clamp(30px, 6vh, 76px);
+}
+
+.subtitle-layer-host[data-layout="dialogue_split"] .subtitle-card {
+  width: min(78%, 880px);
+}
+
 .slide-layer {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -430,6 +548,7 @@ h3 {
 .character-state-list,
 .direction-asset-list,
 .presentation-object-state,
+.presentation-composition-state,
 .speaker-note,
 .mock-ai {
   padding: 16px 0;
@@ -825,11 +944,16 @@ h3 {
     transition: none;
   }
 
-  .static-illustration[data-state="speaking"],
-  .static-illustration[data-state="listening"],
-  .static-illustration[data-state="reacting"],
-  .static-illustration--react-once {
+.static-illustration[data-state="speaking"],
+.static-illustration[data-state="listening"],
+.static-illustration[data-state="reacting"],
+.static-illustration--react-once {
     transform: none;
+  }
+
+  .subtitle-card,
+  .subtitle-card__text {
+    transition: none;
   }
 }
 
@@ -878,6 +1002,34 @@ h3 {
 
   .slide-layer-host {
     inset: 12px;
+  }
+
+  .subtitle-layer-host {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .subtitle-card {
+    padding: 12px 14px;
+    border-left-width: 6px;
+  }
+
+  .subtitle-card__meta {
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+
+  .subtitle-card__speaker {
+    font-size: 13px;
+  }
+
+  .subtitle-card__text,
+  .subtitle-card--compact .subtitle-card__text,
+  .subtitle-card--dense .subtitle-card__text {
+    font-size: 20px;
+    line-height: 1.24;
+    -webkit-line-clamp: 4;
   }
 
   .slide-layer {
