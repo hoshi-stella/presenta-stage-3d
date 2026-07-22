@@ -34,23 +34,64 @@ export function createSubtitleLayer(host: HTMLElement): SubtitleLayer {
   const speaker = requireElement(host, ".subtitle-card__speaker");
   const kind = requireElement(host, ".subtitle-card__kind");
   const text = requireElement(host, ".subtitle-card__text");
+  let currentLine = "";
+  let currentLayout = "";
+  let typeTimerId: number | null = null;
+
+  const stopTypewriter = (): void => {
+    if (typeTimerId === null) {
+      return;
+    }
+
+    window.clearInterval(typeTimerId);
+    typeTimerId = null;
+  };
+
+  const renderLine = (line: string, layout: string): void => {
+    if (line === currentLine && layout === currentLayout) {
+      return;
+    }
+
+    currentLine = line;
+    currentLayout = layout;
+    stopTypewriter();
+
+    if (layout !== "slide_with_manju" || line.length === 0) {
+      text.textContent = line;
+      return;
+    }
+
+    let index = 0;
+    text.textContent = "";
+    typeTimerId = window.setInterval(() => {
+      index += 1;
+      text.textContent = line.slice(0, index);
+
+      if (index >= line.length) {
+        stopTypewriter();
+      }
+    }, 56);
+  };
 
   return {
     update: (snapshot) => {
       const character = getCharacterInstance(snapshot.cue.speaker);
       const line = normalizeSubtitle(snapshot.cue.text);
+      const layout = snapshot.presentation.layout;
 
       host.classList.toggle("subtitle-layer-host--hidden", !snapshot.showSubtitles);
       host.dataset.kind = snapshot.cue.kind;
       host.dataset.speaker = snapshot.cue.speaker;
-      host.dataset.layout = snapshot.presentation.layout;
+      host.dataset.layout = layout;
       card.classList.toggle("subtitle-card--compact", line.length > 54);
       card.classList.toggle("subtitle-card--dense", line.length > 92);
+      card.classList.toggle("subtitle-card--speech-bubble", layout === "slide_with_manju");
       speaker.textContent = character.displayName;
       kind.textContent = kindLabels[snapshot.cue.kind];
-      text.textContent = line;
+      renderLine(line, layout);
     },
     dispose: () => {
+      stopTypewriter();
       host.innerHTML = "";
       host.classList.remove("subtitle-layer-host--hidden");
       delete host.dataset.kind;

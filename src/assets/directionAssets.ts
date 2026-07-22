@@ -110,7 +110,7 @@ export const directionPresets: DirectionPresetAsset[] = [
     intent: "question",
     label: "軽い疑問",
     tags: ["question", "soft"],
-    compatibleIntents: ["question", "doubt"],
+    compatibleIntents: ["question", "doubt", "supplement"],
     compatibleCharacters: ["mikoto", "rei"],
     intensity: "medium",
     durationMs: 6500,
