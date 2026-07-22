@@ -109,6 +109,7 @@ Character assets are local-only and ignored by Git. Keep 2D and 3D models in sep
 ```bash
 VITE_LIVE2D_MODEL_URL=/assets-local/characters/2d/hosinonya/hosinonya.model3.json
 VITE_LIVE2D_CORE_URL=/assets-local/vendor/live2d/live2dcubismcore.min.js
+VITE_REI_STATIC_ILLUSTRATION_BASE_URL=/assets-local/characters/2d/rei-static
 ```
 
 Expected local layout:
@@ -124,6 +125,13 @@ public/assets-local/
         hosinonya.physics3.json
         hosinonya.cdi3.json
         hosinonya.4096/texture_00.png
+      rei-static/
+        neutral.png
+        smile.png
+        thinking.png
+        troubled.png
+        surprised.png
+        angry.png
     3d/
       unitychan/
         unitychan.glb

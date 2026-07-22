@@ -266,6 +266,74 @@ input {
   object-fit: contain;
 }
 
+.static-illustration-host {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.static-illustration-host--hidden {
+  display: none;
+}
+
+.static-illustration {
+  position: absolute;
+  right: clamp(24px, 5vw, 72px);
+  bottom: clamp(12px, 3vh, 36px);
+  width: clamp(180px, 21vw, 340px);
+  max-height: 72vh;
+  object-fit: contain;
+  opacity: 0.96;
+  transform-origin: 50% 100%;
+  transition:
+    filter 220ms ease,
+    opacity 220ms ease,
+    transform 220ms ease;
+  animation: static-illustration-idle 4.8s ease-in-out infinite;
+  filter:
+    brightness(0.92)
+    drop-shadow(0 20px 32px rgba(0, 0, 0, 0.38));
+}
+
+.static-illustration--rei {
+  right: clamp(34px, 7vw, 104px);
+}
+
+.static-illustration--mikoto {
+  left: clamp(34px, 7vw, 104px);
+  right: auto;
+}
+
+.static-illustration[data-state="speaking"] {
+  opacity: 1;
+  transform: translateY(-4px) scale(1.045);
+  filter:
+    brightness(1.12)
+    drop-shadow(0 24px 38px rgba(0, 0, 0, 0.42))
+    drop-shadow(0 0 22px rgba(147, 229, 255, 0.18));
+}
+
+.static-illustration[data-state="listening"] {
+  opacity: 0.66;
+  transform: translateY(8px) scale(0.96);
+  filter:
+    brightness(0.72)
+    drop-shadow(0 18px 26px rgba(0, 0, 0, 0.34));
+}
+
+.static-illustration[data-state="reacting"],
+.static-illustration--react-once {
+  opacity: 1;
+  animation:
+    static-illustration-idle 4.8s ease-in-out infinite,
+    static-illustration-react 520ms ease-out 1;
+}
+
+.static-illustration--missing {
+  display: none;
+}
+
 .stage-overlay {
   position: absolute;
   inset: 24px;
@@ -617,6 +685,31 @@ h3 {
   }
 }
 
+@keyframes static-illustration-idle {
+  0%,
+  100% {
+    margin-bottom: 0;
+  }
+
+  50% {
+    margin-bottom: 9px;
+  }
+}
+
+@keyframes static-illustration-react {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  45% {
+    transform: translateY(-22px) scale(1.08);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes credits-spiral {
   0% {
     opacity: 0;
@@ -712,6 +805,18 @@ h3 {
     text-align: center;
     transform: none;
   }
+
+  .static-illustration {
+    animation: none;
+    transition: none;
+  }
+
+  .static-illustration[data-state="speaking"],
+  .static-illustration[data-state="listening"],
+  .static-illustration[data-state="reacting"],
+  .static-illustration--react-once {
+    transform: none;
+  }
 }
 
 @media (max-width: 960px) {
@@ -749,6 +854,12 @@ h3 {
     right: 12px;
     bottom: 12px;
     width: clamp(96px, 30vw, 150px);
+  }
+
+  .static-illustration {
+    right: 12px;
+    bottom: 8px;
+    width: clamp(120px, 32vw, 190px);
   }
 
   .slide-layer-host {
