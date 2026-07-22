@@ -7,12 +7,11 @@ export type SlideLayer = {
   dispose: () => void;
 };
 
-export function createSlideLayer(host: HTMLElement, stageShell: HTMLElement): SlideLayer {
+export function createSlideLayer(host: HTMLElement): SlideLayer {
   return {
     update: (snapshot) => {
       const slide = getSlideContent(snapshot.cue.slideRef);
       host.classList.toggle("slide-layer-host--visible", slide !== null);
-      stageShell.classList.toggle("stage-shell--slide-only", slide?.displayMode === "slide_only");
 
       if (!slide) {
         host.innerHTML = "";
@@ -24,7 +23,6 @@ export function createSlideLayer(host: HTMLElement, stageShell: HTMLElement): Sl
     dispose: () => {
       host.innerHTML = "";
       host.classList.remove("slide-layer-host--visible");
-      stageShell.classList.remove("stage-shell--slide-only");
     }
   };
 }

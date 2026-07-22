@@ -44,6 +44,25 @@ export type ProgressionMode =
   | "wait_for_presenter"
   | "branch_available";
 
+export type PresentationLayer =
+  | "slide"
+  | "subtitle"
+  | "manju"
+  | "static_illustration"
+  | "live2d"
+  | "stage3d"
+  | "effects"
+  | "ending_credits";
+
+export type LayoutPreset =
+  | "slide_only"
+  | "slide_with_caption"
+  | "slide_with_manju"
+  | "slide_with_character"
+  | "dialogue_split"
+  | "stage_full"
+  | "stage_with_overlay";
+
 export type PresenterCommand =
   | "next"
   | "back"
@@ -86,6 +105,10 @@ export type Cue = {
     objectRef?: string;
     objectAction?: PresentationObjectAction;
     objectPartId?: string;
+  };
+  presentation?: {
+    layers?: PresentationLayer[];
+    layout?: LayoutPreset;
   };
   after: {
     mode: ProgressionMode;
@@ -146,6 +169,11 @@ export type PresentationSnapshot = {
     returnCueId: CueId | null;
     returnCueLabel: string | null;
     shortcutCommands: PresenterCommand[];
+  };
+  presentation: {
+    activeLayers: PresentationLayer[];
+    layout: LayoutPreset;
+    debugReason: string;
   };
 };
 

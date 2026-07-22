@@ -3,8 +3,9 @@ import { cues } from "../presentation/cues";
 import { CueRunner } from "../presentation/cueRunner";
 import sampleScriptMarkdown from "../presentation/sampleScript.md?raw";
 import { parseMarkdownToCues } from "../presentation/markdownCueParser";
+import { applyPresentationComposition } from "../presentation/presentationComposer";
 import { createStageScene, type StageScene } from "../scene/createScene";
-import { createUiRenderer, getSlideLayerHost, getStageCanvas, getStageShell, getStaticIllustrationHost } from "../ui/renderUi";
+import { createUiRenderer, getSlideLayerHost, getStageCanvas, getStaticIllustrationHost } from "../ui/renderUi";
 import { createSlideLayer, type SlideLayer } from "../slides/slideLayer";
 import { getLive2DConfig } from "../live2d/config";
 import { createLive2DPresenterLayer } from "../live2d/live2dPresenterLayer";
@@ -53,7 +54,7 @@ export class App {
     this.endingCredits = createEndingCreditsOverlay(this.root);
 
     this.stageScene = createStageScene(getStageCanvas(this.root));
-    this.slideLayer = createSlideLayer(getSlideLayerHost(this.root), getStageShell(this.root));
+    this.slideLayer = createSlideLayer(getSlideLayerHost(this.root));
     const live2dHost = this.root.querySelector<HTMLElement>("#live2d-host");
     if (live2dHost) {
       void createLive2DPresenterLayer(live2dHost, getLive2DConfig(), (_state, message) => {
@@ -87,6 +88,7 @@ export class App {
 
     this.unbindKeyboard = bindKeyboardControls(controls);
     this.unsubscribeState = runner.subscribe((snapshot) => {
+      applyPresentationComposition(this.root, snapshot);
       ui.update(snapshot);
       this.slideLayer?.update(snapshot);
       this.stageScene?.applySectionVisuals(

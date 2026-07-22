@@ -74,6 +74,28 @@ stage: {
 
 Supported object actions are `show`, `hide`, `rotate`, `highlight_part`, `focus_part`, and `explode`. The current implementation uses Babylon.js primitives as a prototype, so no GLB object assets are committed.
 
+## Presentation Layer Composer
+
+`Cue.presentation` controls which expression layers are active for each cue. The composer resolves a layout preset into layer visibility and writes the current state to the app root as `data-layout`, `data-layers`, and `presentation-layer--*` classes.
+
+```ts
+presentation: {
+  layout: "stage_with_overlay"
+}
+```
+
+Current layout presets:
+
+- `slide_only`: slide layer only
+- `slide_with_caption`: slide and subtitle
+- `slide_with_manju`: slide, subtitle, and manju image presenter
+- `slide_with_character`: slide, subtitle, and static illustration
+- `dialogue_split`: slide, subtitle, manju, and static illustration
+- `stage_full`: 3D stage, Live2D, manju, and effects
+- `stage_with_overlay`: 3D stage with slide, subtitle, characters, and effects
+
+For one-off tuning, `presentation.layers` can explicitly list layer IDs instead of using the preset defaults. This keeps display composition text-managed while character/model files stay local-only under `public/assets-local/**`.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next
