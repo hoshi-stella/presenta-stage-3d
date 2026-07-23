@@ -73,6 +73,10 @@ input {
     #080b10;
 }
 
+#app[data-control-panel="collapsed"] .shell {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .stage-shell {
   position: relative;
   min-width: 0;
@@ -94,6 +98,24 @@ input {
   transition:
     opacity 360ms ease,
     transform 420ms ease;
+}
+
+.control-panel-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 12;
+  min-height: 36px;
+  padding: 0 12px;
+  color: rgba(247, 251, 255, 0.92);
+  background: rgba(13, 17, 23, 0.74);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(16px);
+}
+
+#app[data-control-panel="open"] .control-panel-toggle {
+  right: clamp(338px, 21vw, 398px);
 }
 
 #app.presentation-layer--stage3d #stage-canvas {
@@ -727,6 +749,10 @@ input {
   overflow: auto;
 }
 
+#app[data-control-panel="collapsed"] .control-panel {
+  display: none;
+}
+
 .section-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1263,6 +1289,10 @@ h3 {
   .control-panel {
     border-left: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  #app[data-control-panel="open"] .control-panel-toggle {
+    right: 18px;
   }
 }
 
