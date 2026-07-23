@@ -52,12 +52,13 @@
     {
       "id": "slide_material_details",
       "layout": "split",
-      "title": "少し細かく説明",
-      "body": "同じ内容でも、登壇中に見せる情報と、手元で操作する情報と、あとから残す情報は役割が違います。",
+      "title": "見せ方ごとのメリデメ",
+      "body": "同じ内容でも、スライド、補足、キャラクター演出、アーカイブでは得意なことと弱いことが違います。",
       "bullets": [
-        "投影画面は読みやすさを優先",
-        "手元画面は操作と次の流れを優先",
-        "キャラクターや演出は場面転換を助ける"
+        "スライド: 一覧性が高い / 変化や会話は弱い",
+        "補足: 深掘りしやすい / 出しすぎると読めない",
+        "キャラクター演出: 場面転換が伝わる / 主役を奪いやすい",
+        "アーカイブ: 後から強い / 登壇中の熱量は残しにくい"
       ]
     }
   ],
@@ -609,8 +610,8 @@
       "kind": "supplement",
       "speaker": "mikoto",
       "slideRef": "slide_material_details",
-      "text": "少し細かく見ると、投影画面は読みやすさ、手元画面は操作、あとから残す画面は検索しやすさが大事そうです。",
-      "note": "6枚目。玲の補足を画面に出す代わりに、まんじゅうが整理する。ユーザー要望に合わせて、玲の補足は主表示に出さない。",
+      "text": "それぞれの見せ方には、ちゃんと得意不得意があります。まずスライドは、一覧性が高くて一番伝わりやすいのが強みです。",
+      "note": "6枚目。メリデメ比較の入り。スライドの強みをまんじゅう側から説明する。",
       "direction": {
         "intent": "supplement",
         "emotion": "thinking",
@@ -633,7 +634,7 @@
       },
       "demo": {
         "step": 16,
-        "label": "material details",
+        "label": "slide pros",
         "targetSeconds": 660
       },
       "after": {
@@ -643,6 +644,155 @@
     },
     {
       "id": "cue_material_details_02",
+      "kind": "supplement",
+      "speaker": "mikoto",
+      "slideRef": "slide_material_details",
+      "text": "でもスライドだけだと、話の寄り道や、今なぜそこを見ているのか、みたいな空気は少し出しにくいですね。",
+      "note": "スライドの弱み。静的な一覧性は強いが、会話や場面の変化は別レイヤーがあると補える。",
+      "direction": {
+        "intent": "doubt",
+        "emotion": "thinking",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "question",
+        "camera": "side",
+        "motion": "think",
+        "directionPreset": "question_light"
+      },
+      "presentation": {
+        "layout": "slide_with_manju",
+        "fallback": {
+          "static": {
+            "layout": "slide_with_caption"
+          }
+        }
+      },
+      "demo": {
+        "step": 17,
+        "label": "slide cons",
+        "targetSeconds": 700
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 10000
+      }
+    },
+    {
+      "id": "cue_material_details_03",
+      "kind": "supplement",
+      "speaker": "mikoto",
+      "slideRef": "slide_material_details",
+      "text": "補足は深掘りに向いています。細かい前提や注意点を出せますが、出しすぎると投影画面が読む場所だらけになります。",
+      "note": "補足のメリデメ。手元/投影/アーカイブで出す量を変える設計につなげる。",
+      "direction": {
+        "intent": "supplement",
+        "emotion": "calm",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "idea",
+        "camera": "medium",
+        "motion": "present"
+      },
+      "presentation": {
+        "layout": "slide_with_manju",
+        "fallback": {
+          "static": {
+            "layout": "slide_with_caption"
+          }
+        }
+      },
+      "demo": {
+        "step": 18,
+        "label": "supplement pros cons",
+        "targetSeconds": 745
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 12000
+      }
+    },
+    {
+      "id": "cue_material_details_04",
+      "kind": "reaction",
+      "speaker": "mikoto",
+      "slideRef": "slide_material_details",
+      "text": "キャラクター演出は、場面転換やツッコミが伝わりやすいです。ただし動きすぎると、何を聞けばいいかが散らかります。",
+      "note": "キャラクター演出のメリデメ。今回のまんじゅう表示そのものを例にする。",
+      "direction": {
+        "intent": "reaction",
+        "emotion": "smile",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "question",
+        "camera": "side",
+        "motion": "wave",
+        "effects": [
+          "bubble_question_float"
+        ]
+      },
+      "presentation": {
+        "layout": "slide_with_manju",
+        "fallback": {
+          "static": {
+            "layout": "slide_with_caption"
+          }
+        }
+      },
+      "demo": {
+        "step": 19,
+        "label": "character pros cons",
+        "targetSeconds": 790
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 12000
+      }
+    },
+    {
+      "id": "cue_material_details_05",
+      "kind": "supplement",
+      "speaker": "mikoto",
+      "slideRef": "slide_material_details",
+      "text": "アーカイブは後から見返すのに強いです。一方で、登壇中の勢いや間合いはそのまま残りにくいので、キュー単位の記録が役に立ちます。",
+      "note": "アーカイブのメリデメ。Archive/Re-Talk Viewがなぜ必要かを説明する。",
+      "direction": {
+        "intent": "deep_dive",
+        "emotion": "thinking",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "deepDive",
+        "camera": "medium",
+        "motion": "think",
+        "effects": [
+          "spark_ambient_blue"
+        ],
+        "objectRef": "browser_architecture",
+        "objectAction": "show"
+      },
+      "presentation": {
+        "layout": "slide_with_manju",
+        "fallback": {
+          "static": {
+            "layout": "slide_with_caption"
+          }
+        }
+      },
+      "demo": {
+        "step": 20,
+        "label": "archive pros cons",
+        "targetSeconds": 835
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 12000
+      }
+    },
+    {
+      "id": "cue_material_details_06",
       "kind": "talk",
       "speaker": "rei",
       "slideRef": "slide_material_details",
@@ -673,9 +823,9 @@
         }
       },
       "demo": {
-        "step": 17,
+        "step": 21,
         "label": "json cue data",
-        "targetSeconds": 710
+        "targetSeconds": 880
       },
       "after": {
         "mode": "wait_for_presenter",
@@ -683,7 +833,7 @@
       }
     },
     {
-      "id": "cue_material_details_03",
+      "id": "cue_material_details_07",
       "kind": "summary",
       "speaker": "rei",
       "slideRef": "slide_material_details",
@@ -709,9 +859,9 @@
         }
       },
       "demo": {
-        "step": 18,
+        "step": 22,
         "label": "summary",
-        "targetSeconds": 760
+        "targetSeconds": 930
       },
       "after": {
         "mode": "wait_for_presenter",
@@ -745,9 +895,9 @@
         }
       },
       "demo": {
-        "step": 19,
+        "step": 23,
         "label": "closing",
-        "targetSeconds": 810
+        "targetSeconds": 980
       },
       "after": {
         "mode": "wait_for_presenter",
