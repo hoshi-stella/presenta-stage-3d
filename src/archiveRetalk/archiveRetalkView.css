@@ -32,6 +32,12 @@
   line-height: 1.28;
 }
 
+.archive-source {
+  margin: 10px 0 0;
+  color: #617184;
+  font-size: 13px;
+}
+
 .archive-stage-link {
   display: inline-flex;
   align-items: center;

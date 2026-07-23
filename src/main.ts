@@ -11,8 +11,12 @@ if (!root) {
 const view = new URL(window.location.href).searchParams.get("view");
 
 if (view === "archive-retalk" || window.location.hash === "#archive-retalk") {
-  renderArchiveRetalkView(root);
+  void renderArchiveRetalkView(root).catch((error: unknown) => {
+    root.textContent = `Archive view failed to start: ${error instanceof Error ? error.message : String(error)}`;
+  });
 } else {
   const app = new App(root);
-  app.start();
+  void app.start().catch((error: unknown) => {
+    root.textContent = `App failed to start: ${error instanceof Error ? error.message : String(error)}`;
+  });
 }

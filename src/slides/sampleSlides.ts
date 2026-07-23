@@ -66,10 +66,16 @@ export const sampleSlides: SlideContent[] = [
   }
 ];
 
+let activeSlides: SlideContent[] = sampleSlides;
+
+export function setSlideContents(slides: SlideContent[]): void {
+  activeSlides = slides.length > 0 ? slides : sampleSlides;
+}
+
 export function getSlideContent(slideRef: string | undefined): SlideContent | null {
   if (!slideRef) {
     return null;
   }
 
-  return sampleSlides.find((slide) => slide.id === slideRef) ?? null;
+  return activeSlides.find((slide) => slide.id === slideRef) ?? null;
 }

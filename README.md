@@ -112,6 +112,14 @@ During the short transition window, normal forward/back/branch commands are guar
 
 The 15-minute local demo track is documented in `docs/demo-track/lt-showcase-runbook.md`. It covers the intended layer order, Demo Script Mode, fallback levels, preflight checks, and live recovery steps.
 
+## Presentation Data
+
+The default LT deck is loaded from `public/presentations/lt-demo/presentation.json`. This file contains the presentation metadata, slide contents, and cue sequence in one document so the same shape can later move behind an editor UI or database table.
+
+Use `?presentation=/presentations/<id>/presentation.json` to load another deck. If the JSON is missing or invalid, the app falls back to the built-in TypeScript demo data so the stage still starts during rehearsals.
+
+Keep reusable text data in Git, but keep model, image, voice, and other character assets under `public/assets-local/**` so private or licensed materials are not committed.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next
