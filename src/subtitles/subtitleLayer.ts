@@ -36,16 +36,6 @@ export function createSubtitleLayer(host: HTMLElement): SubtitleLayer {
   const text = requireElement(host, ".subtitle-card__text");
   let currentLine = "";
   let currentLayout = "";
-  let typeTimerId: number | null = null;
-
-  const stopTypewriter = (): void => {
-    if (typeTimerId === null) {
-      return;
-    }
-
-    window.clearInterval(typeTimerId);
-    typeTimerId = null;
-  };
 
   const renderLine = (line: string, layout: string): void => {
     if (line === currentLine && layout === currentLayout) {
@@ -54,23 +44,7 @@ export function createSubtitleLayer(host: HTMLElement): SubtitleLayer {
 
     currentLine = line;
     currentLayout = layout;
-    stopTypewriter();
-
-    if (layout !== "slide_with_manju" || line.length === 0) {
-      text.textContent = line;
-      return;
-    }
-
-    let index = 0;
-    text.textContent = "";
-    typeTimerId = window.setInterval(() => {
-      index += 1;
-      text.textContent = line.slice(0, index);
-
-      if (index >= line.length) {
-        stopTypewriter();
-      }
-    }, 56);
+    text.textContent = line;
   };
 
   return {
@@ -91,7 +65,6 @@ export function createSubtitleLayer(host: HTMLElement): SubtitleLayer {
       renderLine(line, layout);
     },
     dispose: () => {
-      stopTypewriter();
       host.innerHTML = "";
       host.classList.remove("subtitle-layer-host--hidden");
       delete host.dataset.kind;
