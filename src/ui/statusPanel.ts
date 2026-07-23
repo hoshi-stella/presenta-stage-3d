@@ -16,6 +16,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
     : "";
   const aiMarkup = snapshot.aiMessage ? `<p class="ai-response">${escapeHtml(snapshot.aiMessage)}</p>` : "";
   const statusMarkup = snapshot.statusMessage ? `<p class="status-message">${escapeHtml(snapshot.statusMessage)}</p>` : "";
+  const activeSpeaker = getCharacterInstance(snapshot.cue.speaker);
   const branches = snapshot.cue.after.branches ?? [];
   const branchMarkup = branches.length > 0
     ? branches.map((branch) => `<li>${escapeHtml(branch.label)} <span>${escapeHtml(branch.command)}</span></li>`).join("")
@@ -100,7 +101,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <dl class="cue-details">
         <div><dt>ID</dt><dd>${escapeHtml(snapshot.cue.id)}</dd></div>
         <div><dt>Kind</dt><dd>${escapeHtml(snapshot.cue.kind)}</dd></div>
-        <div><dt>Speaker</dt><dd>${escapeHtml(snapshot.cue.speaker)}</dd></div>
+        <div><dt>Speaker</dt><dd>${escapeHtml(activeSpeaker.displayName)}</dd></div>
         <div><dt>Slide</dt><dd>${escapeHtml(snapshot.cue.slideRef ?? "none")}</dd></div>
         <div><dt>Intent</dt><dd>${escapeHtml(snapshot.cue.direction.intent)}</dd></div>
         <div><dt>Intensity</dt><dd>${escapeHtml(snapshot.cue.direction.intensity)}</dd></div>

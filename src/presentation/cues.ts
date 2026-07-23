@@ -4,7 +4,7 @@ export const cues: Cue[] = [
   {
     id: "cue_title_01",
     kind: "talk",
-    speaker: "rei",
+    speaker: "mikoto",
     slideRef: "slide_lt_title",
     text: "今日は、登壇をUIとして作るというテーマで話します。",
     note: "1枚目タイトル。LT全体のテーマを短く提示する。",
@@ -37,7 +37,7 @@ export const cues: Cue[] = [
   {
     id: "cue_self_intro_01",
     kind: "talk",
-    speaker: "rei",
+    speaker: "mikoto",
     slideRef: "slide_self_intro",
     text: "まず簡単に自己紹介です。今回は、ブラウザで動く発表の仕組みを試作しています。",
     note: "2枚目自己紹介。個人の説明は短く、試作の話へつなげる。",
@@ -70,7 +70,7 @@ export const cues: Cue[] = [
   {
     id: "cue_company_intro_01",
     kind: "talk",
-    speaker: "rei",
+    speaker: "mikoto",
     slideRef: "slide_company_intro",
     text: "普段はWebアプリケーションや業務システムの開発に関わっています。",
     note: "3枚目会社紹介。仕事の文脈から、発表資料もUIとして扱う話へつなぐ。",
@@ -103,7 +103,7 @@ export const cues: Cue[] = [
   {
     id: "cue_materials_title_01",
     kind: "talk",
-    speaker: "rei",
+    speaker: "mikoto",
     slideRef: "slide_materials_title",
     text: "ここから、登壇時の資料の種類について考えてみます。",
     note: "4枚目タイトル。ここで話題を切り替える。",
@@ -172,7 +172,7 @@ export const cues: Cue[] = [
     speaker: "mikoto",
     slideRef: "slide_material_details",
     text: "補足すると、投影する情報、手元で操作する情報、あとから残す情報は役割が違います。",
-    note: "6枚目。玲の補足を画面には出さず、まんじゅう側の補足として説明する。",
+    note: "6枚目。愛璃の補足を画面には出さず、まんじゅう側の補足として説明する。",
     direction: {
       intent: "supplement",
       emotion: "calm",

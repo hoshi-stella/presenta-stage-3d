@@ -30,7 +30,7 @@ const creditGroups = [
   },
   {
     title: "SPECIAL THANKS",
-    items: ["Rei", "Mikoto", "LT operators", "future presenters"]
+    items: ["愛璃", "LT operators", "future presenters"]
   }
 ];
 

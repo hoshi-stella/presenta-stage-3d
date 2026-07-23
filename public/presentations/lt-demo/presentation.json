@@ -66,7 +66,7 @@
     {
       "id": "cue_title_01",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_lt_title",
       "text": "今日は、登壇をUIとして作る、というテーマで話します。",
       "note": "冒頭。タイトルを読み上げ、通常のスライド発表ではなく、発表そのものを操作できるUIとして扱う話だと伝える。",
@@ -101,7 +101,7 @@
     {
       "id": "cue_title_02",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_lt_title",
       "text": "スライドを順番に出すだけではなく、キャラクター、演出、補足、あとから見返す情報まで、ひとつの流れとして扱えるかを試しています。",
       "note": "このプロトタイプの狙いを説明する。観客には、スライドツールの代替というより、発表ランタイムの実験だと理解してもらう。",
@@ -136,7 +136,7 @@
     {
       "id": "cue_title_03",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_lt_title",
       "text": "完成品ではなくプロトタイプですが、今日のLTで動いているものを見ながら、何ができそうかを一緒に考える形にします。",
       "note": "完成度の期待値を調整する。LTでは実装途中の見せ場も含めて、今後の拡張余地を見てもらう。",
@@ -174,7 +174,7 @@
     {
       "id": "cue_self_intro_01",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_self_intro",
       "text": "まず簡単に自己紹介です。普段はWebアプリケーションや、画面上の状態をどう整理するかに関わっています。",
       "note": "自己紹介の入り。自分の詳しい経歴より、UIや状態設計に関心があることへつなげる。",
@@ -209,7 +209,7 @@
     {
       "id": "cue_self_intro_02",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_self_intro",
       "text": "この試作では、スライドを作るというより、発表中に起きる状態変化をブラウザで扱うことを重視しています。",
       "note": "発表を状態遷移として見ていると説明する。NEXTは単なるページ送りではなく、cueを進める操作だと後段につなげる。",
@@ -245,7 +245,7 @@
     {
       "id": "cue_self_intro_03",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_self_intro",
       "text": "3Dモデル、Live2D、画像キャラ、エフェクトは全部ローカル素材として扱い、Gitには台本や設定だけを置く方針です。",
       "note": "素材をGit管理しない方針を短く説明する。ライセンスや個人素材を守りつつ、再現可能な設定は残すという整理。",
@@ -280,7 +280,7 @@
     {
       "id": "cue_company_intro_01",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_company_intro",
       "text": "会社や仕事の話としては、画面、状態、操作を整理して、使う人に伝わる形にすることが多いです。",
       "note": "会社紹介は詳細に踏み込みすぎず、今日のテーマと関係する仕事の観点だけ話す。",
@@ -315,7 +315,7 @@
     {
       "id": "cue_company_intro_02",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_company_intro",
       "text": "その感覚で見ると、発表資料も単なる画像の並びではなく、話す人と聞く人の間にあるUIの一種に見えてきます。",
       "note": "発表資料をUIとして扱う導入。以降の資料分類の話へつなげる。",
@@ -353,7 +353,7 @@
     {
       "id": "cue_company_intro_03",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_company_intro",
       "text": "今日のデモでは、このNEXT操作ひとつで、スライド、キャラ、モーション、補足表示が一緒に切り替わるようにしています。",
       "note": "実演中の見方を説明する。観客にNEXTのたびに何が変わるか見てもらう。",
@@ -388,7 +388,7 @@
     {
       "id": "cue_materials_title_01",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_materials_title",
       "text": "ここからは、登壇時の資料をいくつかの種類に分けて考えてみます。",
       "note": "4枚目タイトル。まんじゅうフェーズへ入る前にテーマを切り替える。",
@@ -426,7 +426,7 @@
     {
       "id": "cue_materials_title_02",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_materials_title",
       "text": "発表中に見せたいもの、話す人が手元で見たいもの、あとから残したいものは、実は少しずつ役割が違います。",
       "note": "分類の前提を説明する。次のスライドでまんじゅうに問いかけてもらう流れを作る。",
@@ -532,7 +532,7 @@
     {
       "id": "cue_material_types_03",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_material_types",
       "text": "そうです。今この画面では、スライドの上にまんじゅうを重ねて、スライド内の補足役のように見せています。",
       "note": "実装上の見せ方を説明する。まんじゅうがスライド外ではなく、スライド上の表現として見える狙いを話す。",
@@ -794,7 +794,7 @@
     {
       "id": "cue_material_details_06",
       "kind": "talk",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_material_details",
       "text": "このプロトタイプでは、いま投影している見た目と、裏側のキューデータを分けて考えています。",
       "note": "JSON化したキューの話へ触れる。将来DBや編集画面に移せる構造だと軽く説明する。",
@@ -835,7 +835,7 @@
     {
       "id": "cue_material_details_07",
       "kind": "summary",
-      "speaker": "rei",
+      "speaker": "mikoto",
       "slideRef": "slide_material_details",
       "text": "まとめると、発表をキュー駆動にすると、スライド、キャラクター、演出、記録を同じ流れで扱えます。",
       "note": "まとめ。LTの主張を一文で回収する。",

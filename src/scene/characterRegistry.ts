@@ -17,7 +17,7 @@ export type CharacterInstance = {
 export const characterRegistry: CharacterInstance[] = [
   {
     id: "rei",
-    displayName: "Rei",
+    displayName: "3D Presenter",
     role: "explainer",
     visualKind: "dummy-character",
     basePosition: [-0.82, 0.16, -0.15],
@@ -27,8 +27,8 @@ export const characterRegistry: CharacterInstance[] = [
   },
   {
     id: "mikoto",
-    displayName: "Mikoto",
-    role: "questioner",
+    displayName: "愛璃",
+    role: "explainer",
     visualKind: "dummy-character",
     basePosition: [0.82, 0.16, 0.05],
     suitColor: "#cf6f42",
