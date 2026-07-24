@@ -547,6 +547,12 @@ input {
   transform: translateY(0) scale(1);
 }
 
+#app[data-layout="live2d_focus"] .live2d-host {
+  inset: 0 0 0 auto;
+  z-index: 4;
+  width: clamp(320px, 34vw, 540px);
+}
+
 .live2d-canvas {
   display: block;
   width: 100%;
@@ -1317,6 +1323,16 @@ h3 {
 
   #app.presentation-layer--slide.presentation-layer--subtitle.presentation-layer--manju[data-layout="slide_with_manju"] .slide-layer-host {
     inset: 12px;
+  }
+
+  #app[data-layout="live2d_focus"] .slide-layer-host {
+    inset: 12px 12px 132px;
+  }
+
+  #app[data-layout="live2d_focus"] .live2d-host {
+    inset: auto 0 0;
+    width: min(100%, 240px);
+    height: 220px;
   }
 
   #app.presentation-layer--manju .subtitle-layer-host {
