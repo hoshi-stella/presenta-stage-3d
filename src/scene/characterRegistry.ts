@@ -1,7 +1,7 @@
 import type { CharacterId } from "../presentation/types";
 
 export type CharacterVisualKind = "dummy-character" | "status-only";
-export type CharacterRole = "explainer" | "questioner" | "stage-object";
+export type CharacterRole = "presenter" | "explainer" | "questioner" | "stage-object";
 
 export type CharacterInstance = {
   id: CharacterId;
@@ -37,8 +37,8 @@ export const characterRegistry: CharacterInstance[] = [
   },
   {
     id: "dummy",
-    displayName: "Stage Dummy",
-    role: "stage-object",
+    displayName: "Presenter",
+    role: "presenter",
     visualKind: "status-only",
     basePosition: [0, 0, 0],
     suitColor: "#8a8f98",

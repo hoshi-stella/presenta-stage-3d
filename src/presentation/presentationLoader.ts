@@ -1,4 +1,11 @@
-import type { Cue, CueKind, DirectionIntent, DirectionIntensity, ProgressionMode } from "./types";
+import type {
+  Cue,
+  CueKind,
+  DirectionIntent,
+  DirectionIntensity,
+  PresentationProfile,
+  ProgressionMode
+} from "./types";
 import type { PresentationDocument } from "./presentationDocument";
 import type { SlideContent, SlideLayout } from "../slides/types";
 
@@ -45,6 +52,15 @@ const directionIntents = new Set<DirectionIntent>([
 ]);
 const directionIntensities = new Set<DirectionIntensity>(["low", "medium", "high"]);
 const progressionModes = new Set<ProgressionMode>(["auto_next", "wait_for_presenter", "branch_available"]);
+const presentationProfiles = new Set<PresentationProfile>([
+  "classic_slide",
+  "manju_commentary",
+  "live2d_talk",
+  "stage3d",
+  "mixed_dialogue",
+  "technical_overview",
+  "ending"
+]);
 
 export async function loadPresentationDocument(url = getPresentationUrl()): Promise<PresentationLoadResult> {
   try {
@@ -160,6 +176,13 @@ function validateCue(value: unknown): Cue {
   if (!progressionModes.has(progressionMode as ProgressionMode)) {
     throw new Error(`Unsupported progression mode: ${progressionMode}`);
   }
+  const presentation = record.presentation;
+  if (presentation !== undefined) {
+    const profile = asRecord(presentation, `cue(${String(record.id)}).presentation`).profile;
+    if (profile !== undefined && !presentationProfiles.has(profile as PresentationProfile)) {
+      throw new Error(`Unsupported presentation profile: ${String(profile)}`);
+    }
+  }
 
   return record as Cue;
 }
@@ -197,4 +220,3 @@ function copyOptionalString<T extends Record<string, unknown>>(from: Record<stri
 function fail(message: string): never {
   throw new Error(message);
 }
-

@@ -133,8 +133,8 @@ function updateModel(
   runtimeState.states = states;
   runtimeState.speaker = speaker;
   runtimeState.target = resolveExpressionTarget(cue?.direction.intent ?? "neutral", speaker);
-  const reiSpeaking = states.rei === "speaking" || speaker === "rei";
-  model.alpha = reiSpeaking ? runtimeState.target.alpha : 0.72;
+  const live2dSpeaking = states.rei === "speaking" || speaker === "rei" || speaker === "mikoto";
+  model.alpha = live2dSpeaking ? runtimeState.target.alpha : 0.72;
   model.rotation = speaker === "mikoto" ? 0.05 : 0;
 }
 
@@ -142,8 +142,9 @@ function animateModel(model: Live2DParameterModel, runtimeState: Live2DRuntimeSt
   const seconds = (performance.now() - runtimeState.startedAt) / 1000;
   const now = performance.now();
   const reiSpeaking = runtimeState.states.rei === "speaking" || runtimeState.speaker === "rei";
+  const live2dSpeaking = reiSpeaking || runtimeState.speaker === "mikoto";
   const mouthAmplitude = runtimeState.target.mouthForm >= 0 ? 0.62 : 0.42;
-  const mouth = reiSpeaking ? 0.18 + Math.max(0, Math.sin(seconds * 12)) * mouthAmplitude : 0;
+  const mouth = live2dSpeaking ? 0.18 + Math.max(0, Math.sin(seconds * 12)) * mouthAmplitude : 0;
   const idleX = Math.sin(seconds * 0.9) * 3;
   const idleY = Math.sin(seconds * 0.7) * 2;
   const bodyIdle = Math.sin(seconds * 0.5) * 1.2;

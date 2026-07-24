@@ -1,6 +1,6 @@
 import { App } from "./app/App";
 import { renderArchiveRetalkView } from "./archiveRetalk/archiveRetalkView";
-import "./style.css";
+import "./style.css?lt-slide-lock-v2";
 
 const root = document.querySelector<HTMLElement>("#app");
 

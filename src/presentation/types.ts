@@ -12,6 +12,15 @@ export type CueId = string;
 export type CharacterId = "rei" | "mikoto" | "dummy";
 export type FallbackLevel = "full" | "no-live2d" | "no-3d-model" | "offline" | "static";
 
+export type PresentationProfile =
+  | "classic_slide"
+  | "manju_commentary"
+  | "live2d_talk"
+  | "stage3d"
+  | "mixed_dialogue"
+  | "technical_overview"
+  | "ending";
+
 export type CueKind =
   | "talk"
   | "question"
@@ -60,7 +69,10 @@ export type LayoutPreset =
   | "slide_with_caption"
   | "slide_with_manju"
   | "slide_with_character"
+  | "live2d_focus"
   | "dialogue_split"
+  | "stage_focus"
+  | "live2d_stage_dialogue"
   | "stage_full"
   | "stage_with_overlay";
 
@@ -111,6 +123,7 @@ export type Cue = {
   presentation?: {
     layers?: PresentationLayer[];
     layout?: LayoutPreset;
+    profile?: PresentationProfile;
     fallback?: Partial<Record<FallbackLevel, {
       layers?: PresentationLayer[];
       layout?: LayoutPreset;
@@ -187,6 +200,7 @@ export type PresentationSnapshot = {
   presentation: {
     activeLayers: PresentationLayer[];
     layout: LayoutPreset;
+    profile: PresentationProfile | null;
     debugReason: string;
     creditsVariant: "crawl" | "spiral" | null;
   };
