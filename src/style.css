@@ -213,11 +213,11 @@ input {
 }
 
 #app[data-layout="slide_with_manju"] .subtitle-layer-host {
-  left: auto;
-  right: clamp(210px, 21vw, 330px);
-  bottom: clamp(252px, 29vh, 340px);
+  left: clamp(20px, 3.6vw, 52px);
+  right: clamp(20px, 3.6vw, 52px);
+  bottom: clamp(24px, 4vh, 48px);
   z-index: 6;
-  width: min(520px, 34vw);
+  width: auto;
 }
 
 #app.presentation-layer--subtitle:not(.presentation-subtitles--hidden) .subtitle-layer-host:not(.subtitle-layer-host--hidden) {
@@ -303,8 +303,12 @@ input {
 .subtitle-card--speech-bubble {
   position: relative;
   width: 100%;
-  min-height: clamp(116px, 12vh, 156px);
-  padding: clamp(18px, 2vw, 26px) clamp(22px, 2.4vw, 32px);
+  min-height: clamp(84px, 9vh, 116px);
+  padding:
+    clamp(14px, 1.35vw, 20px)
+    clamp(188px, 18vw, 292px)
+    clamp(14px, 1.35vw, 20px)
+    clamp(20px, 2.3vw, 34px);
   border: 2px solid rgba(255, 214, 111, 0.54);
   border-left-width: 2px;
   border-radius: 8px;
@@ -342,7 +346,7 @@ input {
 }
 
 .subtitle-card--speech-bubble .subtitle-card__meta {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: rgba(7, 16, 22, 0.66);
 }
 
@@ -358,10 +362,10 @@ input {
 
 .subtitle-card--speech-bubble .subtitle-card__text {
   color: #071016;
-  font-size: clamp(24px, 2.1vw, 36px);
-  line-height: 1.35;
+  font-size: clamp(17px, 1.28vw, 23px);
+  line-height: 1.42;
   text-shadow: none;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
 }
 
 .subtitle-layer-host[data-speaker="mikoto"] .subtitle-card {
@@ -584,10 +588,10 @@ input {
 }
 
 #app[data-layout="slide_with_manju"] .image-presenter-host {
-  right: clamp(160px, 17vw, 270px);
-  bottom: clamp(70px, 9vh, 110px);
+  right: clamp(18px, 3.4vw, 54px);
+  bottom: clamp(16px, 3.2vh, 42px);
   z-index: 7;
-  width: clamp(144px, 13.5vw, 220px);
+  width: clamp(124px, 12vw, 190px);
 }
 
 #app[data-layout="stage_full"] .image-presenter-host,
@@ -1342,8 +1346,8 @@ h3 {
 
   #app[data-layout="slide_with_manju"] .subtitle-layer-host {
     left: 12px;
-    right: 128px;
-    bottom: 18px;
+    right: 12px;
+    bottom: 12px;
     width: auto;
   }
 
@@ -1360,9 +1364,9 @@ h3 {
   }
 
   #app[data-layout="slide_with_manju"] .image-presenter-host {
-    right: 10px;
-    bottom: 16px;
-    width: clamp(92px, 28vw, 132px);
+    right: 8px;
+    bottom: 8px;
+    width: clamp(80px, 23vw, 112px);
   }
 
   .static-illustration {
@@ -1400,6 +1404,19 @@ h3 {
   .subtitle-card--dense .subtitle-card__text {
     font-size: 20px;
     line-height: 1.24;
+    -webkit-line-clamp: 4;
+  }
+
+  .subtitle-card--speech-bubble {
+    min-height: 86px;
+    padding: 12px clamp(98px, 27vw, 124px) 12px 14px;
+  }
+
+  .subtitle-card--speech-bubble .subtitle-card__text,
+  .subtitle-card--speech-bubble.subtitle-card--compact .subtitle-card__text,
+  .subtitle-card--speech-bubble.subtitle-card--dense .subtitle-card__text {
+    font-size: 15px;
+    line-height: 1.32;
     -webkit-line-clamp: 4;
   }
 

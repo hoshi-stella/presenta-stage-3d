@@ -1,6 +1,6 @@
 import { App } from "./app/App";
 import { renderArchiveRetalkView } from "./archiveRetalk/archiveRetalkView";
-import "./style.css?lt-slide-lock-v5";
+import "./style.css?lt-manju-drawer-v1";
 
 const root = document.querySelector<HTMLElement>("#app");
 
