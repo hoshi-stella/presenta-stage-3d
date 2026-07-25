@@ -1,7 +1,7 @@
 import type { CharacterId } from "../presentation/types";
 
 export type CharacterVisualKind = "dummy-character" | "status-only";
-export type CharacterRole = "explainer" | "questioner" | "stage-object";
+export type CharacterRole = "presenter" | "explainer" | "questioner" | "stage-object";
 
 export type CharacterInstance = {
   id: CharacterId;
@@ -17,7 +17,7 @@ export type CharacterInstance = {
 export const characterRegistry: CharacterInstance[] = [
   {
     id: "rei",
-    displayName: "Rei",
+    displayName: "3D Presenter",
     role: "explainer",
     visualKind: "dummy-character",
     basePosition: [-0.82, 0.16, -0.15],
@@ -27,8 +27,8 @@ export const characterRegistry: CharacterInstance[] = [
   },
   {
     id: "mikoto",
-    displayName: "Mikoto",
-    role: "questioner",
+    displayName: "愛璃",
+    role: "explainer",
     visualKind: "dummy-character",
     basePosition: [0.82, 0.16, 0.05],
     suitColor: "#cf6f42",
@@ -37,8 +37,8 @@ export const characterRegistry: CharacterInstance[] = [
   },
   {
     id: "dummy",
-    displayName: "Stage Dummy",
-    role: "stage-object",
+    displayName: "Presenter",
+    role: "presenter",
     visualKind: "status-only",
     basePosition: [0, 0, 0],
     suitColor: "#8a8f98",

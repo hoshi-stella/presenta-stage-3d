@@ -2,70 +2,80 @@ import type { SlideContent } from "./types";
 
 export const sampleSlides: SlideContent[] = [
   {
-    id: "slide_intro",
+    id: "slide_lt_title",
     layout: "title",
-    title: "3D Stage UI",
-    subtitle: "スライドから会話劇、3D舞台へ拡張する発表Runtime",
-    body: "最初は普通のスライドとして始め、同じCue列のまま表現レイヤーを増やします。",
+    title: "登壇をUIとして作る",
+    subtitle: "3D Stage UI / LT Prototype",
+    body: "スライド、台本、キャラクター、演出をひとつのブラウザRuntimeで扱う試作です。",
     displayMode: "slide_only"
   },
   {
-    id: "slide_problem",
+    id: "slide_self_intro",
     layout: "content",
-    title: "発表は紙芝居のままでいい？",
+    title: "自己紹介",
     bullets: [
-      "スライド、補足、質問、デモが別々の操作になりがち",
-      "口頭説明や掛け合いは資料に残りにくい",
-      "表現を増やすほど本番操作が重くなる"
+      "ブラウザ上で動く発表体験を試作中",
+      "3D / Live2D / 画像キャラを発表の演出として扱う",
+      "今回はLTで見せられる最低限の形を目指します"
     ],
     displayMode: "slide_only"
   },
   {
-    id: "slide_cue_runtime",
+    id: "slide_company_intro",
+    layout: "content",
+    title: "会社紹介",
+    body: "普段はWebアプリケーションや業務システムの開発に関わっています。",
+    bullets: [
+      "画面、状態、操作を整理して伝える仕事",
+      "発表資料もUIのひとつとして捉えられる",
+      "今日の試作は、その考え方を登壇に持ち込む話です"
+    ],
+    displayMode: "slide_only"
+  },
+  {
+    id: "slide_materials_title",
+    layout: "title",
+    title: "登壇資料の種類を考える",
+    subtitle: "ここから少しだけ会話劇フェーズ",
+    body: "資料をただのページではなく、場面ごとに切り替わる表現レイヤーとして見てみます。",
+    displayMode: "slide_only"
+  },
+  {
+    id: "slide_material_types",
+    layout: "content",
+    title: "登壇時の資料の種類",
+    bullets: [
+      "話すためのスライド",
+      "補足するための図やメモ",
+      "場をつなぐキャラクターや演出",
+      "あとから見返すための記録"
+    ],
+    displayMode: "slide_only"
+  },
+  {
+    id: "slide_material_details",
     layout: "split",
-    title: "Cueを単一ソースにする",
-    body: "発話、話者、演出意図、分岐、表示レイヤーをCueに集約し、Runtimeが安全な表示へ解決します。",
+    title: "少し細かく説明",
+    body: "同じ内容でも、登壇中に見せる情報と、手元で操作する情報と、あとから残す情報は役割が違います。",
     bullets: [
-      "PresenterCommandで高レベル操作",
-      "DirectionIntentから演出を選択",
-      "失敗時は軽い表示へfallback"
-    ],
-    displayMode: "stage_overlay"
-  },
-  {
-    id: "slide_archive",
-    layout: "code",
-    title: "発表後も再説明できる形へ",
-    body: "Archive / Re-Talk View は同じCue列から後日閲覧用の表示を作ります。",
-    code: {
-      language: "ts",
-      source: `type Cue = {
-  speaker: CharacterId;
-  text: string;
-  direction: DirectionIntent;
-  after: ProgressionMode;
-};`
-    },
-    displayMode: "stage_overlay"
-  },
-  {
-    id: "slide_summary",
-    layout: "content",
-    title: "表現は置き換えではなく合成",
-    bullets: [
-      "通常スライド",
-      "まんじゅう / 静止立ち絵 / Live2D",
-      "3Dステージ / 空間演出",
-      "エンドロール"
+      "投影画面は読みやすさを優先",
+      "手元画面は操作と次の流れを優先",
+      "キャラクターや演出は場面転換を助ける"
     ],
     displayMode: "stage_overlay"
   }
 ];
+
+let activeSlides: SlideContent[] = sampleSlides;
+
+export function setSlideContents(slides: SlideContent[]): void {
+  activeSlides = slides.length > 0 ? slides : sampleSlides;
+}
 
 export function getSlideContent(slideRef: string | undefined): SlideContent | null {
   if (!slideRef) {
     return null;
   }
 
-  return sampleSlides.find((slide) => slide.id === slideRef) ?? null;
+  return activeSlides.find((slide) => slide.id === slideRef) ?? null;
 }

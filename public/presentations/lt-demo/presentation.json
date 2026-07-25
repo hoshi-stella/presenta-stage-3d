@@ -1,0 +1,726 @@
+{
+  "id": "lt-showcase",
+  "title": "発表形式は内容に合わせて選べるのではないか",
+  "version": 1,
+  "slides": [
+    {
+      "id": "slide_showcase_title",
+      "layout": "title",
+      "title": "発表形式は内容に合わせて選べるのではないか",
+      "subtitle": "presenta-stage-3d LT Showcase",
+      "body": "スライド、画像キャラクター、Live2D、3D空間、会話、演出を同じCueRunnerで進める試作です。"
+    },
+    {
+      "id": "slide_webgl_yukkuri",
+      "layout": "content",
+      "title": "WebGLをざっくり",
+      "body": "ブラウザの中でGPUを使って、3Dや高度な描画をリアルタイムに動かすための仕組みです。",
+      "bullets": [
+        "HTML/CSSだけでは難しい3D描画を担当する",
+        "モデル、ライト、カメラ、エフェクトをGPUで描く",
+        "Babylon.jsはWebGLを扱いやすくする3Dライブラリ"
+      ]
+    },
+    {
+      "id": "slide_classic_default",
+      "layout": "content",
+      "title": "1. 通常のスライドショー",
+      "body": "まずは強いデフォルトとして、普通のスライドから始めます。",
+      "bullets": [
+        "一覧性が高い",
+        "準備と共有がしやすい",
+        "話の骨格を最も安定して伝えられる"
+      ]
+    },
+    {
+      "id": "slide_manju_commentary",
+      "layout": "content",
+      "title": "2. スライド + 藍璃まんじゅう + 字幕",
+      "body": "軽い補足や問いかけは、スライドを動かさずにキャラクターと字幕を重ねます。",
+      "bullets": [
+        "読ませたい本文はスライドに残す",
+        "補足やツッコミはまんじゅう側に逃がす",
+        "SpaceでCueを進めるだけで表情と字幕が変わる"
+      ]
+    },
+    {
+      "id": "slide_live2d_talk",
+      "layout": "content",
+      "title": "3. スライド + Live2D",
+      "body": "感情や疑問を少し強く出したい場面では、Live2Dを前面に出します。",
+      "bullets": [
+        "瞬き、呼吸、視線、口パクで存在感を出せる",
+        "ただし常時出すと情報量が増えすぎる",
+        "使う場面をCueで限定する"
+      ]
+    },
+    {
+      "id": "slide_stage3d",
+      "layout": "content",
+      "title": "4. 3Dステージ",
+      "body": "空間や構造を説明したい場面では、スライドから3Dステージへ切り替えます。",
+      "bullets": [
+        "カメラ、ライト、モーションをCueで指定する",
+        "発表者は細かい操作をしない",
+        "見せ方は基盤側がまとめて反映する"
+      ]
+    },
+    {
+      "id": "slide_mixed_dialogue",
+      "layout": "content",
+      "title": "5. Live2Dと3Dキャラクターの会話",
+      "body": "Live2Dと3Dは競合せず、役割を分ければ同じ場面で共演できます。",
+      "bullets": [
+        "Live2D: 感情、疑問、リアクション",
+        "3D: 空間、構造、オブジェクト操作",
+        "Cueが話者とレイヤーを切り替える"
+      ]
+    },
+    {
+      "id": "slide_semantic_effects",
+      "layout": "content",
+      "title": "6. 意味ベースの空間演出",
+      "body": "発表者が粒子やカメラを直接操作するのではなく、意味を指定します。",
+      "bullets": [
+        "question: 泡のような疑問演出",
+        "emphasis: 注目を集める強調",
+        "summary: 広く落ち着いたまとめ",
+        "実際の演出選択は基盤側に寄せる"
+      ]
+    },
+    {
+      "id": "slide_technical_overview",
+      "layout": "code",
+      "title": "7. 技術構成紹介",
+      "subtitle": "すべて同じCueRunnerの上で切り替える",
+      "body": "発話、レイヤー、演出、遷移をJSONのCueとして扱います。",
+      "code": {
+        "language": "ts",
+        "source": "CueRunner\n  -> presentation.profile\n  -> layers: slide / manju / live2d / stage3d / effects\n  -> direction.intent: question / emphasis / deep_dive / summary"
+      }
+    },
+    {
+      "id": "slide_takeaways",
+      "layout": "content",
+      "title": "持ち帰ってほしいこと",
+      "bullets": [
+        "スライドは置き換える対象ではなく、強いデフォルト",
+        "軽い解説には、まんじゅう画像と字幕を足せる",
+        "感情や会話には、Live2Dを利用できる",
+        "空間や構造の説明には、3Dを利用できる",
+        "高度な表現が常に正解ではなく、目的と制作コストに応じて選択する"
+      ]
+    },
+    {
+      "id": "slide_ending_question",
+      "layout": "title",
+      "title": "次の発表で、どの表現を選びますか？",
+      "subtitle": "問いかけ + エンドロール",
+      "body": "発表形式を、内容に合わせて選べるUIとして考えてみる。"
+    }
+  ],
+  "cues": [
+    {
+      "id": "cue_001_opening",
+      "kind": "talk",
+      "speaker": "dummy",
+      "slideRef": "slide_showcase_title",
+      "text": "今日は、発表形式は内容に合わせて選べるのではないか、という話をします。",
+      "note": "0:00。タイトル。通常のスライドから始め、同じCueRunner上で段階的に表現を増やすと伝える。",
+      "direction": {
+        "intent": "neutral",
+        "emotion": "calm",
+        "intensity": "low"
+      },
+      "stage": {
+        "preset": "intro",
+        "camera": "front",
+        "motion": "present"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_only"
+      },
+      "demo": {
+        "step": 1,
+        "label": "opening",
+        "targetSeconds": 25
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 25000
+      }
+    },
+    {
+      "id": "cue_002_one_runner",
+      "kind": "talk",
+      "speaker": "dummy",
+      "slideRef": "slide_showcase_title",
+      "text": "別々のアプリを切り替えるのではなく、発話、表示レイヤー、演出、遷移を事前定義したCueで進めます。",
+      "note": "0:25。今回AI制御は使わず、Manual ModeでSpaceキーまたはNextだけで進めることを説明する。",
+      "direction": {
+        "intent": "supplement",
+        "emotion": "calm",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "intro",
+        "camera": "medium",
+        "motion": "present"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_only"
+      },
+      "demo": {
+        "step": 2,
+        "label": "one cue runner",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_003_webgl_yukkuri",
+      "kind": "supplement",
+      "speaker": "mikoto",
+      "slideRef": "slide_webgl_yukkuri",
+      "text": "WebGLは、ブラウザからGPUを使って3Dを描くための仕組みです。直接書くのは大変なので、今回はBabylon.jsにカメラ、ライト、モデル、演出をまとめてもらっています。",
+      "note": "1:00。ゆっくり劇場風の短い補足。WebGLは土台、Babylon.jsは扱いやすい3D道具箱だと説明する。",
+      "direction": {
+        "intent": "supplement",
+        "emotion": "curious",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "deepDive",
+        "camera": "medium",
+        "motion": "present"
+      },
+      "presentation": {
+        "profile": "manju_commentary",
+        "layout": "slide_with_manju"
+      },
+      "demo": {
+        "step": 3,
+        "label": "webgl yukkuri",
+        "targetSeconds": 40
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 40000
+      }
+    },
+    {
+      "id": "cue_004_classic_strength",
+      "kind": "talk",
+      "speaker": "dummy",
+      "slideRef": "slide_classic_default",
+      "text": "まず、普通のスライドはかなり強いです。情報を整理して、聞く人が追いやすい形にできます。",
+      "note": "1:40。スライドを否定しない。置き換えではなくデフォルトとして扱う。",
+      "direction": {
+        "intent": "neutral",
+        "emotion": "calm",
+        "intensity": "low"
+      },
+      "stage": {
+        "preset": "neutral",
+        "camera": "front",
+        "motion": "idle"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_only"
+      },
+      "demo": {
+        "step": 4,
+        "label": "classic slide",
+        "targetSeconds": 40
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 40000
+      }
+    },
+    {
+      "id": "cue_005_classic_limit",
+      "kind": "talk",
+      "speaker": "dummy",
+      "slideRef": "slide_classic_default",
+      "text": "一方で、会話、感情、空間の変化を表現しようとすると、スライドだけでは少し硬くなります。",
+      "note": "2:20。ここから表現レイヤーを増やす導入。",
+      "direction": {
+        "intent": "doubt",
+        "emotion": "thinking",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "problem",
+        "camera": "medium",
+        "motion": "think"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_only"
+      },
+      "demo": {
+        "step": 5,
+        "label": "classic limit",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_006_manju_appears",
+      "kind": "question",
+      "speaker": "mikoto",
+      "slideRef": "slide_manju_commentary",
+      "text": "じゃあ、スライドを残したまま、軽い補足だけ足せばいいんじゃないですか？",
+      "note": "2:55。藍璃まんじゅうをスライド上に重ねる。スライド本体は動かさない。",
+      "direction": {
+        "intent": "question",
+        "emotion": "curious",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "question",
+        "camera": "side",
+        "motion": "think",
+        "directionPreset": "question_light"
+      },
+      "presentation": {
+        "profile": "manju_commentary",
+        "layout": "slide_with_manju"
+      },
+      "demo": {
+        "step": 6,
+        "label": "manju overlay",
+        "targetSeconds": 30
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 30000
+      }
+    },
+    {
+      "id": "cue_007_manju_subtitle",
+      "kind": "supplement",
+      "speaker": "mikoto",
+      "slideRef": "slide_manju_commentary",
+      "text": "まんじゅうと字幕は、本文を邪魔せずに、短い反応や案内を足すのに向いています。",
+      "note": "3:25。軽い補足のメリットを藍璃が説明する。",
+      "direction": {
+        "intent": "supplement",
+        "emotion": "smile",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "idea",
+        "camera": "medium",
+        "motion": "present"
+      },
+      "presentation": {
+        "profile": "manju_commentary",
+        "layout": "slide_with_manju"
+      },
+      "demo": {
+        "step": 7,
+        "label": "manju commentary",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_008_live2d_bridge",
+      "kind": "talk",
+      "speaker": "mikoto",
+      "slideRef": "slide_live2d_talk",
+      "text": "もう少し感情や疑問を見せたいときは、Live2Dを使うと雰囲気が変わります。",
+      "note": "4:00。Live2Dレイヤーへ切り替える。画像Presenterとは違う表現として見せる。",
+      "direction": {
+        "intent": "transition",
+        "emotion": "soft",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "idea",
+        "camera": "close",
+        "motion": "wave"
+      },
+      "presentation": {
+        "profile": "live2d_talk",
+        "layout": "live2d_focus"
+      },
+      "demo": {
+        "step": 8,
+        "label": "live2d focus",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_009_live2d_limit",
+      "kind": "reaction",
+      "speaker": "mikoto",
+      "slideRef": "slide_live2d_talk",
+      "text": "ただし、ずっと前面に出すと情報量が多いので、ここぞという場面に絞るのがよさそうです。",
+      "note": "4:35。Live2Dのメリデメ。高度な表現が常に正解ではない話につなげる。",
+      "direction": {
+        "intent": "doubt",
+        "emotion": "thinking",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "question",
+        "camera": "close",
+        "motion": "think"
+      },
+      "presentation": {
+        "profile": "live2d_talk",
+        "layout": "live2d_focus"
+      },
+      "demo": {
+        "step": 9,
+        "label": "live2d tradeoff",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_010_stage_intro",
+      "kind": "talk",
+      "speaker": "rei",
+      "slideRef": "slide_stage3d",
+      "text": "空間や構造の説明に入るときは、スライドから3Dステージへ切り替えます。",
+      "note": "5:10。3Dステージへ。GLBがあれば3Dキャラ、なければダミーで動く。",
+      "direction": {
+        "intent": "deep_dive",
+        "emotion": "focused",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "deepDive",
+        "camera": "wide",
+        "motion": "present",
+        "directionPreset": "summary_wide"
+      },
+      "presentation": {
+        "profile": "stage3d",
+        "layout": "stage_focus"
+      },
+      "demo": {
+        "step": 10,
+        "label": "stage focus",
+        "targetSeconds": 40
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 40000
+      }
+    },
+    {
+      "id": "cue_011_stage_object",
+      "kind": "demo",
+      "speaker": "rei",
+      "slideRef": "slide_stage3d",
+      "text": "ここではブラウザの中に、DOM、JavaScript、WebGL、GPUという構造を置いて説明できます。",
+      "note": "5:50。ブラウザ構造モデルを表示し、WebGLパートを強調する。",
+      "direction": {
+        "intent": "emphasis",
+        "emotion": "focused",
+        "intensity": "high"
+      },
+      "stage": {
+        "preset": "demo",
+        "camera": "side",
+        "motion": "point",
+        "directionPreset": "emphasis_basic",
+        "objectRef": "browser_architecture",
+        "objectAction": "highlight_part",
+        "objectPartId": "webgl"
+      },
+      "presentation": {
+        "profile": "stage3d",
+        "layout": "stage_with_overlay"
+      },
+      "demo": {
+        "step": 11,
+        "label": "3d object",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_012_mixed_question",
+      "kind": "question",
+      "speaker": "mikoto",
+      "slideRef": "slide_mixed_dialogue",
+      "text": "Live2Dと3Dって、同時に出すと喧嘩しませんか？",
+      "note": "6:25。Live2Dと3Dの会話。藍璃が疑問を出す。",
+      "direction": {
+        "intent": "question",
+        "emotion": "curious",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "question",
+        "camera": "side",
+        "motion": "think",
+        "directionPreset": "question_light"
+      },
+      "presentation": {
+        "profile": "mixed_dialogue",
+        "layout": "live2d_stage_dialogue"
+      },
+      "demo": {
+        "step": 12,
+        "label": "mixed question",
+        "targetSeconds": 30
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 30000
+      }
+    },
+    {
+      "id": "cue_013_mixed_answer",
+      "kind": "answer",
+      "speaker": "rei",
+      "slideRef": "slide_mixed_dialogue",
+      "text": "役割を分ければ大丈夫です。Live2Dは感情、3Dは空間と構造を担当できます。",
+      "note": "6:55。3Dキャラクターが説明役として答える。",
+      "direction": {
+        "intent": "supplement",
+        "emotion": "calm",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "idea",
+        "camera": "medium",
+        "motion": "present"
+      },
+      "presentation": {
+        "profile": "mixed_dialogue",
+        "layout": "live2d_stage_dialogue"
+      },
+      "demo": {
+        "step": 13,
+        "label": "mixed answer",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_014_semantic_question",
+      "kind": "talk",
+      "speaker": "dummy",
+      "slideRef": "slide_semantic_effects",
+      "text": "発表者が直接パーティクルやカメラを操作するのではなく、質問、強調、深掘り、まとめのような意味を指定します。",
+      "note": "7:30。意味ベースの空間演出の説明。",
+      "direction": {
+        "intent": "deep_dive",
+        "emotion": "focused",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "deepDive",
+        "camera": "wide",
+        "motion": "present",
+        "directionPreset": "summary_wide"
+      },
+      "presentation": {
+        "profile": "mixed_dialogue",
+        "layout": "stage_with_overlay"
+      },
+      "demo": {
+        "step": 14,
+        "label": "semantic direction",
+        "targetSeconds": 40
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 40000
+      }
+    },
+    {
+      "id": "cue_015_semantic_effect",
+      "kind": "summary",
+      "speaker": "rei",
+      "slideRef": "slide_semantic_effects",
+      "text": "このCueでは、まとめの意味から、広いカメラと光粒子、花弁の演出を選ぶ、という形にしています。",
+      "note": "8:10。意味に応じた演出選択を見せる。",
+      "direction": {
+        "intent": "summary",
+        "emotion": "calm",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "summary",
+        "camera": "wide",
+        "motion": "present",
+        "directionPreset": "summary_wide"
+      },
+      "presentation": {
+        "profile": "mixed_dialogue",
+        "layout": "stage_with_overlay"
+      },
+      "demo": {
+        "step": 15,
+        "label": "semantic effect",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_016_tech_overview",
+      "kind": "talk",
+      "speaker": "dummy",
+      "slideRef": "slide_technical_overview",
+      "text": "技術的には、同じCueRunnerが、発話、レイヤー、方向性、遷移をまとめて扱っています。",
+      "note": "8:45。技術構成紹介。AIリアルタイム制御は今回使っていないこともここで補足する。",
+      "direction": {
+        "intent": "deep_dive",
+        "emotion": "focused",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "deepDive",
+        "camera": "medium",
+        "motion": "present"
+      },
+      "presentation": {
+        "profile": "technical_overview",
+        "layout": "slide_with_caption"
+      },
+      "demo": {
+        "step": 16,
+        "label": "technical overview",
+        "targetSeconds": 45
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 45000
+      }
+    },
+    {
+      "id": "cue_017_takeaways",
+      "kind": "summary",
+      "speaker": "dummy",
+      "slideRef": "slide_takeaways",
+      "text": "まとめると、発表形式は置き換えではなく、目的と制作コストに応じて選ぶものとして扱えます。",
+      "note": "9:30。持ち帰ってほしい主張を回収する。",
+      "direction": {
+        "intent": "summary",
+        "emotion": "calm",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "summary",
+        "camera": "front",
+        "motion": "present",
+        "directionPreset": "summary_wide"
+      },
+      "presentation": {
+        "profile": "technical_overview",
+        "layout": "slide_with_caption"
+      },
+      "demo": {
+        "step": 17,
+        "label": "takeaways",
+        "targetSeconds": 35
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 35000
+      }
+    },
+    {
+      "id": "cue_018_final_question",
+      "kind": "question",
+      "speaker": "mikoto",
+      "slideRef": "slide_ending_question",
+      "text": "あなたの次の発表なら、どの表現を選びますか？",
+      "note": "10:05。最後の問いかけ。藍璃まんじゅうと字幕を出す。",
+      "direction": {
+        "intent": "question",
+        "emotion": "curious",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "question",
+        "camera": "front",
+        "motion": "wave",
+        "directionPreset": "question_light"
+      },
+      "presentation": {
+        "profile": "ending",
+        "layout": "slide_with_manju"
+      },
+      "demo": {
+        "step": 18,
+        "label": "final question",
+        "targetSeconds": 25
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 25000
+      }
+    },
+    {
+      "id": "cue_019_credits",
+      "kind": "summary",
+      "speaker": "dummy",
+      "slideRef": "slide_ending_question",
+      "text": "ご清聴ありがとうございました。",
+      "note": "10:30。エンドロール表示。時間が押していればここは短く送る。",
+      "direction": {
+        "intent": "celebration",
+        "emotion": "smile",
+        "intensity": "medium"
+      },
+      "stage": {
+        "preset": "summary",
+        "camera": "wide",
+        "motion": "wave",
+        "directionPreset": "celebration_petal"
+      },
+      "presentation": {
+        "profile": "ending",
+        "layout": "slide_with_manju",
+        "creditsVariant": "spiral"
+      },
+      "demo": {
+        "step": 19,
+        "label": "ending credits",
+        "targetSeconds": 25
+      },
+      "after": {
+        "mode": "wait_for_presenter",
+        "durationMs": 25000
+      }
+    }
+  ]
+}

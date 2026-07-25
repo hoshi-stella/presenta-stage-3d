@@ -8,6 +8,9 @@ type ParsedLine = {
 };
 
 const speakerMap: Record<string, CharacterId> = {
+  "愛璃": "mikoto",
+  "airi": "mikoto",
+  "Airi": "mikoto",
   "玲": "rei",
   "rei": "rei",
   "Rei": "rei",

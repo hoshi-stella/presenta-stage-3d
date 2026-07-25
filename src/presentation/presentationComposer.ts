@@ -1,8 +1,16 @@
-import type { Cue, FallbackLevel, LayoutPreset, PresentationLayer, PresentationSnapshot } from "./types";
+import type {
+  Cue,
+  FallbackLevel,
+  LayoutPreset,
+  PresentationLayer,
+  PresentationProfile,
+  PresentationSnapshot
+} from "./types";
 
 export type PresentationComposition = {
   activeLayers: PresentationLayer[];
   layout: LayoutPreset;
+  profile: PresentationProfile | null;
   debugReason: string;
   creditsVariant: "crawl" | "spiral" | null;
 };
@@ -23,7 +31,10 @@ const defaultLayouts: Record<LayoutPreset, PresentationLayer[]> = {
   slide_with_caption: ["slide", "subtitle"],
   slide_with_manju: ["slide", "subtitle", "manju"],
   slide_with_character: ["slide", "subtitle", "static_illustration"],
+  live2d_focus: ["slide", "subtitle", "live2d"],
   dialogue_split: ["slide", "subtitle", "manju", "static_illustration"],
+  stage_focus: ["stage3d", "effects"],
+  live2d_stage_dialogue: ["stage3d", "live2d", "subtitle", "effects"],
   stage_full: ["stage3d", "live2d", "manju", "effects"],
   stage_with_overlay: ["slide", "subtitle", "stage3d", "live2d", "manju", "static_illustration", "effects"]
 };
@@ -40,6 +51,7 @@ export function resolvePresentationComposition(cue: Cue, fallbackLevel: Fallback
   return {
     activeLayers: layers,
     layout: resolvedLayout,
+    profile: cue.presentation?.profile ?? null,
     debugReason: getDebugReason(fallbackLevel, fallback !== undefined, explicitLayout !== undefined || explicitLayers !== undefined),
     creditsVariant: cue.presentation?.creditsVariant ?? null
   };

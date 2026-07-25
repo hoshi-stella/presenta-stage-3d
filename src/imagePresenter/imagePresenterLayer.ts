@@ -77,7 +77,7 @@ export function createImagePresenterLayer(
     flapTimerId = window.setInterval(() => {
       flapOpen = !flapOpen;
       image.src = getImageUrl(baseUrl, flapOpen ? "speaking" : restExpression);
-    }, 180);
+    }, 260);
   };
 
   image.addEventListener("load", () => {

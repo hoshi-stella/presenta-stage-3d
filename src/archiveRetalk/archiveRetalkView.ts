@@ -1,4 +1,5 @@
 import { cues } from "../presentation/cues";
+import { loadPresentationDocument } from "../presentation/presentationLoader";
 import type { Cue } from "../presentation/types";
 import "./archiveRetalkView.css";
 
@@ -23,14 +24,17 @@ const retalkModes = [
   }
 ];
 
-export function renderArchiveRetalkView(root: HTMLElement): void {
-  const archiveCues = createArchiveCues();
+export async function renderArchiveRetalkView(root: HTMLElement): Promise<void> {
+  const loadResult = await loadPresentationDocument();
+  const archiveCues = createArchiveCues(loadResult.ok ? loadResult.document.cues : cues);
+  const sourceLabel = loadResult.ok ? loadResult.document.title : "Built-in fallback";
   root.innerHTML = `
     <main class="archive-shell">
       <header class="archive-header">
         <div>
           <p class="archive-kicker">Archive / Re-Talk View</p>
           <h1>発表後に読み直し、もう一度説明してもらうための静的モック</h1>
+          <p class="archive-source">Source: ${escapeHtml(sourceLabel)}</p>
         </div>
         <a class="archive-stage-link" href="./">Stage View</a>
       </header>
@@ -91,8 +95,8 @@ export function renderArchiveRetalkView(root: HTMLElement): void {
   `;
 }
 
-function createArchiveCues(): ArchiveCue[] {
-  return cues.map((cue, index) => ({
+function createArchiveCues(sourceCues: Cue[]): ArchiveCue[] {
+  return sourceCues.map((cue, index) => ({
     cue,
     sectionLabel: `Section ${index + 1}`,
     supplement: getSupplementText(cue)

@@ -19,8 +19,19 @@ export type UiRenderer = {
 };
 
 export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRenderer {
+  const initialControlPanelState = readControlPanelState();
+  root.dataset.controlPanel = initialControlPanelState;
   root.innerHTML = `
     <main class="shell">
+      <button
+        id="control-panel-toggle"
+        class="control-panel-toggle"
+        type="button"
+        aria-controls="control-panel"
+        aria-expanded="${initialControlPanelState === "open" ? "true" : "false"}"
+      >
+        ${initialControlPanelState === "open" ? "Hide Panel" : "Show Panel"}
+      </button>
       <section class="stage-shell">
         <canvas id="stage-canvas" aria-label="3D presentation stage"></canvas>
         <div id="slide-layer-host" class="slide-layer-host" aria-live="polite"></div>
@@ -33,7 +44,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
           <div id="transition-debug" class="transition-debug">Transition: idle</div>
         </div>
       </section>
-      <aside class="control-panel">
+      <aside id="control-panel" class="control-panel">
         <div id="status-panel"></div>
         <nav class="controls" aria-label="Presentation controls">
           <button data-command="back" type="button">Back</button>
@@ -80,6 +91,10 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   root.querySelector("#note-button")?.addEventListener("click", handlers.onToggleNote);
   root.querySelector("#subtitle-button")?.addEventListener("click", handlers.onToggleSubtitles);
   root.querySelector("#sample-script-button")?.addEventListener("click", handlers.onLoadSampleScript);
+  root.querySelector<HTMLButtonElement>("#control-panel-toggle")?.addEventListener("click", () => {
+    const nextState = root.dataset.controlPanel === "collapsed" ? "open" : "collapsed";
+    setControlPanelState(root, nextState);
+  });
   root.querySelector<HTMLSelectElement>("#fallback-level-select")?.addEventListener("change", (event) => {
     handlers.onFallbackLevel((event.target as HTMLSelectElement).value as FallbackLevel);
   });
@@ -96,6 +111,31 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
       askButton?.addEventListener("click", () => handlers.onAskMockAi(input?.value.trim() ?? ""));
     }
   };
+}
+
+function readControlPanelState(): "open" | "collapsed" {
+  try {
+    return window.localStorage.getItem("presenta-stage-3d:control-panel") === "collapsed" ? "collapsed" : "open";
+  } catch {
+    return "open";
+  }
+}
+
+function setControlPanelState(root: HTMLElement, state: "open" | "collapsed"): void {
+  root.dataset.controlPanel = state;
+  try {
+    window.localStorage.setItem("presenta-stage-3d:control-panel", state);
+  } catch {
+    // Ignore storage failures so the live presentation controls remain usable.
+  }
+
+  const toggle = root.querySelector<HTMLButtonElement>("#control-panel-toggle");
+  if (!toggle) {
+    return;
+  }
+
+  toggle.textContent = state === "open" ? "Hide Panel" : "Show Panel";
+  toggle.setAttribute("aria-expanded", state === "open" ? "true" : "false");
 }
 
 export function getStageCanvas(root: HTMLElement): HTMLCanvasElement {

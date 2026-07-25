@@ -34,21 +34,35 @@ export function createSubtitleLayer(host: HTMLElement): SubtitleLayer {
   const speaker = requireElement(host, ".subtitle-card__speaker");
   const kind = requireElement(host, ".subtitle-card__kind");
   const text = requireElement(host, ".subtitle-card__text");
+  let currentLine = "";
+  let currentLayout = "";
+
+  const renderLine = (line: string, layout: string): void => {
+    if (line === currentLine && layout === currentLayout) {
+      return;
+    }
+
+    currentLine = line;
+    currentLayout = layout;
+    text.textContent = line;
+  };
 
   return {
     update: (snapshot) => {
       const character = getCharacterInstance(snapshot.cue.speaker);
       const line = normalizeSubtitle(snapshot.cue.text);
+      const layout = snapshot.presentation.layout;
 
       host.classList.toggle("subtitle-layer-host--hidden", !snapshot.showSubtitles);
       host.dataset.kind = snapshot.cue.kind;
       host.dataset.speaker = snapshot.cue.speaker;
-      host.dataset.layout = snapshot.presentation.layout;
+      host.dataset.layout = layout;
       card.classList.toggle("subtitle-card--compact", line.length > 54);
       card.classList.toggle("subtitle-card--dense", line.length > 92);
+      card.classList.toggle("subtitle-card--speech-bubble", layout === "slide_with_manju");
       speaker.textContent = character.displayName;
       kind.textContent = kindLabels[snapshot.cue.kind];
-      text.textContent = line;
+      renderLine(line, layout);
     },
     dispose: () => {
       host.innerHTML = "";

@@ -35,6 +35,15 @@ type Live2DRuntimeState = {
   target: Live2DExpressionTarget;
   blinkStartedAt: number;
   nextBlinkAt: number;
+  pointer: {
+    x: number;
+    y: number;
+    active: boolean;
+  };
+  pointerFollow: {
+    x: number;
+    y: number;
+  };
 };
 
 type Live2DExpressionTarget = {
@@ -102,8 +111,29 @@ export async function createLive2DPresenterLayer(
       startedAt: performance.now(),
       target: resolveExpressionTarget("neutral", "rei"),
       blinkStartedAt: 0,
-      nextBlinkAt: performance.now() + 1800
+      nextBlinkAt: performance.now() + 1800,
+      pointer: {
+        x: 0,
+        y: 0,
+        active: false
+      },
+      pointerFollow: {
+        x: 0,
+        y: 0
+      }
     };
+    const handlePointerMove = (event: PointerEvent) => {
+      runtimeState.pointer = {
+        x: normalizePointer(event.clientX, window.innerWidth),
+        y: normalizePointer(event.clientY, window.innerHeight),
+        active: true
+      };
+    };
+    const handlePointerLeave = () => {
+      runtimeState.pointer.active = false;
+    };
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerleave", handlePointerLeave);
     const animate = () => animateModel(model, runtimeState);
     app.ticker.add(animate);
     onStateChange("ready", "Live2D presenter ready.");
@@ -112,6 +142,8 @@ export async function createLive2DPresenterLayer(
       update: (states, speaker, cue) => updateModel(model, runtimeState, states, speaker, cue),
       dispose: () => {
         window.removeEventListener("resize", handleResize);
+        window.removeEventListener("pointermove", handlePointerMove);
+        window.removeEventListener("pointerleave", handlePointerLeave);
         live2dApp.ticker.remove(animate);
         live2dApp.destroy(true, { children: true, texture: false, baseTexture: false });
       }
@@ -133,8 +165,8 @@ function updateModel(
   runtimeState.states = states;
   runtimeState.speaker = speaker;
   runtimeState.target = resolveExpressionTarget(cue?.direction.intent ?? "neutral", speaker);
-  const reiSpeaking = states.rei === "speaking" || speaker === "rei";
-  model.alpha = reiSpeaking ? runtimeState.target.alpha : 0.72;
+  const live2dSpeaking = states.rei === "speaking" || speaker === "rei" || speaker === "mikoto";
+  model.alpha = live2dSpeaking ? runtimeState.target.alpha : 0.72;
   model.rotation = speaker === "mikoto" ? 0.05 : 0;
 }
 
@@ -142,23 +174,34 @@ function animateModel(model: Live2DParameterModel, runtimeState: Live2DRuntimeSt
   const seconds = (performance.now() - runtimeState.startedAt) / 1000;
   const now = performance.now();
   const reiSpeaking = runtimeState.states.rei === "speaking" || runtimeState.speaker === "rei";
+  const live2dSpeaking = reiSpeaking || runtimeState.speaker === "mikoto";
   const mouthAmplitude = runtimeState.target.mouthForm >= 0 ? 0.62 : 0.42;
-  const mouth = reiSpeaking ? 0.18 + Math.max(0, Math.sin(seconds * 12)) * mouthAmplitude : 0;
+  const mouth = live2dSpeaking ? 0.18 + Math.max(0, Math.sin(seconds * 12)) * mouthAmplitude : 0;
   const idleX = Math.sin(seconds * 0.9) * 3;
   const idleY = Math.sin(seconds * 0.7) * 2;
   const bodyIdle = Math.sin(seconds * 0.5) * 1.2;
   const breath = 0.5 + Math.sin(seconds * 1.6) * 0.5;
   const eyeOpen = getBlinkValue(runtimeState, now);
+  const pointerTargetX = runtimeState.pointer.active ? runtimeState.pointer.x : 0;
+  const pointerTargetY = runtimeState.pointer.active ? runtimeState.pointer.y : 0;
+  runtimeState.pointerFollow.x += (pointerTargetX - runtimeState.pointerFollow.x) * 0.08;
+  runtimeState.pointerFollow.y += (pointerTargetY - runtimeState.pointerFollow.y) * 0.08;
+  const pointerAngleX = runtimeState.pointerFollow.x * 8;
+  const pointerAngleY = runtimeState.pointerFollow.y * -5;
+  const eyeBallX = runtimeState.pointerFollow.x * 0.45;
+  const eyeBallY = runtimeState.pointerFollow.y * -0.32;
 
   model.internalModel.coreModel.setParameterValueById("PARAM_MOUTH_OPEN_Y", mouth);
   model.internalModel.coreModel.setParameterValueById("PARAM_MOUTH_FORM", runtimeState.target.mouthForm);
-  model.internalModel.coreModel.setParameterValueById("PARAM_ANGLE_X", runtimeState.target.angleX + idleX);
-  model.internalModel.coreModel.setParameterValueById("PARAM_ANGLE_Y", runtimeState.target.angleY + idleY);
+  model.internalModel.coreModel.setParameterValueById("PARAM_ANGLE_X", runtimeState.target.angleX + idleX + pointerAngleX);
+  model.internalModel.coreModel.setParameterValueById("PARAM_ANGLE_Y", runtimeState.target.angleY + idleY + pointerAngleY);
   model.internalModel.coreModel.setParameterValueById("PARAM_BODY_ANGLE_Z", runtimeState.target.bodyAngleZ + bodyIdle);
   model.internalModel.coreModel.setParameterValueById("PARAM_BREATH", breath);
   model.internalModel.coreModel.setParameterValueById("PARAM_EYE_L_OPEN", eyeOpen);
   model.internalModel.coreModel.setParameterValueById("PARAM_EYE_R_OPEN", eyeOpen);
   model.internalModel.coreModel.setParameterValueById("PARAM_EYE_R_SMILE", runtimeState.target.eyeSmile);
+  model.internalModel.coreModel.setParameterValueById("PARAM_EYE_BALL_X", eyeBallX);
+  model.internalModel.coreModel.setParameterValueById("PARAM_EYE_BALL_Y", eyeBallY);
 }
 
 function getBlinkValue(runtimeState: Live2DRuntimeState, now: number): number {
@@ -262,8 +305,16 @@ function layoutModel(host: HTMLElement, model: Live2DDisplayModel): void {
   const bounds = model.getBounds();
   const scale = bounds.height > 0 ? targetHeight / bounds.height : 0.2;
   model.scale.set(scale);
-  model.x = Math.min(width - 120, Math.max(130, width * 0.18));
+  model.x = Math.min(width - 120, Math.max(130, width * 0.48));
   model.y = height - 16;
+}
+
+function normalizePointer(position: number, size: number): number {
+  if (size <= 0) {
+    return 0;
+  }
+
+  return Math.max(-1, Math.min(1, (position / size) * 2 - 1));
 }
 
 function createNoopLayer(): Live2DPresenterLayer {

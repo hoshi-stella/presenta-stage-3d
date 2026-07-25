@@ -1,6 +1,7 @@
 import { MockAiClient } from "../ai/mockAiClient";
 import { cues } from "../presentation/cues";
 import { CueRunner } from "../presentation/cueRunner";
+import { loadPresentationDocument } from "../presentation/presentationLoader";
 import sampleScriptMarkdown from "../presentation/sampleScript.md?raw";
 import { parseMarkdownToCues } from "../presentation/markdownCueParser";
 import { applyPresentationComposition } from "../presentation/presentationComposer";
@@ -19,6 +20,7 @@ import { createStaticIllustrationPresenter, type StaticIllustrationPresenter } f
 import { createEndingCreditsOverlay, type EndingCreditsOverlay } from "../ui/endingCredits";
 import { createControls } from "./controls";
 import { bindKeyboardControls } from "./keyboard";
+import { setSlideContents } from "../slides/sampleSlides";
 
 export class App {
   private stageScene: StageScene | null = null;
@@ -35,9 +37,21 @@ export class App {
 
   constructor(private readonly root: HTMLElement) {}
 
-  start(): void {
+  async start(): Promise<void> {
     this.isDisposed = false;
-    const runner = new CueRunner(cues);
+    const loadResult = await loadPresentationDocument();
+    const runner = new CueRunner(loadResult.ok ? loadResult.document.cues : cues);
+    if (loadResult.ok) {
+      setSlideContents(loadResult.document.slides);
+      this.root.dataset.presentationSource = loadResult.sourceUrl;
+      this.root.dataset.presentationTitle = loadResult.document.title;
+      runner.setStatusMessage(`Loaded presentation JSON: ${loadResult.document.title}`);
+    } else {
+      setSlideContents([]);
+      this.root.dataset.presentationSource = "fallback";
+      this.root.dataset.presentationTitle = "Built-in presentation";
+      runner.setStatusMessage(loadResult.message);
+    }
     const aiClient = new MockAiClient();
     const controls = createControls(runner, aiClient, (variant) => {
       this.endingCredits?.show(variant);

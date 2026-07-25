@@ -11,6 +11,7 @@ import type {
   StageEffectInstruction
 } from "./types";
 import type { CharacterId, Cue, DirectionIntent, DirectionIntensity } from "../presentation/types";
+import { getCharacterInstance } from "../scene/characterRegistry";
 
 export type DirectionAssetSelectionInput = {
   intent: DirectionIntent;
@@ -204,15 +205,17 @@ function getSelectionReason(
   preset: DirectionPresetAsset | null,
   explicitPreset: DirectionPresetAsset | null
 ): string {
+  const speakerName = getCharacterInstance(input.speaker).displayName;
+
   if (explicitPreset) {
-    return `explicit preset ${explicitPreset.id} selected for ${input.speaker}`;
+    return `explicit preset ${explicitPreset.id} selected for ${speakerName}`;
   }
 
   if (preset) {
-    return `${input.intent}/${input.intensity} selected ${preset.id} for ${input.speaker}`;
+    return `${input.intent}/${input.intensity} selected ${preset.id} for ${speakerName}`;
   }
 
-  return `${input.intent}/${input.intensity} has no compatible preset for ${input.speaker}; fallback direction only`;
+  return `${input.intent}/${input.intensity} has no compatible preset for ${speakerName}; fallback direction only`;
 }
 
 export type { PresentationObjectAction };
