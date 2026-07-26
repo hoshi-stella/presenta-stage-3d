@@ -97,11 +97,26 @@ export type CueBranch = {
   targetCueId: CueId;
 };
 
+export type CueAudio = {
+  src: string;
+  durationMs?: number;
+  volume?: number;
+};
+
+export type AudioPlaybackState = "idle" | "loading" | "playing" | "paused" | "ended" | "missing" | "blocked";
+
+export type AudioPlaybackSnapshot = {
+  cueId: CueId | null;
+  state: AudioPlaybackState;
+  message: string | null;
+};
+
 export type Cue = {
   id: CueId;
   kind: CueKind;
   speaker: CharacterId;
   text: string;
+  audio?: CueAudio;
   slideRef?: string;
   note?: string;
   direction: {
@@ -188,6 +203,7 @@ export type PresentationSnapshot = {
   aiMessage: string | null;
   statusMessage: string | null;
   isPaused: boolean;
+  audio: AudioPlaybackSnapshot;
   cue: Cue;
   resolvedDirection: ResolvedDirection;
   characterStates: CharacterRuntimeState;

@@ -184,6 +184,17 @@ function validateCue(value: unknown): Cue {
     }
   }
 
+  if (record.audio !== undefined) {
+    const audio = asRecord(record.audio, `cue(${String(record.id)}).audio`);
+    asString(audio.src, `cue(${String(record.id)}).audio.src`);
+    if (audio.durationMs !== undefined && (typeof audio.durationMs !== "number" || !Number.isFinite(audio.durationMs) || audio.durationMs <= 0)) {
+      throw new Error(`cue(${String(record.id)}).audio.durationMs must be a positive number.`);
+    }
+    if (audio.volume !== undefined && (typeof audio.volume !== "number" || !Number.isFinite(audio.volume) || audio.volume < 0 || audio.volume > 1)) {
+      throw new Error(`cue(${String(record.id)}).audio.volume must be between 0 and 1.`);
+    }
+  }
+
   return record as Cue;
 }
 

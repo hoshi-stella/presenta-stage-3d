@@ -88,6 +88,17 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       </section>
     `
     : "";
+  const audioMarkup = `
+    <section class="audio-playback-state">
+      <h3>Audio</h3>
+      <dl class="cue-details">
+        <div><dt>Source</dt><dd>${escapeHtml(snapshot.cue.audio?.src ?? "not configured")}</dd></div>
+        <div><dt>State</dt><dd>${escapeHtml(snapshot.audio.state)}</dd></div>
+        <div><dt>Duration</dt><dd>${snapshot.cue.audio?.durationMs ? `${snapshot.cue.audio.durationMs}ms` : "not set"}</dd></div>
+      </dl>
+      ${snapshot.audio.message ? `<p class="status-message">${escapeHtml(snapshot.audio.message)}</p>` : ""}
+    </section>
+  `;
 
   return `
     <div class="section-meta">
@@ -114,6 +125,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <ul>${branchMarkup}</ul>
     </section>
     ${demoMarkup}
+    ${audioMarkup}
     ${presentationMarkup}
     ${flowMarkup}
     <section class="character-state-list">
