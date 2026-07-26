@@ -120,6 +120,16 @@ Use `?presentation=/presentations/<id>/presentation.json` to load another deck. 
 
 Keep reusable text data in Git, but keep model, image, voice, and other character assets under `public/assets-local/**` so private or licensed materials are not committed.
 
+## Presentation Package
+
+presenta-stage-3d can load presentation data from a versioned JSON package.
+
+```txt
+?presentation=/presentations/showcase.presentation.json
+```
+
+The package contains metadata, slides, cues, characters, assets, direction presets, publication settings, and export settings. See [Presentation Package v1](docs/presentation-package-v1.md) for the schema, validation, import/export, and runtime adapter policy.
+
 ## Current Controls
 
 - `Space` / `ArrowRight`: Next
