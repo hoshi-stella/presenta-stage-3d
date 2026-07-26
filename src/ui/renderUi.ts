@@ -12,6 +12,9 @@ export type UiHandlers = {
   onShowCredits: (variant: EndingCreditsVariant) => void;
   onLoadSampleScript: () => void;
   onAskMockAi: (text: string) => void;
+  onLoadPackage: (file: File) => void;
+  onExportPackage: () => void;
+  getPackageStatus: () => { id: string; title: string; source: string; errors: number; warnings: number };
 };
 
 export type UiRenderer = {
@@ -47,6 +50,9 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
       <aside id="control-panel" class="control-panel">
         <div id="status-panel"></div>
         <nav class="controls" aria-label="Presentation controls">
+          <button id="load-package-button" type="button">Load Package</button>
+          <button id="export-package-button" type="button">Export Package</button>
+          <input id="package-file-input" type="file" accept="application/json,.json,.presentation.json" hidden />
           <button data-command="back" type="button">Back</button>
           <button data-command="next" type="button" class="primary">Next</button>
           <button data-command="supplement" type="button">Supplement</button>
@@ -91,6 +97,13 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   root.querySelector("#note-button")?.addEventListener("click", handlers.onToggleNote);
   root.querySelector("#subtitle-button")?.addEventListener("click", handlers.onToggleSubtitles);
   root.querySelector("#sample-script-button")?.addEventListener("click", handlers.onLoadSampleScript);
+  root.querySelector<HTMLButtonElement>("#load-package-button")?.addEventListener("click", () => root.querySelector<HTMLInputElement>("#package-file-input")?.click());
+  root.querySelector<HTMLInputElement>("#package-file-input")?.addEventListener("change", (event) => {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) handlers.onLoadPackage(file);
+    (event.target as HTMLInputElement).value = "";
+  });
+  root.querySelector("#export-package-button")?.addEventListener("click", handlers.onExportPackage);
   root.querySelector<HTMLButtonElement>("#control-panel-toggle")?.addEventListener("click", () => {
     const nextState = root.dataset.controlPanel === "collapsed" ? "open" : "collapsed";
     setControlPanelState(root, nextState);
@@ -101,7 +114,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
 
   return {
     update: (snapshot) => {
-      statusPanel.innerHTML = renderStatusPanel(snapshot);
+      statusPanel.innerHTML = renderStatusPanel(snapshot, handlers.getPackageStatus());
       const fallbackSelect = root.querySelector<HTMLSelectElement>("#fallback-level-select");
       if (fallbackSelect && fallbackSelect.value !== snapshot.fallbackLevel) {
         fallbackSelect.value = snapshot.fallbackLevel;

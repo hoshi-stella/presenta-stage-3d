@@ -1,7 +1,9 @@
 import type { CharacterId, PresentationSnapshot } from "../presentation/types";
 import { getCharacterInstance } from "../scene/characterRegistry";
 
-export function renderStatusPanel(snapshot: PresentationSnapshot): string {
+export type PackageStatus = { id: string; title: string; source: string; errors: number; warnings: number };
+
+export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?: PackageStatus): string {
   const modeLabel = snapshot.mode === "liveAi"
     ? "Live AI Mode (stub)"
     : snapshot.mode === "qa"
@@ -88,6 +90,19 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       </section>
     `
     : "";
+  const packageMarkup = packageStatus
+    ? `
+      <section class="package-state">
+        <h3>Presentation Package</h3>
+        <dl class="cue-details">
+          <div><dt>ID</dt><dd>${escapeHtml(packageStatus.id)}</dd></div>
+          <div><dt>Title</dt><dd>${escapeHtml(packageStatus.title)}</dd></div>
+          <div><dt>Source</dt><dd>${escapeHtml(packageStatus.source)}</dd></div>
+          <div><dt>Validation</dt><dd>${packageStatus.errors} errors / ${packageStatus.warnings} warnings</dd></div>
+        </dl>
+      </section>
+    `
+    : "";
 
   return `
     <div class="section-meta">
@@ -114,6 +129,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot): string {
       <ul>${branchMarkup}</ul>
     </section>
     ${demoMarkup}
+    ${packageMarkup}
     ${presentationMarkup}
     ${flowMarkup}
     <section class="character-state-list">
