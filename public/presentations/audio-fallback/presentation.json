@@ -1,0 +1,38 @@
+{
+  "id": "audio-fallback-check",
+  "title": "Audio fallback check",
+  "version": 1,
+  "slides": [
+    {
+      "id": "slide_audio_fallback",
+      "layout": "content",
+      "title": "Audio fallback",
+      "subtitle": "Missing local audio must not stop Manual Mode.",
+      "body": "This deck intentionally references a local file that is not included in Git."
+    }
+  ],
+  "cues": [
+    {
+      "id": "cue_audio_fallback",
+      "kind": "talk",
+      "speaker": "mikoto",
+      "slideRef": "slide_audio_fallback",
+      "text": "音声が見つからない場合でも、字幕と手動進行を継続します。",
+      "audio": {
+        "src": "/assets-local/audio/missing-audio-check.mp3",
+        "durationMs": 3000,
+        "volume": 0.8
+      },
+      "direction": {
+        "intent": "neutral",
+        "intensity": "low"
+      },
+      "presentation": {
+        "layout": "slide_with_caption"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      }
+    }
+  ]
+}
