@@ -1,7 +1,11 @@
 import { MockAiClient } from "../ai/mockAiClient";
-import { cues } from "../presentation/cues";
 import { CueRunner } from "../presentation/cueRunner";
-import { loadPresentationDocument } from "../presentation/presentationLoader";
+import { adaptPresentationPackageToRuntime } from "../package/adapter";
+import { downloadPresentationPackage } from "../package/exporter";
+import { loadPresentationFromFile, loadPresentationFromUrl } from "../package/loader";
+import type { PresentationPackageV1, PresentationValidationResult } from "../package/types";
+import { validatePresentationPackage } from "../package/validator";
+import { createDefaultPresentation } from "../presentations/defaultPresentation";
 import sampleScriptMarkdown from "../presentation/sampleScript.md?raw";
 import { parseMarkdownToCues } from "../presentation/markdownCueParser";
 import { applyPresentationComposition } from "../presentation/presentationComposer";
@@ -36,24 +40,16 @@ export class App {
   private unbindKeyboard: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
   private isDisposed = false;
+  private currentPresentation: PresentationPackageV1 = createDefaultPresentation();
+  private packageValidation: PresentationValidationResult = validatePresentationPackage(this.currentPresentation);
+  private packageSource = "built-in";
 
   constructor(private readonly root: HTMLElement) {}
 
   async start(): Promise<void> {
     this.isDisposed = false;
-    const loadResult = await loadPresentationDocument();
-    const runner = new CueRunner(loadResult.ok ? loadResult.document.cues : cues);
-    if (loadResult.ok) {
-      setSlideContents(loadResult.document.slides);
-      this.root.dataset.presentationSource = loadResult.sourceUrl;
-      this.root.dataset.presentationTitle = loadResult.document.title;
-      runner.setStatusMessage(`Loaded presentation JSON: ${loadResult.document.title}`);
-    } else {
-      setSlideContents([]);
-      this.root.dataset.presentationSource = "fallback";
-      this.root.dataset.presentationTitle = "Built-in presentation";
-      runner.setStatusMessage(loadResult.message);
-    }
+    const runner = new CueRunner(adaptPresentationPackageToRuntime(this.currentPresentation).cues);
+    await this.loadInitialPresentation(runner);
     const aiClient = new MockAiClient();
     const controls = createControls(runner, aiClient, (variant) => {
       this.endingCredits?.show(variant);
@@ -71,7 +67,21 @@ export class App {
       },
       onAskMockAi: (text) => {
         void controls.askMockAi(text);
-      }
+      },
+      onLoadPackage: (file) => {
+        void this.loadPackageFromFile(file, runner);
+      },
+      onExportPackage: () => {
+        downloadPresentationPackage(this.currentPresentation, `${this.currentPresentation.presentation.id}.presentation.json`);
+        runner.setStatusMessage(`Exported Presentation Package: ${this.currentPresentation.presentation.title}`);
+      },
+      getPackageStatus: () => ({
+        id: this.currentPresentation.presentation.id,
+        title: this.currentPresentation.presentation.title,
+        source: this.packageSource,
+        errors: this.packageValidation.errors.length,
+        warnings: this.packageValidation.warnings.length
+      })
     });
     this.transitionCoordinator = createPresentationTransitionCoordinator(this.root);
     this.endingCredits = createEndingCreditsOverlay(this.root);
@@ -136,6 +146,35 @@ export class App {
     });
   }
 
+  private async loadInitialPresentation(runner: CueRunner): Promise<void> {
+    const sourceUrl = getPresentationPackageUrl();
+    try {
+      this.applyPresentationPackage(await loadPresentationFromUrl(sourceUrl), sourceUrl, runner, "Presentation loaded.");
+    } catch (error) {
+      this.applyPresentationPackage(createDefaultPresentation(), "built-in", runner, `Presentation load failed. Falling back to built-in presentation: ${getErrorMessage(error)}`);
+    }
+  }
+
+  private async loadPackageFromFile(file: File, runner: CueRunner): Promise<void> {
+    try {
+      this.applyPresentationPackage(await loadPresentationFromFile(file), `file:${file.name}`, runner, "Presentation package imported.");
+    } catch (error) {
+      runner.setStatusMessage(`Presentation import failed. Current presentation was kept: ${getErrorMessage(error)}`);
+    }
+  }
+
+  private applyPresentationPackage(presentation: PresentationPackageV1, source: string, runner: CueRunner, message: string): void {
+    const runtime = adaptPresentationPackageToRuntime(presentation);
+    this.currentPresentation = presentation;
+    this.packageValidation = validatePresentationPackage(presentation);
+    this.packageSource = source;
+    setSlideContents(runtime.slides);
+    this.root.dataset.presentationSource = source;
+    this.root.dataset.presentationId = presentation.presentation.id;
+    this.root.dataset.presentationTitle = presentation.presentation.title;
+    runner.loadCues(runtime.cues, `${message} ${presentation.presentation.title}`);
+  }
+
   dispose(): void {
     this.isDisposed = true;
     this.unbindKeyboard?.();
@@ -150,6 +189,11 @@ export class App {
     this.audioPlayback?.dispose();
     this.stageScene?.dispose();
   }
+}
+
+function getPresentationPackageUrl(): string {
+  const url = new URL(window.location.href);
+  return url.searchParams.get("presentation") ?? import.meta.env.VITE_PRESENTATION_URL ?? "/presentations/showcase.presentation.json";
 }
 
 function getErrorMessage(error: unknown): string {

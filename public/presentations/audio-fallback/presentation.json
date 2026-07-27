@@ -1,7 +1,12 @@
 {
-  "id": "audio-fallback-check",
-  "title": "Audio fallback check",
-  "version": 1,
+  "schemaVersion": 1,
+  "presentation": {
+    "id": "audio-fallback-check",
+    "title": "Audio fallback check",
+    "description": "Missing local audio must not stop Manual Mode.",
+    "author": { "name": "presenta-stage-3d" },
+    "language": "ja"
+  },
   "slides": [
     {
       "id": "slide_audio_fallback",
@@ -23,16 +28,22 @@
         "durationMs": 3000,
         "volume": 0.8
       },
-      "direction": {
-        "intent": "neutral",
-        "intensity": "low"
-      },
-      "presentation": {
-        "layout": "slide_with_caption"
-      },
-      "after": {
-        "mode": "wait_for_presenter"
-      }
+      "direction": { "intent": "neutral", "intensity": "low" },
+      "presentation": { "layout": "slide_with_caption" },
+      "after": { "mode": "wait_for_presenter" }
     }
-  ]
+  ],
+  "characters": [
+    { "id": "mikoto", "displayName": "愛璃", "roles": ["commentator"] }
+  ],
+  "assets": [],
+  "directionPresets": [],
+  "settings": {
+    "defaultProfile": "manju_commentary",
+    "defaultLayers": ["slide", "subtitle"],
+    "fallbackProfile": "classic_slide",
+    "mode": "manual",
+    "aspectRatio": "16:9",
+    "subtitle": { "enabled": true }
+  }
 }
