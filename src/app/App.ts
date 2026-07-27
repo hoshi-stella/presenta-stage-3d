@@ -25,6 +25,7 @@ import { createEndingCreditsOverlay, type EndingCreditsOverlay } from "../ui/end
 import { createControls } from "./controls";
 import { bindKeyboardControls } from "./keyboard";
 import { setSlideContents } from "../slides/sampleSlides";
+import { createAudioPlaybackController, type AudioPlaybackController } from "../audio/audioPlaybackController";
 
 export class App {
   private stageScene: StageScene | null = null;
@@ -35,6 +36,7 @@ export class App {
   private staticIllustrationPresenter: StaticIllustrationPresenter | null = null;
   private endingCredits: EndingCreditsOverlay | null = null;
   private transitionCoordinator: PresentationTransitionCoordinator | null = null;
+  private audioPlayback: AudioPlaybackController | null = null;
   private unbindKeyboard: (() => void) | null = null;
   private unsubscribeState: (() => void) | null = null;
   private isDisposed = false;
@@ -83,6 +85,7 @@ export class App {
     });
     this.transitionCoordinator = createPresentationTransitionCoordinator(this.root);
     this.endingCredits = createEndingCreditsOverlay(this.root);
+    this.audioPlayback = createAudioPlaybackController((audio) => runner.setAudioPlayback(audio));
 
     this.stageScene = createStageScene(getStageCanvas(this.root));
     this.slideLayer = createSlideLayer(getSlideLayerHost(this.root));
@@ -120,6 +123,7 @@ export class App {
 
     this.unbindKeyboard = bindKeyboardControls(controls);
     this.unsubscribeState = runner.subscribe((snapshot) => {
+      this.audioPlayback?.update(snapshot);
       applyPresentationComposition(this.root, snapshot);
       this.transitionCoordinator?.apply(snapshot);
       ui.update(snapshot);
@@ -182,6 +186,7 @@ export class App {
     this.staticIllustrationPresenter?.dispose();
     this.endingCredits?.dispose();
     this.transitionCoordinator?.dispose();
+    this.audioPlayback?.dispose();
     this.stageScene?.dispose();
   }
 }

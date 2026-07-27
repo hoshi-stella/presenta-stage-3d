@@ -23,6 +23,11 @@ export class CueRunner {
   private aiMessage: string | null = null;
   private statusMessage: string | null = null;
   private isPaused = false;
+  private audio: PresentationSnapshot["audio"] = {
+    cueId: null,
+    state: "idle" as const,
+    message: null
+  };
   private timerId: number | null = null;
   private qaReturnCueId: CueId | null = null;
   private readonly cueIndexById = new Map<CueId, number>();
@@ -56,6 +61,7 @@ export class CueRunner {
       aiMessage: this.aiMessage,
       statusMessage: this.statusMessage,
       isPaused: this.isPaused,
+      audio: this.audio,
       cue,
       resolvedDirection: resolveDirection(cue),
       characterStates: this.getCharacterStates(cue.speaker),
@@ -155,6 +161,15 @@ export class CueRunner {
 
   setStatusMessage(message: string | null): void {
     this.statusMessage = message;
+    this.emit();
+  }
+
+  setAudioPlayback(audio: PresentationSnapshot["audio"]): void {
+    if (this.audio.cueId === audio.cueId && this.audio.state === audio.state && this.audio.message === audio.message) {
+      return;
+    }
+
+    this.audio = audio;
     this.emit();
   }
 
@@ -353,7 +368,7 @@ export class CueRunner {
       return;
     }
 
-    const durationMs = cue.after.durationMs ?? (this.mode === "demoScript" ? 7000 : 8000);
+    const durationMs = cue.audio?.durationMs ?? cue.after.durationMs ?? (this.mode === "demoScript" ? 7000 : 8000);
     this.timerId = window.setTimeout(() => {
       this.next();
     }, durationMs);
@@ -424,7 +439,15 @@ export class CueRunner {
       return "idle";
     }
 
-    return characterId === speaker ? "speaking" : "listening";
+    if (characterId !== speaker) {
+      return "listening";
+    }
+
+    const cue = this.cues[this.index];
+    const audioHasEnded = cue.audio?.src
+      && this.audio.cueId === cue.id
+      && !["loading", "playing"].includes(this.audio.state);
+    return audioHasEnded ? "listening" : "speaking";
   }
 
   private emit(): void {

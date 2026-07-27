@@ -53,6 +53,7 @@ function adaptCue(cue: PresentationPackageV1["cues"][number]): Cue {
     kind: cue.kind === "ending" ? "summary" : cue.kind === "transition" ? "talk" : cue.kind,
     speaker: runtimeCharacters.has(cue.speaker as CharacterId) ? cue.speaker as CharacterId : "dummy",
     text: cue.text,
+    audio: cue.audio,
     note: cue.note,
     slideRef: cue.slideRef,
     direction: { intent: runtimeIntents.has(cue.direction.intent as DirectionIntent) ? cue.direction.intent as DirectionIntent : "neutral", emotion: cue.direction.emotion, intensity: cue.direction.intensity },

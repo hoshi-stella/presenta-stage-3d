@@ -120,6 +120,20 @@ Use `?presentation=/presentations/<id>/presentation.json` to load another deck. 
 
 Keep reusable text data in Git, but keep model, image, voice, and other character assets under `public/assets-local/**` so private or licensed materials are not committed.
 
+## Cue Audio
+
+A Cue can optionally carry a local audio reference. When present, playback starts with the Cue, stops when the Cue changes, follows Pause / Resume, and drives the active character state used by the image Presenter mouth flap. Audio is optional: no configured file, a missing file, or a browser autoplay restriction does not block Manual Mode.
+
+```json
+{
+  "audio": {
+    "src": "/assets-local/audio/cue-intro-01.mp3",
+    "durationMs": 8200,
+    "volume": 0.9
+  }
+}
+```
+
 ## Presentation Package
 
 presenta-stage-3d can load presentation data from a versioned JSON package.

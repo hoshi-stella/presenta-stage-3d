@@ -48,4 +48,15 @@ describe("Presentation Package v1", () => {
     expect(roundTripped.presentation.id).toBe(presentation.presentation.id);
     expect(validatePresentationPackage(roundTripped).valid).toBe(true);
   });
+
+  it("keeps valid cue audio metadata when adapting to the runtime", () => {
+    const presentation = createDefaultPresentation();
+    presentation.cues[0].audio = { src: "/assets-local/audio/opening.mp3", durationMs: 2500, volume: 0.8 };
+    const runtime = adaptPresentationPackageToRuntime(presentation);
+    expect(validatePresentationPackage(presentation).valid).toBe(true);
+    expect(runtime.cues[0].audio).toEqual({ src: "/assets-local/audio/opening.mp3", durationMs: 2500, volume: 0.8 });
+
+    presentation.cues[0].audio = { src: "", volume: 2 };
+    expect(validatePresentationPackage(presentation).errors.some((issue) => issue.path.includes("audio"))).toBe(true);
+  });
 });

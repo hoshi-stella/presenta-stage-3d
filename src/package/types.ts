@@ -35,11 +35,13 @@ export type SlideDefinition = {
 };
 
 export type CueBranchDefinition = { command: string; label: string; targetCueId: string };
+export type CueAudioDefinition = { src: string; durationMs?: number; volume?: number };
 export type CueDefinition = {
   id: string;
   kind: "talk" | "question" | "answer" | "supplement" | "reaction" | "tsukkomi" | "slide" | "demo" | "summary" | "qa" | "transition" | "ending";
   speaker: string;
   text: string;
+  audio?: CueAudioDefinition;
   note?: string;
   estimatedDurationMs?: number;
   slideRef?: string;

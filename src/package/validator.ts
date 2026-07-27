@@ -94,6 +94,7 @@ function validateCues(value: unknown, issues: ValidationIssue[]): void {
     requiredString(cue, "kind", path, issues);
     requiredString(cue, "speaker", path, issues);
     requiredString(cue, "text", path, issues);
+    if (cue.audio !== undefined) validateCueAudio(cue.audio, `${path}.audio`, issues);
     if (!isRecord(cue.direction)) {
       issues.push(error(`${path}.direction`, "required", "cue direction must be an object."));
     } else {
@@ -115,6 +116,20 @@ function validateCues(value: unknown, issues: ValidationIssue[]): void {
       }
     }
   });
+}
+
+function validateCueAudio(value: unknown, path: string, issues: ValidationIssue[]): void {
+  if (!isRecord(value)) {
+    issues.push(error(path, "invalid_type", "cue audio must be an object."));
+    return;
+  }
+  requiredString(value, "src", path, issues);
+  if (value.durationMs !== undefined && (typeof value.durationMs !== "number" || !Number.isFinite(value.durationMs) || value.durationMs <= 0)) {
+    issues.push(error(`${path}.durationMs`, "invalid_value", "audio durationMs must be a positive number."));
+  }
+  if (value.volume !== undefined && (typeof value.volume !== "number" || !Number.isFinite(value.volume) || value.volume < 0 || value.volume > 1)) {
+    issues.push(error(`${path}.volume`, "invalid_value", "audio volume must be between 0 and 1."));
+  }
 }
 
 function validateCharacters(value: unknown, issues: ValidationIssue[]): void {

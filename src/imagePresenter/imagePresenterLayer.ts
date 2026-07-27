@@ -102,8 +102,8 @@ export function createImagePresenterLayer(
   setExpression("neutral");
 
   return {
-    update: (states, speaker, cue) => {
-      const isSpeaking = states[config.speakerId] === "speaking" || speaker === config.speakerId;
+    update: (states, _speaker, cue) => {
+      const isSpeaking = states[config.speakerId] === "speaking";
       const nextExpression = resolveExpression(cue?.direction.intent ?? "neutral", isSpeaking);
 
       if (!isSpeaking) {
