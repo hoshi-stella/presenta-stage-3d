@@ -1,0 +1,12 @@
+name: presenta-smoke
+description: Non-mutating smoke test for the local TAKT installation.
+initial_step: inspect
+max_steps: 1
+
+steps:
+  - name: inspect
+    persona: planner
+    edit: false
+    rules:
+      - condition: Scope and acceptance criteria are clear
+        next: COMPLETE
