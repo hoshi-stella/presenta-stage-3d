@@ -33,6 +33,35 @@ export function deleteCue(presentation: PresentationPackageV1, cueId: string): P
   return { ...presentation, cues: presentation.cues.filter((cue) => cue.id !== cueId).map((cue) => ({ ...cue, after: cue.after.branches ? { ...cue.after, branches: cue.after.branches.filter((branch) => branch.targetCueId !== cueId) } : cue.after })) };
 }
 
+export function splitCue(presentation: PresentationPackageV1, cueId: string, index: number): PresentationPackageV1 {
+  const cueIndex = presentation.cues.findIndex((cue) => cue.id === cueId);
+  const cue = presentation.cues[cueIndex];
+  if (!cue || index <= 0 || index >= cue.text.length) return presentation;
+  const second = { ...structuredClone(cue), id: nextCueId(presentation.cues), text: cue.text.slice(index).trim() };
+  const first = { ...cue, text: cue.text.slice(0, index).trim() };
+  return { ...presentation, cues: [...presentation.cues.slice(0, cueIndex), first, second, ...presentation.cues.slice(cueIndex + 1)] };
+}
+
+export function mergeCueWithNext(presentation: PresentationPackageV1, cueId: string): PresentationPackageV1 {
+  const index = presentation.cues.findIndex((cue) => cue.id === cueId);
+  const next = presentation.cues[index + 1];
+  if (index < 0 || !next) return presentation;
+  const merged = { ...presentation.cues[index], text: `${presentation.cues[index].text}\n${next.text}`.trim(), estimatedDurationMs: (presentation.cues[index].estimatedDurationMs ?? 0) + (next.estimatedDurationMs ?? 0) || undefined };
+  return { ...presentation, cues: [...presentation.cues.slice(0, index), merged, ...presentation.cues.slice(index + 2)] };
+}
+
+export function applyCueBatch(presentation: PresentationPackageV1, cueIds: string[], changes: Pick<Partial<CueDefinition>, "speaker" | "publication" | "presentation">): PresentationPackageV1 {
+  const selected = new Set(cueIds);
+  return { ...presentation, cues: presentation.cues.map((cue) => selected.has(cue.id) ? { ...cue, ...changes, publication: changes.publication ? { ...cue.publication, ...changes.publication } : cue.publication, presentation: changes.presentation ? { ...cue.presentation, ...changes.presentation } : cue.presentation } : cue) };
+}
+
+export function setCueBranchTarget(presentation: PresentationPackageV1, cueId: string, targetCueId: string | null): PresentationPackageV1 {
+  const cue = presentation.cues.find((item) => item.id === cueId);
+  if (!cue) return presentation;
+  const branches = targetCueId ? [{ command: "continue", label: "Continue", targetCueId }] : undefined;
+  return updateCue(presentation, cueId, { after: { ...cue.after, mode: targetCueId ? "branch_available" : "wait_for_presenter", branches } });
+}
+
 function nextCueId(cues: CueDefinition[]): string {
   let index = cues.length + 1;
   while (cues.some((cue) => cue.id === `cue_${String(index).padStart(2, "0")}`)) index += 1;
