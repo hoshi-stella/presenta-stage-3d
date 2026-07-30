@@ -71,8 +71,25 @@ export class CueRunner {
         returnCueLabel: this.getCueLabel(this.qaReturnCueId),
         shortcutCommands: this.getShortcutCommands()
       },
+      runOfShow: {
+        elapsedTargetSeconds: this.getElapsedTargetSeconds(),
+        remainingTargetSeconds: this.getRemainingTargetSeconds(),
+        nextCue: this.cues[this.index + 1] ?? null
+      },
       presentation
     };
+  }
+
+  private getElapsedTargetSeconds(): number {
+    return this.cues
+      .slice(0, this.index)
+      .reduce((total, cue) => total + (cue.demo?.targetSeconds ?? 0), 0);
+  }
+
+  private getRemainingTargetSeconds(): number {
+    return this.cues
+      .slice(this.index)
+      .reduce((total, cue) => total + (cue.demo?.targetSeconds ?? 0), 0);
   }
 
   dispatch(command: PresenterCommand): boolean {

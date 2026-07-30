@@ -22,6 +22,7 @@ export type UiHandlers = {
 
 export type UiRenderer = {
   update: (snapshot: PresentationSnapshot) => void;
+  setTransitioning: (isTransitioning: boolean) => void;
 };
 
 export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRenderer {
@@ -89,6 +90,22 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
   `;
 
   const statusPanel = requireElement(root, "#status-panel");
+  let latestSnapshot: PresentationSnapshot | null = null;
+  let isTransitioning = false;
+  const renderStatus = (): void => {
+    if (latestSnapshot) {
+      statusPanel.innerHTML = renderStatusPanel(latestSnapshot, handlers.getPackageStatus(), handlers.getPreflightReport(), isTransitioning);
+    }
+  };
+  root.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest("#mock-ai-button")) {
+      return;
+    }
+
+    const input = statusPanel.querySelector<HTMLInputElement>("#mock-ai-input");
+    handlers.onAskMockAi(input?.value.trim() ?? "");
+  });
   root.querySelectorAll<HTMLButtonElement>("[data-command]").forEach((button) => {
     const command = button.dataset.command as PresenterCommand;
     button.addEventListener("click", () => handlers.onCommand(command));
@@ -119,14 +136,16 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
 
   return {
     update: (snapshot) => {
-      statusPanel.innerHTML = renderStatusPanel(snapshot, handlers.getPackageStatus(), handlers.getPreflightReport());
+      latestSnapshot = snapshot;
+      renderStatus();
       const fallbackSelect = root.querySelector<HTMLSelectElement>("#fallback-level-select");
       if (fallbackSelect && fallbackSelect.value !== snapshot.fallbackLevel) {
         fallbackSelect.value = snapshot.fallbackLevel;
       }
-      const askButton = statusPanel.querySelector<HTMLButtonElement>("#mock-ai-button");
-      const input = statusPanel.querySelector<HTMLInputElement>("#mock-ai-input");
-      askButton?.addEventListener("click", () => handlers.onAskMockAi(input?.value.trim() ?? ""));
+    },
+    setTransitioning: (nextIsTransitioning) => {
+      isTransitioning = nextIsTransitioning;
+      renderStatus();
     }
   };
 }

@@ -18,7 +18,7 @@ const transitionLayers: PresentationLayer[] = [
   "ending_credits"
 ];
 
-export function createPresentationTransitionCoordinator(root: HTMLElement): PresentationTransitionCoordinator {
+export function createPresentationTransitionCoordinator(root: HTMLElement, onTransitionStateChange: (isTransitioning: boolean) => void = () => {}): PresentationTransitionCoordinator {
   let lastLayout: LayoutPreset | null = null;
   let lastLayers: PresentationLayer[] = [];
   let timerId: number | null = null;
@@ -37,6 +37,7 @@ export function createPresentationTransitionCoordinator(root: HTMLElement): Pres
     if (debug) {
       debug.textContent = "Transition: idle";
     }
+    onTransitionStateChange(false);
     timerId = null;
   };
 
@@ -60,7 +61,7 @@ export function createPresentationTransitionCoordinator(root: HTMLElement): Pres
       }
 
       if (!layoutChanged && !layersChanged) {
-        if (!timerId) {
+        if (timerId === null) {
           root.dataset.transitionFrom = nextLayout;
           root.dataset.transitionTo = nextLayout;
           root.dataset.transitionLayers = "";
@@ -77,6 +78,7 @@ export function createPresentationTransitionCoordinator(root: HTMLElement): Pres
       root.dataset.transitionLayers = changedLayers.join(" ");
       root.dataset.transitionKey = String(transitionKey);
       root.dataset.transitionPhase = "entering";
+      onTransitionStateChange(true);
       root.classList.add("presentation-transition--active");
       clearExitLayerClasses(root);
       lastLayers
