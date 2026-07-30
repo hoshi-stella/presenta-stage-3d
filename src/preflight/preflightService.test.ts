@@ -54,6 +54,15 @@ describe("runPreflight", () => {
     expect(report.checks.find((check) => check.id === "live2d-model")).toMatchObject({ level: "warning" });
   });
 
+  it("recommends static fallback when a configured image presenter asset is unavailable", async () => {
+    const report = await runPreflight(input, environment({
+      fetchResource: async (url) => !url.endsWith("airi/neutral.png")
+    }));
+
+    expect(report.recommendedFallbackLevel).toBe("static");
+    expect(report.checks.find((check) => check.id === "airi-manju")).toMatchObject({ level: "warning" });
+  });
+
   it("blocks invalid packages while preserving the asset fallback recommendation", async () => {
     const report = await runPreflight({
       ...input,

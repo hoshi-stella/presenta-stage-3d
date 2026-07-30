@@ -175,6 +175,7 @@ async function createUrlCheck(id: string, label: string, url: string | null, env
 
 function recommendFallbackLevel(checks: PreflightCheck[]): FallbackLevel {
   if (checks.some((check) => check.id === "webgl2" && check.level === "blocked")) return "static";
+  if (checks.some((check) => (check.id === "airi-manju" || check.id.startsWith("static-illustration-")) && check.detail.startsWith("Unavailable:"))) return "static";
   if (checks.some((check) => check.id.startsWith("glb-") && check.level !== "ready")) return "no-3d-model";
   if (checks.some((check) => check.id.startsWith("live2d-") && check.level !== "ready")) return "no-live2d";
   return "full";

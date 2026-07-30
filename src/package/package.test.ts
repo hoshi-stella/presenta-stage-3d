@@ -59,4 +59,17 @@ describe("Presentation Package v1", () => {
     presentation.cues[0].audio = { src: "", volume: 2 };
     expect(validatePresentationPackage(presentation).errors.some((issue) => issue.path.includes("audio"))).toBe(true);
   });
+
+  it("derives runtime fallback layers for package cues", () => {
+    const presentation = createDefaultPresentation();
+    presentation.cues[0].presentation = {
+      layers: ["slide", "subtitle", "live2d", "stage3d", "effects"],
+      layout: "live2d_stage_dialogue"
+    };
+
+    const runtimeCue = adaptPresentationPackageToRuntime(presentation).cues[0];
+    expect(runtimeCue.presentation?.fallback?.["no-live2d"]?.layers).not.toContain("live2d");
+    expect(runtimeCue.presentation?.fallback?.["no-3d-model"]?.layers).not.toContain("stage3d");
+    expect(runtimeCue.presentation?.fallback?.static?.layers).toEqual(["slide", "subtitle"]);
+  });
 });

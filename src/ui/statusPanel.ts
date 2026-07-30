@@ -121,7 +121,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?
         <h3>Preflight</h3>
         <dl class="cue-details">
           <div><dt>Recommended</dt><dd>${escapeHtml(preflightReport.recommendedFallbackLevel)}</dd></div>
-          <div><dt>Current</dt><dd>${escapeHtml(preflightReport.currentFallbackLevel)}</dd></div>
+          <div><dt>Current</dt><dd>${escapeHtml(snapshot.fallbackLevel)}</dd></div>
           <div><dt>Viewport</dt><dd>${preflightReport.viewport.width} x ${preflightReport.viewport.height} (${escapeHtml(preflightReport.viewport.aspectRatio?.toFixed(2) ?? "n/a")}:1)</dd></div>
           <div><dt>Fullscreen</dt><dd>${preflightReport.fullscreenAvailable ? "available" : "unavailable"}</dd></div>
         </dl>

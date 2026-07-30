@@ -43,6 +43,7 @@ function adaptSlide(slide: PresentationPackageV1["slides"][number]): SlideConten
 function adaptCue(cue: PresentationPackageV1["cues"][number]): Cue {
   const profile = cue.presentation?.profile;
   const layout = cue.presentation?.layout;
+  const layers = cue.presentation?.layers?.filter((layer): layer is PresentationLayer => runtimeLayers.has(layer as PresentationLayer));
   const stage = cue.stage;
   const runtimeStage: NonNullable<Cue["stage"]> | undefined = stage ? {
     preset: stage.preset as NonNullable<Cue["stage"]>["preset"], camera: stage.camera as NonNullable<Cue["stage"]>["camera"], motion: stage.motion as NonNullable<Cue["stage"]>["motion"], focusTarget: stage.focusTarget,
@@ -61,10 +62,22 @@ function adaptCue(cue: PresentationPackageV1["cues"][number]): Cue {
     presentation: cue.presentation ? {
       profile: runtimeProfiles.has(profile as PresentationProfile) ? profile as PresentationProfile : undefined,
       layout: runtimeLayoutsForPresentation.has(layout as LayoutPreset) ? layout as LayoutPreset : undefined,
-      layers: cue.presentation.layers?.filter((layer): layer is PresentationLayer => runtimeLayers.has(layer as PresentationLayer)),
+      layers,
+      fallback: createRuntimeFallbacks(layers),
       creditsVariant: cue.presentation.creditsVariant ?? (cue.stage?.endingCreditsVariant === "crawl" || cue.stage?.endingCreditsVariant === "spiral" ? cue.stage.endingCreditsVariant : undefined)
     } : undefined,
     demo: cue.demo,
     after: { mode: cue.after.mode === "stop" ? "wait_for_presenter" : cue.after.mode as ProgressionMode, durationMs: cue.after.durationMs, branches: cue.after.branches?.map((branch) => ({ command: branch.command as PresenterCommand, label: branch.label, targetCueId: branch.targetCueId })) }
+  };
+}
+
+function createRuntimeFallbacks(layers: PresentationLayer[] | undefined): NonNullable<Cue["presentation"]>["fallback"] {
+  if (!layers) return undefined;
+
+  return {
+    "no-live2d": { layers: layers.filter((layer) => layer !== "live2d") },
+    "no-3d-model": { layers: layers.filter((layer) => layer !== "stage3d" && layer !== "effects") },
+    offline: { layers: layers.filter((layer) => layer !== "live2d" && layer !== "stage3d" && layer !== "effects") },
+    static: { layers: layers.filter((layer) => layer === "slide" || layer === "subtitle") }
   };
 }
