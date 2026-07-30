@@ -1141,7 +1141,7 @@ h3 {
   width: min(74vw, 900px);
   transform-origin: 50% 100%;
   transform: translateX(-50%) rotateX(62deg);
-  animation: credits-crawl 52s linear infinite;
+  animation: credits-crawl 58s linear infinite;
   color: #ffd35b;
   text-align: center;
   text-shadow:
