@@ -97,6 +97,15 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
       statusPanel.innerHTML = renderStatusPanel(latestSnapshot, handlers.getPackageStatus(), handlers.getPreflightReport(), isTransitioning);
     }
   };
+  root.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element) || !target.closest("#mock-ai-button")) {
+      return;
+    }
+
+    const input = statusPanel.querySelector<HTMLInputElement>("#mock-ai-input");
+    handlers.onAskMockAi(input?.value.trim() ?? "");
+  });
   root.querySelectorAll<HTMLButtonElement>("[data-command]").forEach((button) => {
     const command = button.dataset.command as PresenterCommand;
     button.addEventListener("click", () => handlers.onCommand(command));
@@ -133,9 +142,6 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
       if (fallbackSelect && fallbackSelect.value !== snapshot.fallbackLevel) {
         fallbackSelect.value = snapshot.fallbackLevel;
       }
-      const askButton = statusPanel.querySelector<HTMLButtonElement>("#mock-ai-button");
-      const input = statusPanel.querySelector<HTMLInputElement>("#mock-ai-input");
-      askButton?.addEventListener("click", () => handlers.onAskMockAi(input?.value.trim() ?? ""));
     },
     setTransitioning: (nextIsTransitioning) => {
       isTransitioning = nextIsTransitioning;
