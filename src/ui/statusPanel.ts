@@ -1,182 +1,96 @@
-import type { CharacterId, PresentationSnapshot } from "../presentation/types";
+import type { CharacterId, Cue, PresentationSnapshot } from "../presentation/types";
 import { getCharacterInstance } from "../scene/characterRegistry";
 import type { PreflightReport } from "../preflight/types";
 
 export type PackageStatus = { id: string; title: string; source: string; errors: number; warnings: number };
 
-export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?: PackageStatus, preflightReport?: PreflightReport | null): string {
-  const modeLabel = snapshot.mode === "liveAi"
-    ? "Live AI Mode (stub)"
-    : snapshot.mode === "qa"
-      ? "QA Mode"
-      : snapshot.mode === "demoScript"
-        ? "Demo Script Mode"
-        : snapshot.mode === "semiAuto"
-          ? "Semi-Auto Mode"
-          : "Manual Mode";
+export function renderStatusPanel(
+  snapshot: PresentationSnapshot,
+  packageStatus?: PackageStatus,
+  preflightReport?: PreflightReport | null,
+  isTransitioning = false
+): string {
+  const activeSpeaker = getCharacterInstance(snapshot.cue.speaker);
+  const branches = snapshot.cue.after.branches ?? [];
+  const nextCue = snapshot.runOfShow.nextCue;
+  const modeLabel = getModeLabel(snapshot.mode);
+  const currentTarget = snapshot.cue.demo?.targetSeconds ?? 0;
+  const branchMarkup = branches.length > 0
+    ? branches.map((branch) => `
+        <li class="console-branch-command">
+          <span>${escapeHtml(branch.label)}</span>
+          <kbd>${escapeHtml(getCommandShortcut(branch.command))}</kbd>
+        </li>
+      `).join("")
+    : "<li class=\"console-empty\">No branch command on this cue</li>";
   const noteMarkup = snapshot.showSpeakerNote
     ? `<section class="speaker-note"><h3>Speaker Note</h3><p>${escapeHtml(snapshot.cue.note ?? "No note")}</p></section>`
     : "";
-  const aiMarkup = snapshot.aiMessage ? `<p class="ai-response">${escapeHtml(snapshot.aiMessage)}</p>` : "";
   const statusMarkup = snapshot.statusMessage ? `<p class="status-message">${escapeHtml(snapshot.statusMessage)}</p>` : "";
-  const activeSpeaker = getCharacterInstance(snapshot.cue.speaker);
-  const branches = snapshot.cue.after.branches ?? [];
-  const branchMarkup = branches.length > 0
-    ? branches.map((branch) => `<li>${escapeHtml(branch.label)} <span>${escapeHtml(branch.command)}</span></li>`).join("")
-    : "<li>No branch commands</li>";
-  const characterStates = Object.entries(snapshot.characterStates)
-    .map(([characterId, state]) => {
-      const character = getCharacterInstance(characterId as CharacterId);
-      return `<li><strong>${escapeHtml(character.displayName)}</strong><small>${escapeHtml(character.role)}</small><span>${escapeHtml(state)}</span></li>`;
-    })
-    .join("");
-  const resolvedEffects = snapshot.resolvedDirection.effects.length > 0
-    ? snapshot.resolvedDirection.effects.map((effect) => `<li>${escapeHtml(effect.id)} <span>${escapeHtml(effect.kind)}</span></li>`).join("")
-    : "<li>No effects</li>";
-  const rejectedAssets = snapshot.resolvedDirection.assetDebug.rejected.length > 0
-    ? snapshot.resolvedDirection.assetDebug.rejected
-      .map((rejection) => `<li>${escapeHtml(rejection.assetId)} <span>${escapeHtml(rejection.reason)}</span></li>`)
-      .join("")
-    : "<li>No rejected candidates</li>";
-  const object = snapshot.resolvedDirection.object;
-  const objectMarkup = object
-    ? `
-      <section class="presentation-object-state">
-        <h3>Presentation Object</h3>
-        <dl class="cue-details">
-          <div><dt>ID</dt><dd>${escapeHtml(object.objectId)}</dd></div>
-          <div><dt>Action</dt><dd>${escapeHtml(object.action)}</dd></div>
-          <div><dt>Part</dt><dd>${escapeHtml(object.activePartId ?? "all")}</dd></div>
-        </dl>
-      </section>
-    `
-    : "";
-  const flowMarkup = `
-    <section class="flow-state">
-      <h3>Flow State</h3>
-      <dl class="cue-details">
-        <div><dt>QA</dt><dd>${snapshot.flow.isQaActive ? "active" : "inactive"}</dd></div>
-        <div><dt>Return</dt><dd>${escapeHtml(snapshot.flow.returnCueLabel ?? "not set")}</dd></div>
-      </dl>
-      <ul>
-        ${snapshot.flow.shortcutCommands.map((command) => `<li>${escapeHtml(command)}</li>`).join("")}
-      </ul>
-    </section>
-  `;
-  const presentationMarkup = `
-    <section class="presentation-composition-state">
-      <h3>Presentation Layers</h3>
-      <dl class="cue-details">
-        <div><dt>Layout</dt><dd>${escapeHtml(snapshot.presentation.layout)}</dd></div>
-        <div><dt>Profile</dt><dd>${escapeHtml(snapshot.presentation.profile ?? "none")}</dd></div>
-        <div><dt>Subtitle</dt><dd>${snapshot.showSubtitles ? "on" : "off"}</dd></div>
-        <div><dt>Fallback</dt><dd>${escapeHtml(snapshot.fallbackLevel)}</dd></div>
-        <div><dt>Credits</dt><dd>${escapeHtml(snapshot.presentation.creditsVariant ?? "none")}</dd></div>
-        <div><dt>Reason</dt><dd>${escapeHtml(snapshot.presentation.debugReason)}</dd></div>
-      </dl>
-      <ul>
-        ${snapshot.presentation.activeLayers.map((layer) => `<li>${escapeHtml(layer)}</li>`).join("")}
-      </ul>
-    </section>
-  `;
-  const demoMarkup = snapshot.cue.demo
-    ? `
-      <section class="demo-track-state">
-        <h3>Demo Track</h3>
-        <dl class="cue-details">
-          <div><dt>Step</dt><dd>${snapshot.cue.demo.step}</dd></div>
-          <div><dt>Label</dt><dd>${escapeHtml(snapshot.cue.demo.label)}</dd></div>
-          <div><dt>Target</dt><dd>${snapshot.cue.demo.targetSeconds}s</dd></div>
-        </dl>
-      </section>
-    `
-    : "";
-  const audioMarkup = `
-    <section class="audio-playback-state">
-      <h3>Audio</h3>
-      <dl class="cue-details">
-        <div><dt>Source</dt><dd>${escapeHtml(snapshot.cue.audio?.src ?? "not configured")}</dd></div>
-        <div><dt>State</dt><dd>${escapeHtml(snapshot.audio.state)}</dd></div>
-        <div><dt>Duration</dt><dd>${snapshot.cue.audio?.durationMs ? `${snapshot.cue.audio.durationMs}ms` : "not set"}</dd></div>
-      </dl>
-      ${snapshot.audio.message ? `<p class="status-message">${escapeHtml(snapshot.audio.message)}</p>` : ""}
-    </section>
-  `;
-  const packageMarkup = packageStatus
-    ? `
-      <section class="package-state">
-        <h3>Presentation Package</h3>
-        <dl class="cue-details">
-          <div><dt>ID</dt><dd>${escapeHtml(packageStatus.id)}</dd></div>
-          <div><dt>Title</dt><dd>${escapeHtml(packageStatus.title)}</dd></div>
-          <div><dt>Source</dt><dd>${escapeHtml(packageStatus.source)}</dd></div>
-          <div><dt>Validation</dt><dd>${packageStatus.errors} errors / ${packageStatus.warnings} warnings</dd></div>
-        </dl>
-      </section>
-    `
-    : "";
-  const preflightMarkup = preflightReport
-    ? `
-      <section class="preflight-state">
-        <h3>Preflight</h3>
-        <dl class="cue-details">
-          <div><dt>Recommended</dt><dd>${escapeHtml(preflightReport.recommendedFallbackLevel)}</dd></div>
-          <div><dt>Current</dt><dd>${escapeHtml(snapshot.fallbackLevel)}</dd></div>
-          <div><dt>Viewport</dt><dd>${preflightReport.viewport.width} x ${preflightReport.viewport.height} (${escapeHtml(preflightReport.viewport.aspectRatio?.toFixed(2) ?? "n/a")}:1)</dd></div>
-          <div><dt>Fullscreen</dt><dd>${preflightReport.fullscreenAvailable ? "available" : "unavailable"}</dd></div>
-        </dl>
-        <ul>
-          ${preflightReport.checks.map((check) => `<li class="preflight-${escapeHtml(check.level)}"><strong>${escapeHtml(check.level)}</strong> ${escapeHtml(check.label)}<small>${escapeHtml(check.detail)}${check.remediation ? ` ${escapeHtml(check.remediation)}` : ""}</small></li>`).join("")}
-        </ul>
-      </section>
-    `
-    : "";
+  const aiMarkup = snapshot.aiMessage ? `<p class="ai-response">${escapeHtml(snapshot.aiMessage)}</p>` : "";
 
   return `
-    <div class="section-meta">
-      <span>${modeLabel}</span>
-      <span>${snapshot.cueIndex + 1} / ${snapshot.cueCount}</span>
-      <span>${snapshot.isPaused ? "Paused" : "Ready"}</span>
-    </div>
-    <h1>${escapeHtml(snapshot.cue.slideRef ?? snapshot.cue.kind)}</h1>
-    <p class="stage-text">${escapeHtml(snapshot.cue.text)}</p>
-    <section class="character-line">
-      <h2>Current Cue</h2>
-      <dl class="cue-details">
-        <div><dt>ID</dt><dd>${escapeHtml(snapshot.cue.id)}</dd></div>
-        <div><dt>Kind</dt><dd>${escapeHtml(snapshot.cue.kind)}</dd></div>
-        <div><dt>Speaker</dt><dd>${escapeHtml(activeSpeaker.displayName)}</dd></div>
-        <div><dt>Slide</dt><dd>${escapeHtml(snapshot.cue.slideRef ?? "none")}</dd></div>
-        <div><dt>Intent</dt><dd>${escapeHtml(snapshot.cue.direction.intent)}</dd></div>
-        <div><dt>Intensity</dt><dd>${escapeHtml(snapshot.cue.direction.intensity)}</dd></div>
-      </dl>
+    <header class="presenter-console__header">
+      <div class="section-meta">
+        <span>${modeLabel}</span>
+        <span>${snapshot.cueIndex + 1} / ${snapshot.cueCount}</span>
+        <span class="${isTransitioning ? "is-active" : ""}">${isTransitioning ? "Transition guard" : "Ready"}</span>
+      </div>
+      <p class="presenter-console__eyebrow">Now</p>
+      <h1>${escapeHtml(snapshot.cue.slideRef ?? snapshot.cue.kind)}</h1>
+      <p class="stage-text">${escapeHtml(snapshot.cue.text)}</p>
       ${statusMarkup}
+    </header>
+
+    <section class="presenter-console__overview">
+      <div>
+        <h2>Current Cue</h2>
+        <dl class="cue-details">
+          <div><dt>Speaker</dt><dd>${escapeHtml(activeSpeaker.displayName)}</dd></div>
+          <div><dt>Profile</dt><dd>${escapeHtml(snapshot.presentation.profile ?? "none")}</dd></div>
+          <div><dt>Layers</dt><dd>${escapeHtml(snapshot.presentation.activeLayers.join(" + ") || "none")}</dd></div>
+          <div><dt>Fallback</dt><dd>${escapeHtml(snapshot.fallbackLevel)}</dd></div>
+          <div><dt>Subtitle</dt><dd>${snapshot.showSubtitles ? "on" : "off"}</dd></div>
+        </dl>
+      </div>
+      <div>
+        <h2>Run of Show</h2>
+        <dl class="cue-details">
+          <div><dt>Step</dt><dd>${snapshot.cue.demo?.step ?? "-"}</dd></div>
+          <div><dt>Current</dt><dd>${formatDuration(currentTarget)}</dd></div>
+          <div><dt>Elapsed</dt><dd>${formatDuration(snapshot.runOfShow.elapsedTargetSeconds)}</dd></div>
+          <div><dt>Remaining</dt><dd>${formatDuration(snapshot.runOfShow.remainingTargetSeconds)}</dd></div>
+        </dl>
+      </div>
     </section>
-    <section class="branch-list">
-      <h3>Available Branches</h3>
+
+    <section class="presenter-console__next">
+      <p class="presenter-console__eyebrow">Next</p>
+      ${nextCue ? renderNextCue(nextCue) : "<p class=\"console-empty\">Final cue. Move to the ending when ready.</p>"}
+    </section>
+
+    <section class="branch-list presenter-console__branches">
+      <h2>Available Commands</h2>
       <ul>${branchMarkup}</ul>
     </section>
-    ${demoMarkup}
-    ${audioMarkup}
-    ${packageMarkup}
-    ${preflightMarkup}
-    ${presentationMarkup}
-    ${flowMarkup}
-    <section class="character-state-list">
-      <h3>Character State</h3>
-      <ul>${characterStates}</ul>
+
+    <section class="presenter-console__shortcuts">
+      <h2>Keyboard</h2>
+      <ul>
+        <li><kbd>Space</kbd><span>Next cue</span></li>
+        <li><kbd>Left</kbd><span>Back</span></li>
+        <li><kbd>P</kbd><span>Pause / resume</span></li>
+        <li><kbd>S</kbd><span>Skip ahead</span></li>
+        <li><kbd>1-4</kbd><span>Branch shortcuts</span></li>
+        <li><kbd>D</kbd><span>Demo script</span></li>
+      </ul>
     </section>
-    <section class="direction-asset-list">
-      <h3>Direction Assets</h3>
-      <dl class="cue-details">
-        <div><dt>Preset</dt><dd>${escapeHtml(snapshot.resolvedDirection.directionPresetId ?? "fallback")}</dd></div>
-        <div><dt>Reason</dt><dd>${escapeHtml(snapshot.resolvedDirection.assetDebug.reason)}</dd></div>
-      </dl>
-      <ul>${resolvedEffects}</ul>
-      <h3>Rejected Assets</h3>
-      <ul>${rejectedAssets}</ul>
-    </section>
-    ${objectMarkup}
+
+    <details class="presenter-console__details">
+      <summary>Diagnostics and setup</summary>
+      ${renderDiagnosticMarkup(snapshot, packageStatus, preflightReport)}
+    </details>
+
     ${noteMarkup}
     <section class="mock-ai">
       <h3>Mock AI</h3>
@@ -187,6 +101,69 @@ export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?
       ${aiMarkup}
     </section>
   `;
+}
+
+function renderNextCue(cue: Cue): string {
+  const speaker = getCharacterInstance(cue.speaker);
+  return `
+    <h2>${escapeHtml(cue.slideRef ?? cue.kind)}</h2>
+    <p>${escapeHtml(cue.text)}</p>
+    <dl class="cue-details">
+      <div><dt>Speaker</dt><dd>${escapeHtml(speaker.displayName)}</dd></div>
+      <div><dt>Step</dt><dd>${cue.demo?.step ?? "-"} / ${formatDuration(cue.demo?.targetSeconds ?? 0)}</dd></div>
+      <div><dt>Intent</dt><dd>${escapeHtml(cue.direction.intent)}</dd></div>
+    </dl>
+  `;
+}
+
+function renderDiagnosticMarkup(snapshot: PresentationSnapshot, packageStatus?: PackageStatus, preflightReport?: PreflightReport | null): string {
+  const characterStates = Object.entries(snapshot.characterStates)
+    .map(([characterId, state]) => {
+      const character = getCharacterInstance(characterId as CharacterId);
+      return `<li><strong>${escapeHtml(character.displayName)}</strong><span>${escapeHtml(state)}</span></li>`;
+    })
+    .join("");
+  const effects = snapshot.resolvedDirection.effects.length > 0
+    ? snapshot.resolvedDirection.effects.map((effect) => `<li>${escapeHtml(effect.id)}<span>${escapeHtml(effect.kind)}</span></li>`).join("")
+    : "<li class=\"console-empty\">No effects</li>";
+  const packageMarkup = packageStatus
+    ? `<dl class="cue-details"><div><dt>Package</dt><dd>${escapeHtml(packageStatus.title)}</dd></div><div><dt>Source</dt><dd>${escapeHtml(packageStatus.source)}</dd></div><div><dt>Validation</dt><dd>${packageStatus.errors} errors / ${packageStatus.warnings} warnings</dd></div></dl>`
+    : "";
+  const preflightMarkup = preflightReport
+    ? `<dl class="cue-details"><div><dt>Preflight</dt><dd>${escapeHtml(preflightReport.recommendedFallbackLevel)}</dd></div><div><dt>Viewport</dt><dd>${preflightReport.viewport.width} x ${preflightReport.viewport.height}</dd></div></dl>`
+    : "<p class=\"console-empty\">Preflight has not been run.</p>";
+
+  return `
+    <section><h3>Presentation Package</h3>${packageMarkup}</section>
+    <section><h3>Preflight</h3>${preflightMarkup}</section>
+    <section><h3>Character State</h3><ul class="character-state-list">${characterStates}</ul></section>
+    <section><h3>Direction</h3><dl class="cue-details"><div><dt>Preset</dt><dd>${escapeHtml(snapshot.resolvedDirection.directionPresetId ?? "fallback")}</dd></div><div><dt>Layout</dt><dd>${escapeHtml(snapshot.presentation.layout)}</dd></div><div><dt>Audio</dt><dd>${escapeHtml(snapshot.audio.state)}</dd></div></dl><ul class="direction-asset-list">${effects}</ul></section>
+  `;
+}
+
+function getModeLabel(mode: PresentationSnapshot["mode"]): string {
+  if (mode === "demoScript") return "Demo Script";
+  if (mode === "semiAuto") return "Semi-Auto";
+  if (mode === "qa") return "QA Mode";
+  if (mode === "liveAi") return "Live AI (stub)";
+  return "Manual Mode";
+}
+
+function getCommandShortcut(command: string): string {
+  const shortcuts: Record<string, string> = {
+    supplement: "1",
+    example: "2",
+    tsukkomi: "3",
+    summary: "4",
+    return_to_script: "W"
+  };
+  return shortcuts[command] ?? command;
+}
+
+function formatDuration(seconds: number): string {
+  const totalSeconds = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(totalSeconds / 60);
+  return `${minutes}:${String(totalSeconds % 60).padStart(2, "0")}`;
 }
 
 function escapeHtml(value: string): string {

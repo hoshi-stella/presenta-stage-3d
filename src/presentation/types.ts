@@ -213,6 +213,11 @@ export type PresentationSnapshot = {
     returnCueLabel: string | null;
     shortcutCommands: PresenterCommand[];
   };
+  runOfShow: {
+    elapsedTargetSeconds: number;
+    remainingTargetSeconds: number;
+    nextCue: Cue | null;
+  };
   presentation: {
     activeLayers: PresentationLayer[];
     layout: LayoutPreset;

@@ -91,7 +91,7 @@ export class App {
       }),
       getPreflightReport: () => this.preflightReport
     });
-    this.transitionCoordinator = createPresentationTransitionCoordinator(this.root);
+    this.transitionCoordinator = createPresentationTransitionCoordinator(this.root, ui.setTransitioning);
     this.endingCredits = createEndingCreditsOverlay(this.root);
     this.audioPlayback = createAudioPlaybackController((audio) => runner.setAudioPlayback(audio));
 

@@ -775,6 +775,134 @@ input {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.section-meta .is-active {
+  color: #ffdc96;
+  background: rgba(168, 100, 18, 0.26);
+}
+
+.presenter-console__header,
+.presenter-console__overview,
+.presenter-console__next,
+.presenter-console__branches,
+.presenter-console__shortcuts,
+.presenter-console__details,
+.speaker-note,
+.mock-ai {
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.presenter-console__header {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.presenter-console__eyebrow {
+  margin-bottom: 6px;
+  color: #82d5e8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.presenter-console__overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.presenter-console__next h2,
+.presenter-console__next p {
+  margin-bottom: 10px;
+}
+
+.presenter-console__next > p:not(.presenter-console__eyebrow) {
+  color: rgba(244, 247, 251, 0.86);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.console-empty {
+  color: rgba(244, 247, 251, 0.58);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.console-branch-command,
+.presenter-console__shortcuts li,
+.character-state-list li,
+.direction-asset-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.console-branch-command {
+  border: 1px solid rgba(130, 213, 232, 0.22);
+  background: rgba(45, 129, 149, 0.16);
+}
+
+.presenter-console__shortcuts ul,
+.presenter-console__details ul {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.presenter-console__shortcuts li span {
+  color: rgba(244, 247, 251, 0.72);
+  font-size: 13px;
+}
+
+kbd {
+  min-width: 24px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 4px;
+  color: #f7fbff;
+  background: rgba(0, 0, 0, 0.24);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.presenter-console__details {
+  color: rgba(244, 247, 251, 0.84);
+}
+
+.presenter-console__details summary {
+  cursor: pointer;
+  color: rgba(244, 247, 251, 0.76);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.presenter-console__details[open] summary {
+  margin-bottom: 16px;
+}
+
+.presenter-console__details section + section {
+  margin-top: 16px;
+}
+
+@media (max-width: 720px) {
+  .presenter-console__overview {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
 h1,
 h2,
 h3,
