@@ -55,6 +55,13 @@ export function applyCueBatch(presentation: PresentationPackageV1, cueIds: strin
   return { ...presentation, cues: presentation.cues.map((cue) => selected.has(cue.id) ? { ...cue, ...changes, publication: changes.publication ? { ...cue.publication, ...changes.publication } : cue.publication, presentation: changes.presentation ? { ...cue.presentation, ...changes.presentation } : cue.presentation } : cue) };
 }
 
+export function setCueBranchTarget(presentation: PresentationPackageV1, cueId: string, targetCueId: string | null): PresentationPackageV1 {
+  const cue = presentation.cues.find((item) => item.id === cueId);
+  if (!cue) return presentation;
+  const branches = targetCueId ? [{ command: "continue", label: "Continue", targetCueId }] : undefined;
+  return updateCue(presentation, cueId, { after: { ...cue.after, mode: targetCueId ? "branch_available" : "wait_for_presenter", branches } });
+}
+
 function nextCueId(cues: CueDefinition[]): string {
   let index = cues.length + 1;
   while (cues.some((cue) => cue.id === `cue_${String(index).padStart(2, "0")}`)) index += 1;
