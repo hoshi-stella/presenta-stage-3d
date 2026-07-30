@@ -1,10 +1,11 @@
 import { downloadPresentationPackage } from "../package/exporter";
 import { loadPresentationFromFile, loadPresentationFromUrl } from "../package/loader";
 import { getPresentationPackageUrl, handoffPresentationToStage } from "../package/presentationSource";
-import type { CueDefinition, PresentationPackageV1, SlideDefinition } from "../package/types";
+import type { CueDefinition, PackageSlideLayout, PresentationPackageV1, SlideDefinition } from "../package/types";
 import { validatePresentationPackage } from "../package/validator";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
 import { createStudioStore, type StudioState } from "./studioStore";
+import { addSlide, deleteSlide, duplicateSlide, moveSlide } from "./slideEditor";
 
 type StudioSource = "built-in" | string;
 
@@ -40,6 +41,38 @@ export function renderStudioView(root: HTMLElement): void {
     if (target.closest("[data-studio-starter]")) {
       source = "built-in";
       store.setPresentation(createDefaultPresentation());
+    }
+    const presentation = store.getState().presentation;
+    const selectedSlideId = store.getState().selection.slideId;
+    if (!presentation) return;
+    const layout = target.closest<HTMLButtonElement>("[data-studio-add-slide]")?.dataset.studioAddSlide as PackageSlideLayout | undefined;
+    if (layout) {
+      const next = addSlide(presentation, layout);
+      store.setPresentation(next, { dirty: true });
+      store.selectSlide(next.slides.at(-1)?.id ?? null);
+    }
+    if (selectedSlideId && target.closest("[data-studio-duplicate-slide]")) {
+      const next = duplicateSlide(presentation, selectedSlideId);
+      const index = next.slides.findIndex((slide) => slide.id === selectedSlideId);
+      store.setPresentation(next, { dirty: true });
+      store.selectSlide(next.slides[index + 1]?.id ?? selectedSlideId);
+    }
+    const move = target.closest<HTMLButtonElement>("[data-studio-move-slide]")?.dataset.studioMoveSlide;
+    if (selectedSlideId && (move === "up" || move === "down")) {
+      store.setPresentation(moveSlide(presentation, selectedSlideId, move === "up" ? -1 : 1), { dirty: true });
+    }
+    if (selectedSlideId && target.closest("[data-studio-delete-slide]")) {
+      const result = deleteSlide(presentation, selectedSlideId);
+      const notice = result.affectedCues.length ? ` ${result.affectedCues.length} cue(s) still reference it.` : "";
+      if (window.confirm(`Delete this slide?${notice}`)) {
+        store.setPresentation(result.presentation, { dirty: true });
+        store.selectSlide(result.presentation.slides.at(-1)?.id ?? null);
+        if (result.affectedCues.length) store.setError(`Deleted ${selectedSlideId}.${notice}`);
+      }
+    }
+    if (target.closest("[data-studio-apply-slide]")) {
+      const next = updateSelectedSlide(root, presentation, selectedSlideId);
+      if (next) store.setPresentation(next, { dirty: true });
     }
   });
 
@@ -147,7 +180,24 @@ function renderPreview(slide: SlideDefinition | undefined, cue: CueDefinition | 
 }
 
 function renderInspector(presentation: PresentationPackageV1, slide: SlideDefinition | undefined, cue: CueDefinition | undefined, errors: number, warnings: number): string {
-  return `<section><p class="studio-inspector__eyebrow">Presentation</p><label class="studio-field">Title<input type="text" data-studio-title value="${escape(presentation.presentation.title)}"></label><button class="studio-button" type="button" data-studio-apply-title>Apply title</button><dl><dt>Package ID</dt><dd>${escape(presentation.presentation.id)}</dd><dt>Language</dt><dd>${escape(presentation.presentation.language)}</dd><dt>Aspect ratio</dt><dd>${escape(presentation.settings.aspectRatio)}</dd></dl></section><section><p class="studio-inspector__eyebrow">Selected slide</p><h2>${escape(slide?.title ?? "No slide")}</h2><dl><dt>ID</dt><dd>${escape(slide?.id ?? "-")}</dd><dt>Layout</dt><dd>${escape(slide?.layout ?? "-")}</dd></dl></section><section><p class="studio-inspector__eyebrow">Selected cue</p><h2>${escape(cue?.kind ?? "No cue")}</h2><dl><dt>ID</dt><dd>${escape(cue?.id ?? "-")}</dd><dt>Speaker</dt><dd>${escape(cue?.speaker ?? "-")}</dd><dt>After</dt><dd>${escape(cue?.after.mode ?? "-")}</dd></dl></section><section class="studio-validation"><p class="studio-inspector__eyebrow">Validation</p><strong>${errors} errors / ${warnings} warnings</strong><span>${errors === 0 ? "Ready to export" : "Resolve errors before export"}</span></section>`;
+  const templates: PackageSlideLayout[] = ["title", "content", "image", "split", "code", "grid", "minimal"];
+  const slideEditor = slide ? `<section><p class="studio-inspector__eyebrow">Selected slide</p><div class="studio-editor-actions"><button class="studio-button" data-studio-duplicate-slide type="button">Duplicate</button><button class="studio-button" data-studio-move-slide="up" type="button">Up</button><button class="studio-button" data-studio-move-slide="down" type="button">Down</button><button class="studio-button" data-studio-delete-slide type="button">Delete</button></div><label class="studio-field">Template<select data-studio-slide-layout>${templates.map((layout) => `<option value="${layout}" ${slide.layout === layout ? "selected" : ""}>${layout}</option>`).join("")}</select></label><label class="studio-field">Title<input data-studio-slide-title value="${escape(slide.title ?? "")}"></label><label class="studio-field">Subtitle<input data-studio-slide-subtitle value="${escape(slide.subtitle ?? "")}"></label><label class="studio-field">Body<textarea data-studio-slide-body>${escape(Array.isArray(slide.body) ? slide.body.join("\n") : slide.body ?? "")}</textarea></label><label class="studio-field">Footer<input data-studio-slide-footer value="${escape(slide.footer ?? "")}"></label><label class="studio-field">Image URL<input data-studio-slide-image value="${escape(slide.image?.url ?? "")}"></label><label class="studio-field">Code language<input data-studio-slide-code-language value="${escape(slide.code?.language ?? "")}"></label><label class="studio-field">Code<textarea data-studio-slide-code>${escape(slide.code?.value ?? "")}</textarea></label><button class="studio-button" data-studio-apply-slide type="button">Apply slide</button></section>` : "";
+  return `<section><p class="studio-inspector__eyebrow">Presentation</p><label class="studio-field">Title<input type="text" data-studio-title value="${escape(presentation.presentation.title)}"></label><button class="studio-button" type="button" data-studio-apply-title>Apply title</button><div class="studio-template-actions">${templates.map((layout) => `<button class="studio-button" type="button" data-studio-add-slide="${layout}">+ ${layout}</button>`).join("")}</div></section>${slideEditor}<section><p class="studio-inspector__eyebrow">Selected cue</p><h2>${escape(cue?.kind ?? "No cue")}</h2><dl><dt>ID</dt><dd>${escape(cue?.id ?? "-")}</dd><dt>Speaker</dt><dd>${escape(cue?.speaker ?? "-")}</dd><dt>After</dt><dd>${escape(cue?.after.mode ?? "-")}</dd></dl></section><section class="studio-validation"><p class="studio-inspector__eyebrow">Validation</p><strong>${errors} errors / ${warnings} warnings</strong><span>${errors === 0 ? "Ready to export" : "Resolve errors before export"}</span></section>`;
+}
+
+function updateSelectedSlide(root: HTMLElement, presentation: PresentationPackageV1, slideId: string | null): PresentationPackageV1 | null {
+  if (!slideId) return null;
+  const value = (selector: string) => root.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(selector)?.value.trim();
+  return { ...presentation, slides: presentation.slides.map((slide) => slide.id !== slideId ? slide : {
+    ...slide,
+    layout: (value("[data-studio-slide-layout]") || slide.layout) as PackageSlideLayout,
+    title: value("[data-studio-slide-title]") || undefined,
+    subtitle: value("[data-studio-slide-subtitle]") || undefined,
+    body: value("[data-studio-slide-body]") || undefined,
+    footer: value("[data-studio-slide-footer]") || undefined,
+    image: value("[data-studio-slide-image]") ? { ...slide.image, url: value("[data-studio-slide-image]") } : undefined,
+    code: value("[data-studio-slide-code]") ? { language: value("[data-studio-slide-code-language]") || "text", value: value("[data-studio-slide-code]")! } : undefined
+  }) };
 }
 
 function stagePlayerHref(source: StudioSource): string {
