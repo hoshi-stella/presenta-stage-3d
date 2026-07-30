@@ -26,6 +26,9 @@ import { createControls } from "./controls";
 import { bindKeyboardControls } from "./keyboard";
 import { setSlideContents } from "../slides/sampleSlides";
 import { createAudioPlaybackController, type AudioPlaybackController } from "../audio/audioPlaybackController";
+import { runPreflight } from "../preflight/preflightService";
+import type { PreflightReport } from "../preflight/types";
+import { getGlbCharacterAssets } from "../scene/modelAssetConfig";
 
 export class App {
   private stageScene: StageScene | null = null;
@@ -43,6 +46,7 @@ export class App {
   private currentPresentation: PresentationPackageV1 = createDefaultPresentation();
   private packageValidation: PresentationValidationResult = validatePresentationPackage(this.currentPresentation);
   private packageSource = "built-in";
+  private preflightReport: PreflightReport | null = null;
 
   constructor(private readonly root: HTMLElement) {}
 
@@ -75,13 +79,17 @@ export class App {
         downloadPresentationPackage(this.currentPresentation, `${this.currentPresentation.presentation.id}.presentation.json`);
         runner.setStatusMessage(`Exported Presentation Package: ${this.currentPresentation.presentation.title}`);
       },
+      onRunPreflight: () => {
+        void this.runPreflight(runner);
+      },
       getPackageStatus: () => ({
         id: this.currentPresentation.presentation.id,
         title: this.currentPresentation.presentation.title,
         source: this.packageSource,
         errors: this.packageValidation.errors.length,
         warnings: this.packageValidation.warnings.length
-      })
+      }),
+      getPreflightReport: () => this.preflightReport
     });
     this.transitionCoordinator = createPresentationTransitionCoordinator(this.root);
     this.endingCredits = createEndingCreditsOverlay(this.root);
@@ -173,6 +181,25 @@ export class App {
     this.root.dataset.presentationId = presentation.presentation.id;
     this.root.dataset.presentationTitle = presentation.presentation.title;
     runner.loadCues(runtime.cues, `${message} ${presentation.presentation.title}`);
+  }
+
+  private async runPreflight(runner: CueRunner): Promise<void> {
+    runner.setStatusMessage("Running preflight checks...");
+    try {
+      this.preflightReport = await runPreflight({
+        live2d: getLive2DConfig(),
+        imagePresenter: getAiriManjuConfig(),
+        staticIllustrations: getStaticIllustrationConfig(),
+        glbCharacters: getGlbCharacterAssets(),
+        packageValidation: this.packageValidation,
+        currentFallbackLevel: runner.getSnapshot().fallbackLevel
+      });
+      const blocked = this.preflightReport.checks.filter((check) => check.level === "blocked").length;
+      const warnings = this.preflightReport.checks.filter((check) => check.level === "warning").length;
+      runner.setStatusMessage(`Preflight complete: ${blocked} blocked / ${warnings} warnings. Recommended fallback: ${this.preflightReport.recommendedFallbackLevel}.`);
+    } catch (error) {
+      runner.setStatusMessage(`Preflight failed: ${getErrorMessage(error)}`);
+    }
   }
 
   dispose(): void {

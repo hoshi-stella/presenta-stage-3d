@@ -1,9 +1,10 @@
 import type { CharacterId, PresentationSnapshot } from "../presentation/types";
 import { getCharacterInstance } from "../scene/characterRegistry";
+import type { PreflightReport } from "../preflight/types";
 
 export type PackageStatus = { id: string; title: string; source: string; errors: number; warnings: number };
 
-export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?: PackageStatus): string {
+export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?: PackageStatus, preflightReport?: PreflightReport | null): string {
   const modeLabel = snapshot.mode === "liveAi"
     ? "Live AI Mode (stub)"
     : snapshot.mode === "qa"
@@ -114,6 +115,22 @@ export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?
       </section>
     `
     : "";
+  const preflightMarkup = preflightReport
+    ? `
+      <section class="preflight-state">
+        <h3>Preflight</h3>
+        <dl class="cue-details">
+          <div><dt>Recommended</dt><dd>${escapeHtml(preflightReport.recommendedFallbackLevel)}</dd></div>
+          <div><dt>Current</dt><dd>${escapeHtml(snapshot.fallbackLevel)}</dd></div>
+          <div><dt>Viewport</dt><dd>${preflightReport.viewport.width} x ${preflightReport.viewport.height} (${escapeHtml(preflightReport.viewport.aspectRatio?.toFixed(2) ?? "n/a")}:1)</dd></div>
+          <div><dt>Fullscreen</dt><dd>${preflightReport.fullscreenAvailable ? "available" : "unavailable"}</dd></div>
+        </dl>
+        <ul>
+          ${preflightReport.checks.map((check) => `<li class="preflight-${escapeHtml(check.level)}"><strong>${escapeHtml(check.level)}</strong> ${escapeHtml(check.label)}<small>${escapeHtml(check.detail)}${check.remediation ? ` ${escapeHtml(check.remediation)}` : ""}</small></li>`).join("")}
+        </ul>
+      </section>
+    `
+    : "";
 
   return `
     <div class="section-meta">
@@ -142,6 +159,7 @@ export function renderStatusPanel(snapshot: PresentationSnapshot, packageStatus?
     ${demoMarkup}
     ${audioMarkup}
     ${packageMarkup}
+    ${preflightMarkup}
     ${presentationMarkup}
     ${flowMarkup}
     <section class="character-state-list">
