@@ -2,6 +2,7 @@ import type { PresentationSnapshot } from "../presentation/types";
 import type { FallbackLevel, PresenterCommand } from "../presentation/types";
 import type { EndingCreditsVariant } from "./endingCredits";
 import { renderStatusPanel } from "./statusPanel";
+import type { PreflightReport } from "../preflight/types";
 
 export type UiHandlers = {
   onCommand: (command: PresenterCommand) => void;
@@ -14,7 +15,9 @@ export type UiHandlers = {
   onAskMockAi: (text: string) => void;
   onLoadPackage: (file: File) => void;
   onExportPackage: () => void;
+  onRunPreflight: () => void;
   getPackageStatus: () => { id: string; title: string; source: string; errors: number; warnings: number };
+  getPreflightReport: () => PreflightReport | null;
 };
 
 export type UiRenderer = {
@@ -52,6 +55,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
         <nav class="controls" aria-label="Presentation controls">
           <button id="load-package-button" type="button">Load Package</button>
           <button id="export-package-button" type="button">Export Package</button>
+          <button id="run-preflight-button" type="button">Run Preflight</button>
           <input id="package-file-input" type="file" accept="application/json,.json,.presentation.json" hidden />
           <button data-command="back" type="button">Back</button>
           <button data-command="next" type="button" class="primary">Next</button>
@@ -104,6 +108,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
     (event.target as HTMLInputElement).value = "";
   });
   root.querySelector("#export-package-button")?.addEventListener("click", handlers.onExportPackage);
+  root.querySelector("#run-preflight-button")?.addEventListener("click", handlers.onRunPreflight);
   root.querySelector<HTMLButtonElement>("#control-panel-toggle")?.addEventListener("click", () => {
     const nextState = root.dataset.controlPanel === "collapsed" ? "open" : "collapsed";
     setControlPanelState(root, nextState);
@@ -114,7 +119,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
 
   return {
     update: (snapshot) => {
-      statusPanel.innerHTML = renderStatusPanel(snapshot, handlers.getPackageStatus());
+      statusPanel.innerHTML = renderStatusPanel(snapshot, handlers.getPackageStatus(), handlers.getPreflightReport());
       const fallbackSelect = root.querySelector<HTMLSelectElement>("#fallback-level-select");
       if (fallbackSelect && fallbackSelect.value !== snapshot.fallbackLevel) {
         fallbackSelect.value = snapshot.fallbackLevel;
