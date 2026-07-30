@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addCue, deleteCue, duplicateCue, moveCue, updateCue } from "./cueEditor";
+import { addCue, deleteCue, duplicateCue, mergeCueWithNext, moveCue, splitCue, updateCue } from "./cueEditor";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
 
 describe("cue editor commands", () => {
@@ -20,5 +20,15 @@ describe("cue editor commands", () => {
     const deleted = deleteCue(linked, target.id);
     expect(deleted.cues[0].after.branches).toEqual([]);
     expect(deleteCue({ ...linked, cues: [linked.cues[0]] }, linked.cues[0].id)).toEqual({ ...linked, cues: [linked.cues[0]] });
+  });
+
+  it("splits and merges cue text without changing the original references", () => {
+    const presentation = createDefaultPresentation();
+    const cue = { ...presentation.cues[0], text: "First sentence. Second sentence.", estimatedDurationMs: 1200 };
+    const source = { ...presentation, cues: [cue, ...presentation.cues.slice(1)] };
+    const split = splitCue(source, cue.id, 15);
+    expect(split.cues).toHaveLength(source.cues.length + 1);
+    expect(split.cues[1]).toMatchObject({ slideRef: cue.slideRef, speaker: cue.speaker });
+    expect(mergeCueWithNext(split, cue.id).cues).toHaveLength(source.cues.length);
   });
 });
