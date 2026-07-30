@@ -35,8 +35,8 @@ const defaultLayouts: Record<LayoutPreset, PresentationLayer[]> = {
   dialogue_split: ["slide", "subtitle", "manju", "static_illustration"],
   stage_focus: ["stage3d", "effects"],
   live2d_stage_dialogue: ["stage3d", "live2d", "subtitle", "effects"],
-  stage_full: ["stage3d", "live2d", "manju", "effects"],
-  stage_with_overlay: ["slide", "subtitle", "stage3d", "live2d", "manju", "static_illustration", "effects"]
+  stage_full: ["stage3d", "effects"],
+  stage_with_overlay: ["slide", "subtitle", "stage3d", "effects"]
 };
 
 export function resolvePresentationComposition(cue: Cue, fallbackLevel: FallbackLevel = "full"): PresentationComposition {
