@@ -3,6 +3,7 @@ import { CueRunner } from "../presentation/cueRunner";
 import { adaptPresentationPackageToRuntime } from "../package/adapter";
 import { downloadPresentationPackage } from "../package/exporter";
 import { loadPresentationFromFile, loadPresentationFromUrl } from "../package/loader";
+import { getPresentationPackageUrl } from "../package/presentationSource";
 import type { PresentationPackageV1, PresentationValidationResult } from "../package/types";
 import { validatePresentationPackage } from "../package/validator";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
@@ -216,11 +217,6 @@ export class App {
     this.audioPlayback?.dispose();
     this.stageScene?.dispose();
   }
-}
-
-function getPresentationPackageUrl(): string {
-  const url = new URL(window.location.href);
-  return url.searchParams.get("presentation") ?? import.meta.env.VITE_PRESENTATION_URL ?? "/presentations/showcase.presentation.json";
 }
 
 function getErrorMessage(error: unknown): string {

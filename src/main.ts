@@ -10,7 +10,11 @@ if (!root) {
 
 const view = new URL(window.location.href).searchParams.get("view");
 
-if (view === "archive-retalk" || window.location.hash === "#archive-retalk") {
+if (view === "studio") {
+  void import("./studio/studioView").then(({ renderStudioView }) => renderStudioView(root)).catch((error: unknown) => {
+    root.textContent = `Studio failed to start: ${error instanceof Error ? error.message : String(error)}`;
+  });
+} else if (view === "archive-retalk" || window.location.hash === "#archive-retalk") {
   void renderArchiveRetalkView(root).catch((error: unknown) => {
     root.textContent = `Archive view failed to start: ${error instanceof Error ? error.message : String(error)}`;
   });
