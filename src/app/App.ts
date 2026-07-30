@@ -3,7 +3,7 @@ import { CueRunner } from "../presentation/cueRunner";
 import { adaptPresentationPackageToRuntime } from "../package/adapter";
 import { downloadPresentationPackage } from "../package/exporter";
 import { loadPresentationFromFile, loadPresentationFromUrl } from "../package/loader";
-import { getPresentationPackageUrl } from "../package/presentationSource";
+import { consumeStagePresentationHandoff, getPresentationPackageUrl } from "../package/presentationSource";
 import type { PresentationPackageV1, PresentationValidationResult } from "../package/types";
 import { validatePresentationPackage } from "../package/validator";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
@@ -156,6 +156,16 @@ export class App {
   }
 
   private async loadInitialPresentation(runner: CueRunner): Promise<void> {
+    try {
+      const handoffPresentation = consumeStagePresentationHandoff();
+      if (handoffPresentation) {
+        this.applyPresentationPackage(handoffPresentation, "studio-handoff", runner, "Presentation received from Studio.");
+        return;
+      }
+    } catch (error) {
+      this.applyPresentationPackage(createDefaultPresentation(), "built-in", runner, `Studio handoff failed. Falling back to built-in presentation: ${getErrorMessage(error)}`);
+      return;
+    }
     const sourceUrl = getPresentationPackageUrl();
     try {
       this.applyPresentationPackage(await loadPresentationFromUrl(sourceUrl), sourceUrl, runner, "Presentation loaded.");

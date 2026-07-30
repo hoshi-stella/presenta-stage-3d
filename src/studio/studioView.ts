@@ -1,6 +1,6 @@
 import { downloadPresentationPackage } from "../package/exporter";
 import { loadPresentationFromFile, loadPresentationFromUrl } from "../package/loader";
-import { getPresentationPackageUrl } from "../package/presentationSource";
+import { getPresentationPackageUrl, handoffPresentationToStage } from "../package/presentationSource";
 import type { CueDefinition, PresentationPackageV1, SlideDefinition } from "../package/types";
 import { validatePresentationPackage } from "../package/validator";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
@@ -11,6 +11,7 @@ type StudioSource = "built-in" | string;
 export function renderStudioView(root: HTMLElement): void {
   const store = createStudioStore();
   let source: StudioSource = "built-in";
+  let loadGeneration = 0;
 
   root.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
@@ -33,6 +34,9 @@ export function renderStudioView(root: HTMLElement): void {
       downloadPresentationPackage(store.getState().presentation!);
       store.markClean();
     }
+    if (target.closest("[data-studio-open-stage]") && store.getState().presentation) {
+      handoffPresentationToStage(store.getState().presentation!);
+    }
     if (target.closest("[data-studio-starter]")) {
       source = "built-in";
       store.setPresentation(createDefaultPresentation());
@@ -51,31 +55,37 @@ export function renderStudioView(root: HTMLElement): void {
   void loadInitialPresentation();
 
   async function loadInitialPresentation(): Promise<void> {
+    const generation = ++loadGeneration;
     store.setLoading(true);
     const packageUrl = getPresentationPackageUrl();
     try {
       const presentation = await loadPresentationFromUrl(packageUrl);
+      if (generation !== loadGeneration) return;
       source = packageUrl;
       store.setPresentation(presentation);
     } catch (error) {
+      if (generation !== loadGeneration) return;
       source = "built-in";
       store.setPresentation(createDefaultPresentation());
       store.setError(`Package could not be loaded from ${packageUrl}. Showing the built-in starter package. ${message(error)}`);
     } finally {
-      store.setLoading(false);
+      if (generation === loadGeneration) store.setLoading(false);
     }
   }
 
   async function importPresentationFile(file: File): Promise<void> {
+    const generation = ++loadGeneration;
     store.setLoading(true);
     try {
       const presentation = await loadPresentationFromFile(file);
+      if (generation !== loadGeneration) return;
       source = `file:${file.name}`;
       store.setPresentation(presentation);
     } catch (error) {
+      if (generation !== loadGeneration) return;
       store.setError(`Import failed. The current Package was kept. ${message(error)}`);
     } finally {
-      store.setLoading(false);
+      if (generation === loadGeneration) store.setLoading(false);
     }
   }
 
@@ -101,7 +111,7 @@ function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSo
         <span class="studio-state ${state.isDirty ? "studio-state--dirty" : ""}">${state.isDirty ? "Unsaved changes" : "Saved"}</span>
         <label class="studio-button">Import<input type="file" accept="application/json,.json" hidden></label>
         <button class="studio-button" type="button" data-studio-export>Export</button>
-        <a class="studio-button" href="${stagePlayerHref(source)}">Open Stage Player</a>
+        <a class="studio-button" data-studio-open-stage href="${stagePlayerHref(source)}">Open Stage Player</a>
       </div>
     </header>
     ${state.error ? `<div class="studio-alert" role="status">${escape(state.error)}</div>` : ""}
@@ -127,7 +137,7 @@ function renderNavigation(title: string, entries: SlideDefinition[] | CueDefinit
   return `<section class="studio-nav__section"><h2>${title}<span>${entries.length}</span></h2><div class="studio-nav__list">${entries.map((entry, index) => {
     const label = kind === "slide" ? (entry as SlideDefinition).title ?? entry.id : (entry as CueDefinition).text;
     const dataAttribute = kind === "slide" ? "data-studio-slide" : "data-studio-cue";
-    return `<button type="button" ${dataAttribute}="${escape(entry.id)}" class="${entry.id === selectedId ? "is-selected" : ""}"><span>${String(index + 1).padStart(2, "0")}</span>${escape(label)}</button>`;
+    return `<button type="button" ${dataAttribute}="${escape(entry.id)}" aria-pressed="${entry.id === selectedId}" class="${entry.id === selectedId ? "is-selected" : ""}"><span>${String(index + 1).padStart(2, "0")}</span>${escape(label)}</button>`;
   }).join("")}</div></section>`;
 }
 
