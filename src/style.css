@@ -1137,7 +1137,7 @@ h3 {
 .ending-credits__crawl {
   position: absolute;
   left: 50%;
-  bottom: -112%;
+  bottom: -165%;
   width: min(74vw, 900px);
   transform-origin: 50% 100%;
   transform: translateX(-50%) rotateX(62deg);
@@ -1225,7 +1225,7 @@ h3 {
 
 @keyframes credits-crawl {
   from {
-    bottom: -112%;
+    bottom: -165%;
   }
 
   to {

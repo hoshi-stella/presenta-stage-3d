@@ -13,4 +13,14 @@ describe("presentation composition", () => {
 
     expect(resolvePresentationComposition(stageOverlayCue).activeLayers).toEqual(["slide", "subtitle", "stage3d", "effects"]);
   });
+
+  it("keeps the full stage free of image and Live2D overlays by default", () => {
+    const cues = adaptPresentationPackageToRuntime(createDefaultPresentation()).cues;
+    const stageFullCue = {
+      ...cues[0],
+      presentation: { layout: "stage_full" as const }
+    };
+
+    expect(resolvePresentationComposition(stageFullCue).activeLayers).toEqual(["stage3d", "effects"]);
+  });
 });
