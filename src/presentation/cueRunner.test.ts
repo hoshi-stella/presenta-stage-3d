@@ -21,4 +21,13 @@ describe("CueRunner run of show", () => {
     expect(afterNext.runOfShow.elapsedTargetSeconds).toBe(cues[0].demo?.targetSeconds ?? 0);
     expect(afterNext.runOfShow.remainingTargetSeconds).toBe(totalSeconds - (cues[0].demo?.targetSeconds ?? 0));
   });
+
+  it("jumps to an explicit cue for a rehearsal preview", () => {
+    const cues = adaptPresentationPackageToRuntime(createDefaultPresentation()).cues;
+    const runner = new CueRunner(cues);
+
+    expect(runner.goToCueId(cues[2].id, "Studio rehearsal preview")).toBe(true);
+    expect(runner.getSnapshot().cue.id).toBe(cues[2].id);
+    expect(runner.goToCueId("missing-cue", "Studio rehearsal preview")).toBe(false);
+  });
 });

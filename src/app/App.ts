@@ -55,6 +55,8 @@ export class App {
     this.isDisposed = false;
     const runner = new CueRunner(adaptPresentationPackageToRuntime(this.currentPresentation).cues);
     await this.loadInitialPresentation(runner);
+    const startCue = new URL(window.location.href).searchParams.get("startCue");
+    if (startCue) runner.goToCueId(startCue, "Studio rehearsal preview");
     const aiClient = new MockAiClient();
     const controls = createControls(runner, aiClient, (variant) => {
       this.endingCredits?.show(variant);

@@ -211,6 +211,10 @@ export class CueRunner {
     return true;
   }
 
+  goToCueId(cueId: CueId, message = "Jumped to cue"): boolean {
+    return this.goToCue(cueId, message);
+  }
+
   private resume(): void {
     this.mode = this.qaReturnCueId && this.cues[this.index]?.kind === "qa" ? "qa" : "semiAuto";
     this.isPaused = false;

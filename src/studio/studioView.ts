@@ -1,8 +1,9 @@
 import { downloadPresentationPackage } from "../package/exporter";
 import { loadPresentationFromFile, loadPresentationFromUrl } from "../package/loader";
 import { getPresentationPackageUrl, handoffPresentationToStage } from "../package/presentationSource";
-import type { CueDefinition, PackageSlideLayout, PresentationPackageV1, SlideDefinition } from "../package/types";
+import type { CueDefinition, PackageSlideLayout, PresentationPackageV1, SlideDefinition, ValidationIssue } from "../package/types";
 import { validatePresentationPackage } from "../package/validator";
+import { checkPresentationQuality } from "../preflight/presentationQuality";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
 import { createStudioStore, type StudioState } from "./studioStore";
 import { addSlide, deleteSlide, duplicateSlide, moveSlide } from "./slideEditor";
@@ -21,6 +22,8 @@ export function renderStudioView(root: HTMLElement): void {
     const cueId = target.closest<HTMLButtonElement>("[data-studio-cue]")?.dataset.studioCue;
     if (slideId) store.selectSlide(slideId);
     if (cueId) store.selectCue(cueId);
+    const qualityPath = target.closest<HTMLButtonElement>("[data-studio-quality-path]")?.dataset.studioQualityPath;
+    if (qualityPath) selectQualityTarget(store, qualityPath);
     if (target.closest("[data-studio-apply-title]")) {
       const presentation = store.getState().presentation;
       const titleInput = root.querySelector<HTMLInputElement>("[data-studio-title]");
@@ -151,6 +154,7 @@ function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSo
   const selectedSlide = presentation.slides.find((slide) => slide.id === state.selection.slideId) ?? presentation.slides[0];
   const selectedCue = presentation.cues.find((cue) => cue.id === state.selection.cueId) ?? presentation.cues[0];
   const validation = validatePresentationPackage(presentation);
+  const qualityIssues = checkPresentationQuality(presentation);
 
   root.innerHTML = `<main class="studio-shell" aria-label="Presenta Studio">
     <header class="studio-header">
@@ -160,7 +164,7 @@ function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSo
         <span class="studio-state ${state.isDirty ? "studio-state--dirty" : ""}">${state.isDirty ? "Unsaved changes" : "Saved"}</span>
         <label class="studio-button">Import<input type="file" accept="application/json,.json" hidden></label>
         <button class="studio-button" type="button" data-studio-export>Export</button>
-        <a class="studio-button" data-studio-open-stage href="${stagePlayerHref(source)}">Open Stage Player</a>
+        <a class="studio-button" data-studio-open-stage href="${stagePlayerHref(source, selectedCue?.id)}">Preview selected Cue</a>
       </div>
     </header>
     ${state.error ? `<div class="studio-alert" role="status">${escape(state.error)}</div>` : ""}
@@ -173,7 +177,7 @@ function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSo
       ${state.isLoading ? `<div class="studio-loading">Loading Presentation Package...</div>` : renderPreview(selectedSlide, selectedCue)}
     </section>
     <aside class="studio-inspector">
-      ${renderInspector(presentation, selectedSlide, selectedCue, validation.errors.length, validation.warnings.length)}
+      ${renderInspector(presentation, selectedSlide, selectedCue, validation.errors.length, validation.warnings.length, [...validation.errors, ...validation.warnings, ...qualityIssues])}
     </aside>
   </main>`;
 }
@@ -195,13 +199,24 @@ function renderPreview(slide: SlideDefinition | undefined, cue: CueDefinition | 
   return `<div class="studio-preview__toolbar"><span>${escape(slide.layout)}</span><span>${cue ? `${escape(cue.kind)} / ${escape(cue.speaker)}` : "No cue selected"}</span></div><article class="studio-slide-preview studio-slide-preview--${escape(slide.layout)}"><p class="studio-slide-preview__eyebrow">${escape(slide.id)}</p><h1>${escape(slide.title ?? "Untitled slide")}</h1>${slide.subtitle ? `<h2>${escape(slide.subtitle)}</h2>` : ""}${slide.body ? `<p>${escape(Array.isArray(slide.body) ? slide.body.join(" ") : slide.body)}</p>` : ""}${slide.bullets?.length ? `<ul>${slide.bullets.map((bullet) => `<li>${escape(bullet)}</li>`).join("")}</ul>` : ""}</article>${cue ? `<section class="studio-cue-preview"><p>Current cue</p><strong>${escape(cue.text)}</strong></section>` : ""}`;
 }
 
-function renderInspector(presentation: PresentationPackageV1, slide: SlideDefinition | undefined, cue: CueDefinition | undefined, errors: number, warnings: number): string {
+function renderInspector(presentation: PresentationPackageV1, slide: SlideDefinition | undefined, cue: CueDefinition | undefined, errors: number, warnings: number, issues: ValidationIssue[]): string {
   const templates: PackageSlideLayout[] = ["title", "content", "image", "split", "code", "grid", "minimal"];
   const slideEditor = slide ? `<section><p class="studio-inspector__eyebrow">Selected slide</p><div class="studio-editor-actions"><button class="studio-button" data-studio-duplicate-slide type="button">Duplicate</button><button class="studio-button" data-studio-move-slide="up" type="button">Up</button><button class="studio-button" data-studio-move-slide="down" type="button">Down</button><button class="studio-button" data-studio-delete-slide type="button">Delete</button></div><label class="studio-field">Template<select data-studio-slide-layout>${templates.map((layout) => `<option value="${layout}" ${slide.layout === layout ? "selected" : ""}>${layout}</option>`).join("")}</select></label><label class="studio-field">Title<input data-studio-slide-title value="${escape(slide.title ?? "")}"></label><label class="studio-field">Subtitle<input data-studio-slide-subtitle value="${escape(slide.subtitle ?? "")}"></label><label class="studio-field">Body<textarea data-studio-slide-body>${escape(Array.isArray(slide.body) ? slide.body.join("\n") : slide.body ?? "")}</textarea></label><label class="studio-field">Footer<input data-studio-slide-footer value="${escape(slide.footer ?? "")}"></label><label class="studio-field">Image URL<input data-studio-slide-image value="${escape(slide.image?.url ?? "")}"></label><label class="studio-field">Code language<input data-studio-slide-code-language value="${escape(slide.code?.language ?? "")}"></label><label class="studio-field">Code<textarea data-studio-slide-code>${escape(slide.code?.value ?? "")}</textarea></label><button class="studio-button" data-studio-apply-slide type="button">Apply slide</button></section>` : "";
   const cueEditor = cue ? `<section><p class="studio-inspector__eyebrow">Selected cue</p><div class="studio-editor-actions"><button class="studio-button" type="button" data-studio-add-cue>+ Cue</button><button class="studio-button" type="button" data-studio-duplicate-cue>Duplicate</button><button class="studio-button" type="button" data-studio-split-cue>Split</button><button class="studio-button" type="button" data-studio-merge-cue>Merge next</button><button class="studio-button" type="button" data-studio-move-cue="up">Up</button><button class="studio-button" type="button" data-studio-move-cue="down">Down</button><button class="studio-button" type="button" data-studio-delete-cue>Delete</button></div><label class="studio-field">Speaker<select data-studio-cue-speaker>${presentation.characters.map((character) => `<option value="${escape(character.id)}" ${cue.speaker === character.id ? "selected" : ""}>${escape(character.displayName)}</option>`).join("")}</select></label><label class="studio-field">Text<textarea data-studio-cue-text>${escape(cue.text)}</textarea></label><label class="studio-field">Note<textarea data-studio-cue-note>${escape(cue.note ?? "")}</textarea></label><label class="studio-field">Slide<select data-studio-cue-slide><option value="">No slide</option>${presentation.slides.map((slide) => `<option value="${escape(slide.id)}" ${cue.slideRef === slide.id ? "selected" : ""}>${escape(slide.title ?? slide.id)}</option>`).join("")}</select></label><label class="studio-field">Intent<input data-studio-cue-intent value="${escape(cue.direction.intent)}"></label><label class="studio-field">Intensity<select data-studio-cue-intensity>${["low","medium","high"].map((value) => `<option ${cue.direction.intensity === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="studio-field">Duration ms<input type="number" min="0" data-studio-cue-duration value="${cue.estimatedDurationMs ?? ""}"></label><label class="studio-field">Progression<select data-studio-cue-after>${["wait_for_presenter","auto_next","branch_available","stop"].map((value) => `<option ${cue.after.mode === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><details><summary>Advanced stage options</summary><label class="studio-field">Direction preset<select data-studio-cue-preset><option value="">None</option>${presentation.directionPresets.map((preset) => `<option value="${escape(preset.id)}" ${cue.stage?.directionPreset === preset.id ? "selected" : ""}>${escape(preset.label)}</option>`).join("")}</select></label><label class="studio-field">Camera<input data-studio-cue-camera value="${escape(cue.stage?.camera ?? "")}"></label><label class="studio-field">Motion<input data-studio-cue-motion value="${escape(cue.stage?.motion ?? "")}"></label></details><button class="studio-button" type="button" data-studio-apply-cue>Apply cue</button></section>` : "";
   const cueContext = cue ? `<section class="studio-cue-context"><p class="studio-inspector__eyebrow">Cue context</p><span>Previous: ${escape(presentation.cues[presentation.cues.findIndex((item) => item.id === cue.id) - 1]?.text ?? "Start")}</span><span>Next: ${escape(presentation.cues[presentation.cues.findIndex((item) => item.id === cue.id) + 1]?.text ?? "End")}</span></section>` : "";
   const branchEditor = cue ? `<section><p class="studio-inspector__eyebrow">Branch and publication</p><label class="studio-field">Continue to<select data-studio-cue-branch><option value="">No branch</option>${presentation.cues.filter((item) => item.id !== cue.id).map((item) => `<option value="${escape(item.id)}" ${cue.after.branches?.[0]?.targetCueId === item.id ? "selected" : ""}>${escape(item.text)}</option>`).join("")}</select></label><label><input type="checkbox" data-studio-cue-visible ${cue.publication?.visible !== false ? "checked" : ""}> Visible</label><label><input type="checkbox" data-studio-cue-reading ${cue.publication?.includeInReadingView !== false ? "checked" : ""}> Reading view</label><label><input type="checkbox" data-studio-cue-replay ${cue.publication?.includeInReplayView !== false ? "checked" : ""}> Replay view</label><button class="studio-button" type="button" data-studio-apply-branch>Apply branch</button></section>` : "";
-  return `<section><p class="studio-inspector__eyebrow">Presentation</p><label class="studio-field">Title<input type="text" data-studio-title value="${escape(presentation.presentation.title)}"></label><button class="studio-button" type="button" data-studio-apply-title>Apply title</button><div class="studio-template-actions">${templates.map((layout) => `<button class="studio-button" type="button" data-studio-add-slide="${layout}">+ ${layout}</button>`).join("")}</div></section>${slideEditor}${cueContext}${cueEditor}${branchEditor}<section class="studio-validation"><p class="studio-inspector__eyebrow">Validation</p><strong>${errors} errors / ${warnings} warnings</strong><span>${errors === 0 ? "Ready to export" : "Resolve errors before export"}</span></section>`;
+  const issueList = issues.map((issue) => `<button class="studio-quality-issue" type="button" data-studio-quality-path="${escape(issue.path)}">${escape(issue.message)}</button>`).join("");
+  return `<section><p class="studio-inspector__eyebrow">Presentation</p><label class="studio-field">Title<input type="text" data-studio-title value="${escape(presentation.presentation.title)}"></label><button class="studio-button" type="button" data-studio-apply-title>Apply title</button><div class="studio-template-actions">${templates.map((layout) => `<button class="studio-button" type="button" data-studio-add-slide="${layout}">+ ${layout}</button>`).join("")}</div></section>${slideEditor}${cueContext}${cueEditor}${branchEditor}<section class="studio-validation"><p class="studio-inspector__eyebrow">Validation</p><strong>${errors} errors / ${warnings + qualityIssuesCount(issues)} warnings</strong><span>${errors === 0 ? "Ready to export" : "Resolve errors before export"}</span>${issueList}</section>`;
+}
+
+function qualityIssuesCount(issues: Array<{ code: string }>): number { return issues.filter((issue) => ["missing_duration", "short_duration", "subtitle_overflow", "excessive_layers", "repeated_high_intensity"].includes(issue.code)).length; }
+
+function selectQualityTarget(store: ReturnType<typeof createStudioStore>, path: string): void {
+  const cueIndex = Number(path.match(/^\$\.cues\[(\d+)]/)?.[1]);
+  const slideIndex = Number(path.match(/^\$\.slides\[(\d+)]/)?.[1]);
+  const state = store.getState();
+  if (Number.isInteger(cueIndex)) store.selectCue(state.presentation?.cues[cueIndex]?.id ?? null);
+  if (Number.isInteger(slideIndex)) store.selectSlide(state.presentation?.slides[slideIndex]?.id ?? null);
 }
 
 function updateSelectedCue(root: HTMLElement, presentation: PresentationPackageV1, cueId: string): PresentationPackageV1 | null {
@@ -226,9 +241,12 @@ function updateSelectedSlide(root: HTMLElement, presentation: PresentationPackag
   }) };
 }
 
-function stagePlayerHref(source: StudioSource): string {
-  if (source === "built-in" || source.startsWith("file:")) return "/";
-  return `/?presentation=${encodeURIComponent(source)}`;
+function stagePlayerHref(source: StudioSource, startCue?: string): string {
+  const query = new URLSearchParams();
+  if (source !== "built-in" && !source.startsWith("file:")) query.set("presentation", source);
+  if (startCue) query.set("startCue", startCue);
+  const serialized = query.toString();
+  return serialized ? `/?${serialized}` : "/";
 }
 
 function formatDuration(durationMs: number | undefined): string {
