@@ -203,7 +203,8 @@ export class App {
         staticIllustrations: getStaticIllustrationConfig(),
         glbCharacters: getGlbCharacterAssets(),
         packageValidation: this.packageValidation,
-        currentFallbackLevel: runner.getSnapshot().fallbackLevel
+        currentFallbackLevel: runner.getSnapshot().fallbackLevel,
+        presentation: this.currentPresentation
       });
       const blocked = this.preflightReport.checks.filter((check) => check.level === "blocked").length;
       const warnings = this.preflightReport.checks.filter((check) => check.level === "warning").length;
