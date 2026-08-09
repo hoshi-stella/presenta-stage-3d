@@ -130,7 +130,7 @@ function renderDiagnosticMarkup(snapshot: PresentationSnapshot, packageStatus?: 
     ? `<dl class="cue-details"><div><dt>Package</dt><dd>${escapeHtml(packageStatus.title)}</dd></div><div><dt>Source</dt><dd>${escapeHtml(packageStatus.source)}</dd></div><div><dt>Validation</dt><dd>${packageStatus.errors} errors / ${packageStatus.warnings} warnings</dd></div></dl>`
     : "";
   const preflightMarkup = preflightReport
-    ? `<dl class="cue-details"><div><dt>Preflight</dt><dd>${escapeHtml(preflightReport.recommendedFallbackLevel)}</dd></div><div><dt>Viewport</dt><dd>${preflightReport.viewport.width} x ${preflightReport.viewport.height}</dd></div></dl>`
+    ? renderPreflightSummary(preflightReport)
     : "<p class=\"console-empty\">Preflight has not been run.</p>";
 
   return `
@@ -138,6 +138,29 @@ function renderDiagnosticMarkup(snapshot: PresentationSnapshot, packageStatus?: 
     <section><h3>Preflight</h3>${preflightMarkup}</section>
     <section><h3>Character State</h3><ul class="character-state-list">${characterStates}</ul></section>
     <section><h3>Direction</h3><dl class="cue-details"><div><dt>Preset</dt><dd>${escapeHtml(snapshot.resolvedDirection.directionPresetId ?? "fallback")}</dd></div><div><dt>Layout</dt><dd>${escapeHtml(snapshot.presentation.layout)}</dd></div><div><dt>Audio</dt><dd>${escapeHtml(snapshot.audio.state)}</dd></div></dl><ul class="direction-asset-list">${effects}</ul></section>
+  `;
+}
+
+function renderPreflightSummary(report: PreflightReport): string {
+  const blocked = report.checks.filter((check) => check.level === "blocked").length;
+  const warnings = report.checks.filter((check) => check.level === "warning").length;
+  const concerns = report.checks.filter((check) => check.level !== "ready");
+  const checkMarkup = concerns.length > 0
+    ? `<ul class="direction-asset-list">${concerns.map((check) => `<li><strong>${escapeHtml(check.label)}</strong><span>${escapeHtml(check.remediation ?? check.detail)}</span></li>`).join("")}</ul>`
+    : "<p class=\"console-empty\">All checks are ready.</p>";
+  const fallbackMarkup = report.fallbackVerification.length > 0
+    ? `<ul class="direction-asset-list">${report.fallbackVerification.map((result) => `<li><strong>${escapeHtml(result.label)}</strong><span>${escapeHtml(result.level)}${result.cueId ? `: ${escapeHtml(result.cueId)}` : ""}</span></li>`).join("")}</ul>`
+    : "<p class=\"console-empty\">Load a Presentation Package to verify fallback Cue paths.</p>";
+
+  return `
+    <dl class="cue-details">
+      <div><dt>Result</dt><dd>${blocked} blocked / ${warnings} warnings</dd></div>
+      <div><dt>Fallback</dt><dd>${escapeHtml(report.recommendedFallbackLevel)}</dd></div>
+      <div><dt>Viewport</dt><dd>${report.viewport.width} x ${report.viewport.height}</dd></div>
+      <div><dt>Motion</dt><dd>${report.reducedMotionPreferred ? "reduced" : "standard"}</dd></div>
+    </dl>
+    <h4>Action items</h4>${checkMarkup}
+    <h4>Fallback verification</h4>${fallbackMarkup}
   `;
 }
 
