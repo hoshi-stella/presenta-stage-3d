@@ -34,6 +34,7 @@ This is Clean Architecture applied proportionally: core data and runtime rules d
 - `?presentation=<url>`: optional Package input shared by Stage Player and Studio.
 
 The planned named surfaces and route migration are documented in [Presenta Product Surfaces](presenta-product-surfaces.md).
+Shared terminology, module ownership, and code naming conventions are documented in [Naming and Responsibility Rules](naming-and-responsibility-rules.md).
 
 The same URL parameter deliberately opens the same Package in either Studio or Stage Player. A file imported in Studio exists only for that browser session and therefore opens Stage Player without a URL reference.
 
