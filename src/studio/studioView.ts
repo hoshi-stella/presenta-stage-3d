@@ -12,10 +12,11 @@ import { addSlide, deleteSlide, duplicateSlide, moveSlide } from "./slideEditor"
 import { addCue, deleteCue, duplicateCue, mergeCueWithNext, moveCue, setCueBranchTarget, splitCue, updateCue } from "./cueEditor";
 
 type StudioSource = "built-in" | string;
+type StudioViewOptions = { presentationKey?: string };
 
-export function renderStudioView(root: HTMLElement): void {
+export function renderStudioView(root: HTMLElement, options: StudioViewOptions = {}): void {
   const localDraftStorage = getLocalDraftStorage();
-  const recoveredDraft = localDraftStorage ? loadStudioDraft(localDraftStorage) : null;
+  const recoveredDraft = !options.presentationKey && localDraftStorage ? loadStudioDraft(localDraftStorage) : null;
   const store = createStudioStore(null, recoveredDraft ?? undefined);
   let source: StudioSource = "built-in";
   let loadGeneration = 0;
@@ -161,6 +162,20 @@ export function renderStudioView(root: HTMLElement): void {
   async function loadInitialPresentation(): Promise<void> {
     const generation = ++loadGeneration;
     store.setLoading(true);
+    if (options.presentationKey) {
+      try {
+        const stored = await loadRemotePresentation(options.presentationKey);
+        if (generation !== loadGeneration) return;
+        source = `database:${options.presentationKey} r${stored.revision.number}`;
+        store.setPresentation(stored.presentation);
+        return;
+      } catch (error) {
+        if (generation !== loadGeneration) return;
+        store.setError(`MariaDB load failed. Showing the built-in starter package. ${message(error)}`);
+      } finally {
+        if (generation === loadGeneration) store.setLoading(false);
+      }
+    }
     const packageUrl = getPresentationPackageUrl();
     try {
       const presentation = await loadPresentationFromUrl(packageUrl);
