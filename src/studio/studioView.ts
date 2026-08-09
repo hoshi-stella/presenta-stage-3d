@@ -6,6 +6,7 @@ import { validatePresentationPackage } from "../package/validator";
 import { checkPresentationQuality } from "../preflight/presentationQuality";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
 import { clearStudioDraft, loadStudioDraft, saveStudioDraft, type StudioStorage } from "./draftStorage";
+import { listRemotePresentations, loadRemotePresentation, saveRemotePresentation, type RemotePresentationSummary } from "./presentationRepository";
 import { createStudioStore, type StudioState } from "./studioStore";
 import { addSlide, deleteSlide, duplicateSlide, moveSlide } from "./slideEditor";
 import { addCue, deleteCue, duplicateCue, mergeCueWithNext, moveCue, setCueBranchTarget, splitCue, updateCue } from "./cueEditor";
@@ -19,6 +20,8 @@ export function renderStudioView(root: HTMLElement): void {
   let source: StudioSource = "built-in";
   let loadGeneration = 0;
   let autosaveTimer: number | undefined;
+  let remotePresentations: RemotePresentationSummary[] = [];
+  let remoteAvailable = false;
 
   root.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
@@ -54,6 +57,19 @@ export function renderStudioView(root: HTMLElement): void {
           presentation: { ...presentation.presentation, title }
         }, { dirty: true });
       }
+    }
+    if (target.closest("[data-studio-save-remote]")) {
+      void saveCurrentPresentation();
+      return;
+    }
+    if (target.closest("[data-studio-load-remote]")) {
+      const presentationKey = root.querySelector<HTMLSelectElement>("[data-studio-remote-presentation]")?.value;
+      if (presentationKey) void loadRemotePresentationByKey(presentationKey);
+      return;
+    }
+    if (target.closest("[data-studio-refresh-remote]")) {
+      void refreshRemotePresentationList();
+      return;
     }
     if (target.closest("[data-studio-export]") && store.getState().presentation) {
       downloadPresentationPackage(store.getState().presentation!);
@@ -126,7 +142,7 @@ export function renderStudioView(root: HTMLElement): void {
   });
 
   const unsubscribe = store.subscribe((state) => {
-    renderWorkspace(root, state, source);
+    renderWorkspace(root, state, source, remotePresentations, remoteAvailable);
     if (!localDraftStorage || !state.isDirty) return;
     if (autosaveTimer !== undefined) window.clearTimeout(autosaveTimer);
     autosaveTimer = window.setTimeout(() => {
@@ -140,6 +156,7 @@ export function renderStudioView(root: HTMLElement): void {
   } else {
     void loadInitialPresentation();
   }
+  void refreshRemotePresentationList();
 
   async function loadInitialPresentation(): Promise<void> {
     const generation = ++loadGeneration;
@@ -177,6 +194,51 @@ export function renderStudioView(root: HTMLElement): void {
     }
   }
 
+  async function refreshRemotePresentationList(): Promise<void> {
+    try {
+      remotePresentations = await listRemotePresentations();
+      remoteAvailable = true;
+      renderWorkspace(root, store.getState(), source, remotePresentations, remoteAvailable);
+    } catch {
+      remoteAvailable = false;
+      renderWorkspace(root, store.getState(), source, remotePresentations, remoteAvailable);
+    }
+  }
+
+  async function saveCurrentPresentation(): Promise<void> {
+    const presentation = store.getState().presentation;
+    if (!presentation) return;
+    const snapshotName = window.prompt("MariaDB revision name (optional)") ?? undefined;
+    try {
+      store.setLoading(true);
+      const saved = await saveRemotePresentation(presentation, snapshotName ? { name: snapshotName } : undefined);
+      source = `database:${saved.presentationKey} r${saved.revision.number}`;
+      store.markClean();
+      if (localDraftStorage) clearStudioDraft(localDraftStorage);
+      await refreshRemotePresentationList();
+    } catch (error) {
+      store.setError(`MariaDB save failed. Your local edits are still open. ${message(error)}`);
+    } finally {
+      store.setLoading(false);
+    }
+  }
+
+  async function loadRemotePresentationByKey(presentationKey: string): Promise<void> {
+    const generation = ++loadGeneration;
+    try {
+      store.setLoading(true);
+      const stored = await loadRemotePresentation(presentationKey);
+      if (generation !== loadGeneration) return;
+      source = `database:${presentationKey} r${stored.revision.number}`;
+      store.setPresentation(stored.presentation);
+      if (localDraftStorage) clearStudioDraft(localDraftStorage);
+    } catch (error) {
+      if (generation === loadGeneration) store.setError(`MariaDB load failed. The current Package was kept. ${message(error)}`);
+    } finally {
+      if (generation === loadGeneration) store.setLoading(false);
+    }
+  }
+
   window.addEventListener("pagehide", () => {
     if (autosaveTimer !== undefined) window.clearTimeout(autosaveTimer);
     const currentState = store.getState();
@@ -186,7 +248,7 @@ export function renderStudioView(root: HTMLElement): void {
   }, { once: true });
 }
 
-function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSource): void {
+function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSource, remotePresentations: RemotePresentationSummary[], remoteAvailable: boolean): void {
   if (!state.presentation) {
     root.innerHTML = renderEmptyWorkspace(state);
     return;
@@ -207,6 +269,10 @@ function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSo
         <button class="studio-button" type="button" data-studio-undo ${state.canUndo ? "" : "disabled"}>Undo</button>
         <button class="studio-button" type="button" data-studio-redo ${state.canRedo ? "" : "disabled"}>Redo</button>
         <button class="studio-button" type="button" data-studio-snapshot>Snapshot</button>
+        <button class="studio-button" type="button" data-studio-save-remote ${remoteAvailable ? "" : "disabled"}>Save DB</button>
+        <select class="studio-button" data-studio-remote-presentation ${remoteAvailable && remotePresentations.length ? "" : "disabled"}><option value="">${remoteAvailable ? "Load from DB..." : "MariaDB unavailable"}</option>${remotePresentations.map((item) => `<option value="${escape(item.presentationKey)}">${escape(item.title)} (r${item.revisionNumber ?? 0})</option>`).join("")}</select>
+        <button class="studio-button" type="button" data-studio-load-remote ${remoteAvailable && remotePresentations.length ? "" : "disabled"}>Load DB</button>
+        <button class="studio-button" type="button" data-studio-refresh-remote>Refresh DB</button>
         <label class="studio-button">Import<input type="file" accept="application/json,.json" hidden></label>
         <button class="studio-button" type="button" data-studio-export>Export</button>
         <a class="studio-button" data-studio-open-stage href="${stagePlayerHref(source, selectedCue?.id)}">Preview selected Cue</a>
