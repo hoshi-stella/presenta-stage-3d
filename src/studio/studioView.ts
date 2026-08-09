@@ -8,6 +8,7 @@ import { createDefaultPresentation } from "../presentations/defaultPresentation"
 import { clearStudioDraft, loadStudioDraft, saveStudioDraft, type StudioStorage } from "./draftStorage";
 import { listRemotePresentations, loadRemotePresentation, saveRemotePresentation, type RemotePresentationSummary } from "./presentationRepository";
 import { createStudioStore, type StudioState } from "./studioStore";
+import { diffPresentationRevision, listRevisionSnapshots, type RevisionSnapshot } from "./revisionHistory";
 import { addSlide, deleteSlide, duplicateSlide, moveSlide } from "./slideEditor";
 import { addCue, deleteCue, duplicateCue, mergeCueWithNext, moveCue, setCueBranchTarget, splitCue, updateCue } from "./cueEditor";
 
@@ -317,8 +318,32 @@ function renderInspector(presentation: PresentationPackageV1, slide: SlideDefini
   const cueContext = cue ? `<section class="studio-cue-context"><p class="studio-inspector__eyebrow">Cue context</p><span>Previous: ${escape(presentation.cues[presentation.cues.findIndex((item) => item.id === cue.id) - 1]?.text ?? "Start")}</span><span>Next: ${escape(presentation.cues[presentation.cues.findIndex((item) => item.id === cue.id) + 1]?.text ?? "End")}</span></section>` : "";
   const branchEditor = cue ? `<section><p class="studio-inspector__eyebrow">Branch and publication</p><label class="studio-field">Continue to<select data-studio-cue-branch><option value="">No branch</option>${presentation.cues.filter((item) => item.id !== cue.id).map((item) => `<option value="${escape(item.id)}" ${cue.after.branches?.[0]?.targetCueId === item.id ? "selected" : ""}>${escape(item.text)}</option>`).join("")}</select></label><label><input type="checkbox" data-studio-cue-visible ${cue.publication?.visible !== false ? "checked" : ""}> Visible</label><label><input type="checkbox" data-studio-cue-reading ${cue.publication?.includeInReadingView !== false ? "checked" : ""}> Reading view</label><label><input type="checkbox" data-studio-cue-replay ${cue.publication?.includeInReplayView !== false ? "checked" : ""}> Replay view</label><button class="studio-button" type="button" data-studio-apply-branch>Apply branch</button></section>` : "";
   const issueList = issues.map((issue) => `<button class="studio-quality-issue" type="button" data-studio-quality-path="${escape(issue.path)}">${escape(issue.message)}</button>`).join("");
-  const snapshotControls = `<section><p class="studio-inspector__eyebrow">Revision and publication</p><label class="studio-field">Lifecycle<select data-studio-lifecycle>${["draft", "rehearsal", "presented", "published", "archived"].map((value) => `<option value="${value}" ${state.lifecycle === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><button class="studio-button" type="button" data-studio-apply-lifecycle>Apply lifecycle</button><div class="studio-snapshot-list">${state.snapshots.length ? state.snapshots.map((snapshot) => `<article><strong>${escape(snapshot.name)}</strong><span>${escape(snapshot.createdAt)}</span>${snapshot.note ? `<p>${escape(snapshot.note)}</p>` : ""}<div><button class="studio-button" type="button" data-studio-restore-snapshot="${escape(snapshot.id)}">Restore</button><button class="studio-button" type="button" data-studio-mark-presented="${escape(snapshot.id)}">Mark presented</button><button class="studio-button" type="button" data-studio-mark-published="${escape(snapshot.id)}">Mark published</button></div></article>`).join("") : "<span>No local snapshots yet.</span>"}</div></section>`;
+  const snapshotControls = `<section><p class="studio-inspector__eyebrow">Revision and publication</p><label class="studio-field">Lifecycle<select data-studio-lifecycle>${["draft", "rehearsal", "presented", "published", "archived"].map((value) => `<option value="${value}" ${state.lifecycle === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><button class="studio-button" type="button" data-studio-apply-lifecycle>Apply lifecycle</button><div class="studio-snapshot-list">${renderSnapshotList(state.snapshots)}</div></section>`;
   return `<section><p class="studio-inspector__eyebrow">Presentation</p><label class="studio-field">Title<input type="text" data-studio-title value="${escape(presentation.presentation.title)}"></label><button class="studio-button" type="button" data-studio-apply-title>Apply title</button><div class="studio-template-actions">${templates.map((layout) => `<button class="studio-button" type="button" data-studio-add-slide="${layout}">+ ${layout}</button>`).join("")}</div></section>${snapshotControls}${slideEditor}${cueContext}${cueEditor}${branchEditor}<section class="studio-validation"><p class="studio-inspector__eyebrow">Validation</p><strong>${errors} errors / ${warnings + qualityIssuesCount(issues)} warnings</strong><span>${errors === 0 ? "Ready to export" : "Resolve errors before export"}</span>${issueList}</section>`;
+}
+
+function renderSnapshotList(snapshots: StudioState["snapshots"]): string {
+  if (!snapshots.length) return "<span>No local snapshots yet.</span>";
+  const ordered = listRevisionSnapshots(snapshots.map((snapshot) => ({ ...snapshot, label: snapshot.name })) as RevisionSnapshot[]);
+  return ordered.map((snapshot, index) => {
+    const previous = ordered[index + 1];
+    const diff = previous ? diffPresentationRevision(previous.presentation, snapshot.presentation) : null;
+    const summary = diff ? formatRevisionDiff(diff) : "Initial snapshot";
+    return `<article><strong>${escape(snapshot.label ?? snapshot.id)}</strong><span>${escape(snapshot.createdAt)}</span>${snapshot.note ? `<p>${escape(snapshot.note)}</p>` : ""}<p>${escape(summary)}</p><div><button class="studio-button" type="button" data-studio-restore-snapshot="${escape(snapshot.id)}">Restore</button><button class="studio-button" type="button" data-studio-mark-presented="${escape(snapshot.id)}">Mark presented</button><button class="studio-button" type="button" data-studio-mark-published="${escape(snapshot.id)}">Mark published</button></div></article>`;
+  }).join("");
+}
+
+function formatRevisionDiff(diff: ReturnType<typeof diffPresentationRevision>): string {
+  const count = (collection: { added: string[]; removed: string[]; reordered: unknown[] }) => collection.added.length + collection.removed.length + collection.reordered.length;
+  const details = [
+    ...diff.changes.slideContent.map(() => "slide content"),
+    ...diff.changes.cueText.map(() => "cue text"),
+    ...diff.changes.cueSpeaker.map(() => "speaker"),
+    ...diff.changes.cueProfile.map(() => "profile"),
+    ...diff.changes.assetReferences.map(() => "asset reference"),
+    ...(diff.changes.publication ? ["publication"] : [])
+  ];
+  return `${count(diff.slides)} slide changes, ${count(diff.cues)} cue changes${details.length ? `; ${details.length} field changes` : ""}`;
 }
 
 function qualityIssuesCount(issues: Array<{ code: string }>): number { return issues.filter((issue) => ["missing_duration", "short_duration", "subtitle_overflow", "excessive_layers", "repeated_high_intensity"].includes(issue.code)).length; }

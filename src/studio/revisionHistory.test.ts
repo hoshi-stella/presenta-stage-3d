@@ -75,4 +75,25 @@ describe("revision history", () => {
       ]
     });
   });
+
+  it("reports content, speaker, profile, publication, and asset-reference changes separately", () => {
+    const before = createDefaultPresentation();
+    const after = structuredClone(before);
+    after.slides[0].title = "Edited slide";
+    after.slides[0].image = { assetId: "asset_after", url: "/after.png" };
+    after.cues[0].text = "Edited cue";
+    after.cues[0].speaker = after.characters.find((character) => character.id !== before.cues[0].speaker)!.id;
+    after.cues[0].presentation = { ...after.cues[0].presentation, profile: "stage3d" };
+    after.cues[0].stage = { ...after.cues[0].stage, effects: ["petals"] };
+    after.publication = { lifecycle: "published" };
+
+    expect(diffPresentationRevision(before, after).changes).toEqual({
+      slideContent: [before.slides[0].id],
+      cueText: [before.cues[0].id],
+      cueSpeaker: [before.cues[0].id],
+      cueProfile: [before.cues[0].id],
+      publication: true,
+      assetReferences: [before.slides[0].id, before.cues[0].id]
+    });
+  });
 });
