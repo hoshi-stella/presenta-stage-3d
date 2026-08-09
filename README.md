@@ -174,6 +174,17 @@ npm run preview
 
 The app has no external API dependency and runs without 3D model files.
 
+## Local MariaDB
+
+MariaDB is available as an optional local persistence foundation for future Studio save/load work. It is not accessed directly from the browser.
+
+```powershell
+Copy-Item .env.db.example .env.db.local
+docker compose -f docker/compose.yml --env-file .env.db.local up -d
+```
+
+The Docker Compose project is named `presenta-stage-3d`, with `presenta-stage-3d-web` and `presenta-stage-3d-mariadb` containers. The app is available at `http://localhost:5174`; MariaDB uses `localhost:3307`. See [MariaDB persistence](docs/mariadb-persistence.md) for the schema and lifecycle.
+
 ## Local Character Assets
 
 Character assets are local-only and ignored by Git. Keep 2D and 3D models in separate local folders so owned or licensed characters can be used without committing model files to GitHub.

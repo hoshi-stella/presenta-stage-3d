@@ -5,6 +5,7 @@ dist/
 
 *.log
 .env.local
+.env.db.local
 .DS_Store
 Thumbs.db
 
