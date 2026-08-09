@@ -183,7 +183,7 @@ Copy-Item .env.db.example .env.db.local
 docker compose -f docker/compose.yml --env-file .env.db.local up -d
 ```
 
-The Docker Compose project is named `presenta-stage-3d`, with `presenta-stage-3d-web` and `presenta-stage-3d-mariadb` containers. The app is available at `http://localhost:5174`; MariaDB uses `localhost:3307`. See [MariaDB persistence](docs/mariadb-persistence.md) for the schema and lifecycle.
+The Docker Compose project is named `presenta-stage-3d`, with `presenta-stage-3d-web`, `presenta-stage-3d-api`, and `presenta-stage-3d-mariadb` containers. The app is available at `http://localhost:5174`; MariaDB uses `localhost:3307`. Studio saves validated Presentation Package revisions through the local API, while local drafts remain available for offline recovery. See [MariaDB persistence](docs/mariadb-persistence.md) for the schema and lifecycle.
 
 ## Local Character Assets
 

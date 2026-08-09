@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "api": "node api/server.mjs",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run"
@@ -12,6 +13,8 @@
   "dependencies": {
     "@babylonjs/core": "^8.20.1",
     "@babylonjs/loaders": "^8.20.1",
+    "express": "^5.2.1",
+    "mysql2": "^3.23.2",
     "pixi-live2d-display": "^0.4.0",
     "pixi.js": "^6.5.10",
     "typescript": "^5.8.3",
