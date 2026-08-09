@@ -32,6 +32,7 @@ export type SlideDefinition = {
   code?: { language?: string; value: string };
   footer?: string;
   theme?: string;
+  publication?: PublicationSettings;
 };
 
 export type CueBranchDefinition = { command: string; label: string; targetCueId: string };
@@ -51,7 +52,7 @@ export type CueDefinition = {
   transition?: { enter?: string; exit?: string };
   demo?: { step: number; label: string; targetSeconds: number };
   after: { mode: "auto_next" | "wait_for_presenter" | "branch_available" | "stop"; durationMs?: number; branches?: CueBranchDefinition[] };
-  publication?: { visible: boolean; includeInReadingView?: boolean; includeInReplayView?: boolean };
+  publication?: { visible: boolean; includeInReadingView?: boolean; includeInReplayView?: boolean } & PublicationSettings;
 };
 
 export type PresenterDefinition =
@@ -69,6 +70,14 @@ export type CharacterDefinition = {
 };
 
 export type AssetVisibility = "local-only" | "private" | "public" | "public-with-credit";
+export type PublicationSettings = {
+  performanceOnly?: boolean;
+  public?: boolean;
+  readingViewOnly?: boolean;
+  replayViewEnabled?: boolean;
+  notesPrivate?: boolean;
+  replaceWithFallbackForPublicExport?: boolean;
+};
 export type AssetDefinition = {
   id: string;
   type: "image" | "slide-image" | "character" | "motion" | "expression" | "model3d" | "live2d" | "sound" | "particle" | "camera" | "direction-preset" | "other";
@@ -76,6 +85,7 @@ export type AssetDefinition = {
   url?: string;
   tags?: string[];
   visibility: AssetVisibility;
+  publication?: PublicationSettings;
   fallbackAssetId?: string;
   license?: { author?: string; source?: string; licenseName?: string; licenseUrl?: string; commercialUse?: boolean; redistribution?: boolean; modification?: boolean; creditRequired?: boolean; creditText?: string };
 };
@@ -92,6 +102,12 @@ export type PresentationSettings = {
   reducedMotionFallback?: boolean;
   localAssetFallback?: boolean;
 };
+export type PresentationLifecycleState = "draft" | "rehearsal" | "presented" | "published" | "archived";
+export type PresentationPublicationState = PublicationSettings & {
+  lifecycle?: PresentationLifecycleState;
+  presentedSnapshotId?: string;
+  publishedSnapshotId?: string;
+};
 export type ExportSettings = { enableSlideView?: boolean; enableReadingView?: boolean; enableReplayView?: boolean; publicAssetsOnly?: boolean; fallbackProfile?: string; includeSpeakerNotes?: boolean; includeCredits?: boolean };
 
 export type PresentationPackageV1 = {
@@ -105,6 +121,7 @@ export type PresentationPackageV1 = {
   settings: PresentationSettings;
   exports?: ExportSettings;
   credits?: CreditDefinition[];
+  publication?: PresentationPublicationState;
 };
 
 export type ValidationSeverity = "error" | "warning";

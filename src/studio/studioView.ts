@@ -5,6 +5,7 @@ import type { CueDefinition, PackageSlideLayout, PresentationPackageV1, SlideDef
 import { validatePresentationPackage } from "../package/validator";
 import { checkPresentationQuality } from "../preflight/presentationQuality";
 import { createDefaultPresentation } from "../presentations/defaultPresentation";
+import { clearStudioDraft, loadStudioDraft, saveStudioDraft, type StudioStorage } from "./draftStorage";
 import { createStudioStore, type StudioState } from "./studioStore";
 import { addSlide, deleteSlide, duplicateSlide, moveSlide } from "./slideEditor";
 import { addCue, deleteCue, duplicateCue, mergeCueWithNext, moveCue, setCueBranchTarget, splitCue, updateCue } from "./cueEditor";
@@ -12,9 +13,12 @@ import { addCue, deleteCue, duplicateCue, mergeCueWithNext, moveCue, setCueBranc
 type StudioSource = "built-in" | string;
 
 export function renderStudioView(root: HTMLElement): void {
-  const store = createStudioStore();
+  const localDraftStorage = getLocalDraftStorage();
+  const recoveredDraft = localDraftStorage ? loadStudioDraft(localDraftStorage) : null;
+  const store = createStudioStore(null, recoveredDraft ?? undefined);
   let source: StudioSource = "built-in";
   let loadGeneration = 0;
+  let autosaveTimer: number | undefined;
 
   root.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
@@ -24,6 +28,22 @@ export function renderStudioView(root: HTMLElement): void {
     if (cueId) store.selectCue(cueId);
     const qualityPath = target.closest<HTMLButtonElement>("[data-studio-quality-path]")?.dataset.studioQualityPath;
     if (qualityPath) selectQualityTarget(store, qualityPath);
+    if (target.closest("[data-studio-undo]")) store.undo();
+    if (target.closest("[data-studio-redo]")) store.redo();
+    if (target.closest("[data-studio-snapshot]")) {
+      const name = window.prompt("Snapshot name");
+      if (name) store.createSnapshot(name, window.prompt("Snapshot note (optional)") ?? undefined);
+    }
+    const restoreSnapshotId = target.closest<HTMLButtonElement>("[data-studio-restore-snapshot]")?.dataset.studioRestoreSnapshot;
+    if (restoreSnapshotId) store.restoreSnapshot(restoreSnapshotId);
+    const presentedSnapshotId = target.closest<HTMLButtonElement>("[data-studio-mark-presented]")?.dataset.studioMarkPresented;
+    if (presentedSnapshotId) store.markPresented(presentedSnapshotId);
+    const publishedSnapshotId = target.closest<HTMLButtonElement>("[data-studio-mark-published]")?.dataset.studioMarkPublished;
+    if (publishedSnapshotId) store.markPublished(publishedSnapshotId);
+    if (target.closest("[data-studio-apply-lifecycle]")) {
+      const lifecycle = root.querySelector<HTMLSelectElement>("[data-studio-lifecycle]")?.value as Parameters<typeof store.setLifecycle>[0] | undefined;
+      if (lifecycle) store.setLifecycle(lifecycle);
+    }
     if (target.closest("[data-studio-apply-title]")) {
       const presentation = store.getState().presentation;
       const titleInput = root.querySelector<HTMLInputElement>("[data-studio-title]");
@@ -38,6 +58,7 @@ export function renderStudioView(root: HTMLElement): void {
     if (target.closest("[data-studio-export]") && store.getState().presentation) {
       downloadPresentationPackage(store.getState().presentation!);
       store.markClean();
+      if (localDraftStorage) clearStudioDraft(localDraftStorage);
     }
     if (target.closest("[data-studio-open-stage]") && store.getState().presentation) {
       handoffPresentationToStage(store.getState().presentation!);
@@ -45,6 +66,7 @@ export function renderStudioView(root: HTMLElement): void {
     if (target.closest("[data-studio-starter]")) {
       source = "built-in";
       store.setPresentation(createDefaultPresentation());
+      if (localDraftStorage) clearStudioDraft(localDraftStorage);
     }
     const presentation = store.getState().presentation;
     const selectedSlideId = store.getState().selection.slideId;
@@ -103,8 +125,21 @@ export function renderStudioView(root: HTMLElement): void {
     }
   });
 
-  const unsubscribe = store.subscribe((state) => renderWorkspace(root, state, source));
-  void loadInitialPresentation();
+  const unsubscribe = store.subscribe((state) => {
+    renderWorkspace(root, state, source);
+    if (!localDraftStorage || !state.isDirty) return;
+    if (autosaveTimer !== undefined) window.clearTimeout(autosaveTimer);
+    autosaveTimer = window.setTimeout(() => {
+      const draft = store.getPersistedDraft();
+      if (draft) saveStudioDraft(localDraftStorage, draft);
+    }, 400);
+  });
+  if (recoveredDraft) {
+    source = "recovered local draft";
+    store.setError(`Recovered local draft saved ${new Date(recoveredDraft.savedAt).toLocaleString()}.`);
+  } else {
+    void loadInitialPresentation();
+  }
 
   async function loadInitialPresentation(): Promise<void> {
     const generation = ++loadGeneration;
@@ -133,6 +168,7 @@ export function renderStudioView(root: HTMLElement): void {
       if (generation !== loadGeneration) return;
       source = `file:${file.name}`;
       store.setPresentation(presentation);
+      if (localDraftStorage) clearStudioDraft(localDraftStorage);
     } catch (error) {
       if (generation !== loadGeneration) return;
       store.setError(`Import failed. The current Package was kept. ${message(error)}`);
@@ -141,7 +177,13 @@ export function renderStudioView(root: HTMLElement): void {
     }
   }
 
-  window.addEventListener("pagehide", unsubscribe, { once: true });
+  window.addEventListener("pagehide", () => {
+    if (autosaveTimer !== undefined) window.clearTimeout(autosaveTimer);
+    const currentState = store.getState();
+    const draft = currentState.isDirty ? store.getPersistedDraft() : null;
+    if (localDraftStorage && draft) saveStudioDraft(localDraftStorage, draft);
+    unsubscribe();
+  }, { once: true });
 }
 
 function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSource): void {
@@ -162,6 +204,9 @@ function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSo
       <div class="studio-header__actions">
         <span class="studio-source">${escape(source)}</span>
         <span class="studio-state ${state.isDirty ? "studio-state--dirty" : ""}">${state.isDirty ? "Unsaved changes" : "Saved"}</span>
+        <button class="studio-button" type="button" data-studio-undo ${state.canUndo ? "" : "disabled"}>Undo</button>
+        <button class="studio-button" type="button" data-studio-redo ${state.canRedo ? "" : "disabled"}>Redo</button>
+        <button class="studio-button" type="button" data-studio-snapshot>Snapshot</button>
         <label class="studio-button">Import<input type="file" accept="application/json,.json" hidden></label>
         <button class="studio-button" type="button" data-studio-export>Export</button>
         <a class="studio-button" data-studio-open-stage href="${stagePlayerHref(source, selectedCue?.id)}">Preview selected Cue</a>
@@ -177,7 +222,7 @@ function renderWorkspace(root: HTMLElement, state: StudioState, source: StudioSo
       ${state.isLoading ? `<div class="studio-loading">Loading Presentation Package...</div>` : renderPreview(selectedSlide, selectedCue)}
     </section>
     <aside class="studio-inspector">
-      ${renderInspector(presentation, selectedSlide, selectedCue, validation.errors.length, validation.warnings.length, [...validation.errors, ...validation.warnings, ...qualityIssues])}
+      ${renderInspector(presentation, selectedSlide, selectedCue, validation.errors.length, validation.warnings.length, [...validation.errors, ...validation.warnings, ...qualityIssues], state)}
     </aside>
   </main>`;
 }
@@ -199,14 +244,15 @@ function renderPreview(slide: SlideDefinition | undefined, cue: CueDefinition | 
   return `<div class="studio-preview__toolbar"><span>${escape(slide.layout)}</span><span>${cue ? `${escape(cue.kind)} / ${escape(cue.speaker)}` : "No cue selected"}</span></div><article class="studio-slide-preview studio-slide-preview--${escape(slide.layout)}"><p class="studio-slide-preview__eyebrow">${escape(slide.id)}</p><h1>${escape(slide.title ?? "Untitled slide")}</h1>${slide.subtitle ? `<h2>${escape(slide.subtitle)}</h2>` : ""}${slide.body ? `<p>${escape(Array.isArray(slide.body) ? slide.body.join(" ") : slide.body)}</p>` : ""}${slide.bullets?.length ? `<ul>${slide.bullets.map((bullet) => `<li>${escape(bullet)}</li>`).join("")}</ul>` : ""}</article>${cue ? `<section class="studio-cue-preview"><p>Current cue</p><strong>${escape(cue.text)}</strong></section>` : ""}`;
 }
 
-function renderInspector(presentation: PresentationPackageV1, slide: SlideDefinition | undefined, cue: CueDefinition | undefined, errors: number, warnings: number, issues: ValidationIssue[]): string {
+function renderInspector(presentation: PresentationPackageV1, slide: SlideDefinition | undefined, cue: CueDefinition | undefined, errors: number, warnings: number, issues: ValidationIssue[], state: StudioState): string {
   const templates: PackageSlideLayout[] = ["title", "content", "image", "split", "code", "grid", "minimal"];
   const slideEditor = slide ? `<section><p class="studio-inspector__eyebrow">Selected slide</p><div class="studio-editor-actions"><button class="studio-button" data-studio-duplicate-slide type="button">Duplicate</button><button class="studio-button" data-studio-move-slide="up" type="button">Up</button><button class="studio-button" data-studio-move-slide="down" type="button">Down</button><button class="studio-button" data-studio-delete-slide type="button">Delete</button></div><label class="studio-field">Template<select data-studio-slide-layout>${templates.map((layout) => `<option value="${layout}" ${slide.layout === layout ? "selected" : ""}>${layout}</option>`).join("")}</select></label><label class="studio-field">Title<input data-studio-slide-title value="${escape(slide.title ?? "")}"></label><label class="studio-field">Subtitle<input data-studio-slide-subtitle value="${escape(slide.subtitle ?? "")}"></label><label class="studio-field">Body<textarea data-studio-slide-body>${escape(Array.isArray(slide.body) ? slide.body.join("\n") : slide.body ?? "")}</textarea></label><label class="studio-field">Footer<input data-studio-slide-footer value="${escape(slide.footer ?? "")}"></label><label class="studio-field">Image URL<input data-studio-slide-image value="${escape(slide.image?.url ?? "")}"></label><label class="studio-field">Code language<input data-studio-slide-code-language value="${escape(slide.code?.language ?? "")}"></label><label class="studio-field">Code<textarea data-studio-slide-code>${escape(slide.code?.value ?? "")}</textarea></label><button class="studio-button" data-studio-apply-slide type="button">Apply slide</button></section>` : "";
   const cueEditor = cue ? `<section><p class="studio-inspector__eyebrow">Selected cue</p><div class="studio-editor-actions"><button class="studio-button" type="button" data-studio-add-cue>+ Cue</button><button class="studio-button" type="button" data-studio-duplicate-cue>Duplicate</button><button class="studio-button" type="button" data-studio-split-cue>Split</button><button class="studio-button" type="button" data-studio-merge-cue>Merge next</button><button class="studio-button" type="button" data-studio-move-cue="up">Up</button><button class="studio-button" type="button" data-studio-move-cue="down">Down</button><button class="studio-button" type="button" data-studio-delete-cue>Delete</button></div><label class="studio-field">Speaker<select data-studio-cue-speaker>${presentation.characters.map((character) => `<option value="${escape(character.id)}" ${cue.speaker === character.id ? "selected" : ""}>${escape(character.displayName)}</option>`).join("")}</select></label><label class="studio-field">Text<textarea data-studio-cue-text>${escape(cue.text)}</textarea></label><label class="studio-field">Note<textarea data-studio-cue-note>${escape(cue.note ?? "")}</textarea></label><label class="studio-field">Slide<select data-studio-cue-slide><option value="">No slide</option>${presentation.slides.map((slide) => `<option value="${escape(slide.id)}" ${cue.slideRef === slide.id ? "selected" : ""}>${escape(slide.title ?? slide.id)}</option>`).join("")}</select></label><label class="studio-field">Intent<input data-studio-cue-intent value="${escape(cue.direction.intent)}"></label><label class="studio-field">Intensity<select data-studio-cue-intensity>${["low","medium","high"].map((value) => `<option ${cue.direction.intensity === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><label class="studio-field">Duration ms<input type="number" min="0" data-studio-cue-duration value="${cue.estimatedDurationMs ?? ""}"></label><label class="studio-field">Progression<select data-studio-cue-after>${["wait_for_presenter","auto_next","branch_available","stop"].map((value) => `<option ${cue.after.mode === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><details><summary>Advanced stage options</summary><label class="studio-field">Direction preset<select data-studio-cue-preset><option value="">None</option>${presentation.directionPresets.map((preset) => `<option value="${escape(preset.id)}" ${cue.stage?.directionPreset === preset.id ? "selected" : ""}>${escape(preset.label)}</option>`).join("")}</select></label><label class="studio-field">Camera<input data-studio-cue-camera value="${escape(cue.stage?.camera ?? "")}"></label><label class="studio-field">Motion<input data-studio-cue-motion value="${escape(cue.stage?.motion ?? "")}"></label></details><button class="studio-button" type="button" data-studio-apply-cue>Apply cue</button></section>` : "";
   const cueContext = cue ? `<section class="studio-cue-context"><p class="studio-inspector__eyebrow">Cue context</p><span>Previous: ${escape(presentation.cues[presentation.cues.findIndex((item) => item.id === cue.id) - 1]?.text ?? "Start")}</span><span>Next: ${escape(presentation.cues[presentation.cues.findIndex((item) => item.id === cue.id) + 1]?.text ?? "End")}</span></section>` : "";
   const branchEditor = cue ? `<section><p class="studio-inspector__eyebrow">Branch and publication</p><label class="studio-field">Continue to<select data-studio-cue-branch><option value="">No branch</option>${presentation.cues.filter((item) => item.id !== cue.id).map((item) => `<option value="${escape(item.id)}" ${cue.after.branches?.[0]?.targetCueId === item.id ? "selected" : ""}>${escape(item.text)}</option>`).join("")}</select></label><label><input type="checkbox" data-studio-cue-visible ${cue.publication?.visible !== false ? "checked" : ""}> Visible</label><label><input type="checkbox" data-studio-cue-reading ${cue.publication?.includeInReadingView !== false ? "checked" : ""}> Reading view</label><label><input type="checkbox" data-studio-cue-replay ${cue.publication?.includeInReplayView !== false ? "checked" : ""}> Replay view</label><button class="studio-button" type="button" data-studio-apply-branch>Apply branch</button></section>` : "";
   const issueList = issues.map((issue) => `<button class="studio-quality-issue" type="button" data-studio-quality-path="${escape(issue.path)}">${escape(issue.message)}</button>`).join("");
-  return `<section><p class="studio-inspector__eyebrow">Presentation</p><label class="studio-field">Title<input type="text" data-studio-title value="${escape(presentation.presentation.title)}"></label><button class="studio-button" type="button" data-studio-apply-title>Apply title</button><div class="studio-template-actions">${templates.map((layout) => `<button class="studio-button" type="button" data-studio-add-slide="${layout}">+ ${layout}</button>`).join("")}</div></section>${slideEditor}${cueContext}${cueEditor}${branchEditor}<section class="studio-validation"><p class="studio-inspector__eyebrow">Validation</p><strong>${errors} errors / ${warnings + qualityIssuesCount(issues)} warnings</strong><span>${errors === 0 ? "Ready to export" : "Resolve errors before export"}</span>${issueList}</section>`;
+  const snapshotControls = `<section><p class="studio-inspector__eyebrow">Revision and publication</p><label class="studio-field">Lifecycle<select data-studio-lifecycle>${["draft", "rehearsal", "presented", "published", "archived"].map((value) => `<option value="${value}" ${state.lifecycle === value ? "selected" : ""}>${value}</option>`).join("")}</select></label><button class="studio-button" type="button" data-studio-apply-lifecycle>Apply lifecycle</button><div class="studio-snapshot-list">${state.snapshots.length ? state.snapshots.map((snapshot) => `<article><strong>${escape(snapshot.name)}</strong><span>${escape(snapshot.createdAt)}</span>${snapshot.note ? `<p>${escape(snapshot.note)}</p>` : ""}<div><button class="studio-button" type="button" data-studio-restore-snapshot="${escape(snapshot.id)}">Restore</button><button class="studio-button" type="button" data-studio-mark-presented="${escape(snapshot.id)}">Mark presented</button><button class="studio-button" type="button" data-studio-mark-published="${escape(snapshot.id)}">Mark published</button></div></article>`).join("") : "<span>No local snapshots yet.</span>"}</div></section>`;
+  return `<section><p class="studio-inspector__eyebrow">Presentation</p><label class="studio-field">Title<input type="text" data-studio-title value="${escape(presentation.presentation.title)}"></label><button class="studio-button" type="button" data-studio-apply-title>Apply title</button><div class="studio-template-actions">${templates.map((layout) => `<button class="studio-button" type="button" data-studio-add-slide="${layout}">+ ${layout}</button>`).join("")}</div></section>${snapshotControls}${slideEditor}${cueContext}${cueEditor}${branchEditor}<section class="studio-validation"><p class="studio-inspector__eyebrow">Validation</p><strong>${errors} errors / ${warnings + qualityIssuesCount(issues)} warnings</strong><span>${errors === 0 ? "Ready to export" : "Resolve errors before export"}</span>${issueList}</section>`;
 }
 
 function qualityIssuesCount(issues: Array<{ code: string }>): number { return issues.filter((issue) => ["missing_duration", "short_duration", "subtitle_overflow", "excessive_layers", "repeated_high_intensity"].includes(issue.code)).length; }
@@ -259,4 +305,12 @@ function escape(value: string): string {
 
 function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function getLocalDraftStorage(): StudioStorage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
