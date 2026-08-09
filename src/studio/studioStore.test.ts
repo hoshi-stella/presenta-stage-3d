@@ -62,4 +62,34 @@ describe("StudioStore", () => {
     expect(listener.mock.calls[0][0]).toMatchObject({ isLoading: false });
     expect(listener.mock.calls[1][0]).toMatchObject({ isLoading: true });
   });
+
+  it("supports undo and redo for Package edits", () => {
+    const presentation = createDefaultPresentation();
+    const store = createStudioStore(presentation);
+    const changed = { ...presentation, presentation: { ...presentation.presentation, title: "Changed title" } };
+
+    store.setPresentation(changed, { dirty: true });
+    expect(store.getState()).toMatchObject({ canUndo: true, canRedo: false, presentation: { presentation: { title: "Changed title" } } });
+    expect(store.undo()).toBe(true);
+    expect(store.getState()).toMatchObject({ canUndo: false, canRedo: true, presentation: { presentation: { title: presentation.presentation.title } } });
+    expect(store.redo()).toBe(true);
+    expect(store.getState().presentation?.presentation.title).toBe("Changed title");
+  });
+
+  it("creates, restores and marks independent presented and published snapshots", () => {
+    const presentation = createDefaultPresentation();
+    const store = createStudioStore(presentation);
+    const snapshot = store.createSnapshot("Event rehearsal", "Before the event");
+    const changed = { ...presentation, presentation: { ...presentation.presentation, title: "Working draft" } };
+
+    expect(snapshot).not.toBeNull();
+    store.setPresentation(changed, { dirty: true });
+    expect(store.restoreSnapshot(snapshot!.id)).toBe(true);
+    expect(store.getState().presentation?.presentation.title).toBe(presentation.presentation.title);
+    expect(store.undo()).toBe(true);
+    expect(store.getState().presentation?.presentation.title).toBe("Working draft");
+    expect(store.markPresented(snapshot!.id)).toBe(true);
+    expect(store.markPublished(snapshot!.id)).toBe(true);
+    expect(store.getState().presentation?.publication).toMatchObject({ lifecycle: "published", presentedSnapshotId: snapshot!.id, publishedSnapshotId: snapshot!.id });
+  });
 });
