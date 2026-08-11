@@ -5,6 +5,18 @@ dist/
 .playwright-mcp/
 .takt/
 
+# TAKT keeps workflow definitions in the repository, but its task queue,
+# execution reports, worktrees, and locally configured credentials are local.
+.takt/config.yaml
+.takt/tasks.yaml
+.takt/tasks/
+.takt/runs/
+.takt/events/
+.takt/exec/
+.takt/worktrees/
+.takt/persona_sessions.json
+.takt/session-state.json
+
 *.log
 .env.local
 .env.db.local

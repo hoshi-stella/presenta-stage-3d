@@ -1,0 +1,29 @@
+name: presenta-maintenance
+description: Small, bounded maintenance tasks for Presenta Stage 3D.
+initial_step: inspect
+max_steps: 8
+
+steps:
+  - name: inspect
+    persona: planner
+    edit: false
+    rules:
+      - condition: Scope and acceptance criteria are clear
+        next: implement
+
+  - name: implement
+    persona: coder
+    edit: true
+    required_permission_mode: edit
+    rules:
+      - condition: Implementation and focused validation are complete
+        next: review
+
+  - name: review
+    persona: coding-reviewer
+    edit: false
+    rules:
+      - condition: Approved
+        next: COMPLETE
+      - condition: Changes are required
+        next: implement
