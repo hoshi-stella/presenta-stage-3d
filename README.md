@@ -114,13 +114,13 @@ The 15-minute local demo track is documented in `docs/demo-track/lt-showcase-run
 
 ## Presentation Data
 
-The default LT deck is loaded from `public/presentations/lt-demo/presentation.json`. This file contains the presentation metadata, slide contents, and cue sequence in one document so the same shape can later move behind an editor UI or database table.
+The default LT deck is loaded from `public/presentations/demo/lt-showcase/presentation.json`. This file contains the presentation metadata, slide contents, and cue sequence in one document so the same shape can later move behind an editor UI or database table.
 
 Use `?presentation=/presentations/<id>/presentation.json` to load another deck. If the JSON is missing or invalid, the app falls back to the built-in TypeScript demo data so the stage still starts during rehearsals.
 
 Keep reusable text data in Git, but keep model, image, voice, and other character assets under `public/assets-local/**` so private or licensed materials are not committed.
 
-User-created files are also local-only by default: place uploaded media in `public/uploads/**`, user-authored Presentation Packages and related files in `public/user-content/**`, and local working data in `data/local/**`. Git tracks only each directory's `.gitkeep`; committed showcase packages remain under `public/presentations/**`.
+User-created files are also local-only by default: place uploaded media in `public/uploads/**`, user-authored Presentation Packages and related files in `public/user-content/**`, and local working data in `data/local/**`. Git tracks only each directory's `.gitkeep`. Committed Package fixtures must be curated under `public/presentations/demo/**` or `public/presentations/samples/**`.
 
 ## Cue Audio
 
@@ -141,7 +141,7 @@ A Cue can optionally carry a local audio reference. When present, playback start
 presenta-stage-3d can load presentation data from a versioned JSON package.
 
 ```txt
-?presentation=/presentations/showcase.presentation.json
+?presentation=/presentations/demo/lt-showcase/presentation.json
 ```
 
 The package contains metadata, slides, cues, characters, assets, direction presets, publication settings, and export settings. See [Presentation Package v1](docs/presentation-package-v1.md) for the schema, validation, import/export, and runtime adapter policy.

@@ -29,3 +29,11 @@ public/user-content/**
 data/local/**
 !data/local/
 !data/local/.gitkeep
+
+# Only curated demo and sample presentation packages are committed.
+public/presentations/**
+!public/presentations/
+!public/presentations/demo/
+!public/presentations/demo/**
+!public/presentations/samples/
+!public/presentations/samples/**
