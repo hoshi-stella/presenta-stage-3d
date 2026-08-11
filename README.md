@@ -120,6 +120,8 @@ Use `?presentation=/presentations/<id>/presentation.json` to load another deck. 
 
 Keep reusable text data in Git, but keep model, image, voice, and other character assets under `public/assets-local/**` so private or licensed materials are not committed.
 
+User-created files are also local-only by default: place uploaded media in `public/uploads/**`, user-authored Presentation Packages and related files in `public/user-content/**`, and local working data in `data/local/**`. Git tracks only each directory's `.gitkeep`; committed showcase packages remain under `public/presentations/**`.
+
 ## Cue Audio
 
 A Cue can optionally carry a local audio reference. When present, playback starts with the Cue, stops when the Cue changes, follows Pause / Resume, and drives the active character state used by the image Presenter mouth flap. Audio is optional: no configured file, a missing file, or a browser autoplay restriction does not block Manual Mode.
