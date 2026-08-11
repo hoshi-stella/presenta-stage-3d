@@ -15,7 +15,7 @@ describe("asset library", () => {
         id: "petal-particle",
         type: "particle",
         label: "Petal fall",
-        tags: ["celebration", "flower"],
+        tags: ["asset-library-test", "flower"],
         visibility: "public"
       },
       {
@@ -29,15 +29,15 @@ describe("asset library", () => {
         id: "airi-image",
         type: "image",
         label: "Airi image",
-        tags: ["character", "celebration"],
+        tags: ["character", "asset-library-test"],
         visibility: "public"
       }
     );
 
-    expect(searchPresentationAssets(presentation, { type: "particle", tag: "celebration" }).map((asset) => asset.id)).toEqual([
+    expect(searchPresentationAssets(presentation, { type: "particle", tag: "asset-library-test" }).map((asset) => asset.id)).toEqual([
       "petal-particle"
     ]);
-    expect(searchPresentationAssets(presentation, { tag: "celebration" }).map((asset) => asset.id)).toEqual([
+    expect(searchPresentationAssets(presentation, { tag: "asset-library-test" }).map((asset) => asset.id)).toEqual([
       "petal-particle",
       "airi-image"
     ]);
