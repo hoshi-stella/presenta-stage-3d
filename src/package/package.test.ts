@@ -49,6 +49,22 @@ describe("Presentation Package v1", () => {
     expect(validatePresentationPackage(roundTripped).valid).toBe(true);
   });
 
+  it("applies the selected export profile before serializing a public package", () => {
+    const presentation = createDefaultPresentation();
+    presentation.assets.push(
+      { id: "private-image", type: "image", label: "Private image", visibility: "local-only", fallbackAssetId: "public-image" },
+      { id: "public-image", type: "image", label: "Public image", url: "/assets/public/image.png", visibility: "public" }
+    );
+    presentation.slides[0].image = { assetId: "private-image", alt: "Fallback asset" };
+    presentation.cues[0].note = "Not for the public replay.";
+
+    const exported = loadPresentationFromJson(serializePresentationPackage(presentation, { profile: "public-replay" }));
+
+    expect(exported.assets.map((asset) => asset.id)).not.toContain("private-image");
+    expect(exported.slides[0].image?.assetId).toBe("public-image");
+    expect(exported.cues[0].note).toBeUndefined();
+  });
+
   it("keeps valid cue audio metadata when adapting to the runtime", () => {
     const presentation = createDefaultPresentation();
     presentation.cues[0].audio = { src: "/assets-local/audio/opening.mp3", durationMs: 2500, volume: 0.8 };

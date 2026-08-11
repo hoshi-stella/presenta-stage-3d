@@ -1,12 +1,18 @@
 import type { PresentationPackageV1 } from "./types";
+import { createExportProfile, type PresentationExportProfile } from "./exportProfile";
 import { validatePresentationPackage } from "./validator";
 
-export type PresentationExportOptions = { pretty?: boolean; updateUpdatedAt?: boolean };
+export type PresentationExportOptions = { pretty?: boolean; updateUpdatedAt?: boolean; profile?: PresentationExportProfile };
 
 export function serializePresentationPackage(presentation: PresentationPackageV1, options: PresentationExportOptions = {}): string {
+  const profiled = options.profile ? createExportProfile(presentation, options.profile) : undefined;
+  if (profiled?.status === "blocked") {
+    throw new Error(`Presentation Package cannot be exported: ${profiled.issues.map((issue) => `${issue.assetId} requires a public fallback.`).join(" ")}`);
+  }
+  const source = profiled?.presentation ?? presentation;
   const nextPackage = options.updateUpdatedAt
-    ? { ...presentation, presentation: { ...presentation.presentation, updatedAt: new Date().toISOString() } }
-    : presentation;
+    ? { ...source, presentation: { ...source.presentation, updatedAt: new Date().toISOString() } }
+    : source;
   const validation = validatePresentationPackage(nextPackage);
   if (!validation.valid) {
     throw new Error(`Presentation Package cannot be exported: ${validation.errors.map((issue) => issue.message).join(" ")}`);
