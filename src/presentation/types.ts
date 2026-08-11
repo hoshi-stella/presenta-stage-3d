@@ -62,6 +62,7 @@ export type PresentationLayer =
   | "live2d"
   | "stage3d"
   | "effects"
+  | "algorithm2d"
   | "ending_credits";
 
 export type LayoutPreset =
@@ -69,6 +70,7 @@ export type LayoutPreset =
   | "slide_with_caption"
   | "slide_with_manju"
   | "slide_with_character"
+  | "slide_with_algorithm2d"
   | "live2d_focus"
   | "dialogue_split"
   | "stage_focus"

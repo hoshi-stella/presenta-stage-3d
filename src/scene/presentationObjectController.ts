@@ -20,6 +20,7 @@ export class PresentationObjectController {
   private readonly root: TransformNode;
   private readonly parts = new Map<string, ObjectPartMesh>();
   private activeInstruction: PresentationObjectInstruction | null = null;
+  private activeObjectId: string | null = null;
   private isVisible = false;
   private rotationEnabled = false;
   private explodeAmount = 0;
@@ -39,7 +40,7 @@ export class PresentationObjectController {
     }
 
     this.activeInstruction = instruction;
-    this.ensureObjectParts(instruction.parts);
+    this.ensureObjectParts(instruction.objectId, instruction.parts);
 
     switch (instruction.action) {
       case "hide":
@@ -82,17 +83,15 @@ export class PresentationObjectController {
     return activePart ? `${this.activeInstruction.label}: ${activePart.label}` : this.activeInstruction.label;
   }
 
-  private ensureObjectParts(parts: PresentationObjectPart[]): void {
-    if (this.parts.size > 0) {
+  private ensureObjectParts(objectId: string, parts: PresentationObjectPart[]): void {
+    if (this.activeObjectId === objectId && this.parts.size > 0) {
       return;
     }
 
-    const positions = [
-      new Vector3(-0.7, 0.82, 0),
-      new Vector3(0, 0.82, 0),
-      new Vector3(0.7, 0.82, 0),
-      new Vector3(0, 0.25, 0)
-    ];
+    this.parts.forEach(({ mesh }) => mesh.dispose());
+    this.parts.clear();
+    this.activeObjectId = objectId;
+
     parts.forEach((part, index) => {
       const material = new StandardMaterial(`${part.id}ObjectMaterial`, this.scene);
       material.diffuseColor = Color3.FromHexString(part.color);
@@ -100,10 +99,10 @@ export class PresentationObjectController {
 
       const mesh = MeshBuilder.CreateBox(
         `${part.id}ObjectPart`,
-        { width: index === 3 ? 1.7 : 0.56, height: 0.34, depth: 0.42 },
+        getPartDimensions(objectId, index),
         this.scene
       );
-      const basePosition = positions[index] ?? new Vector3(index * 0.5, 0.5, 0);
+      const basePosition = getPartPosition(objectId, index);
       mesh.position = basePosition.clone();
       mesh.material = material;
       mesh.parent = this.root;
@@ -146,4 +145,30 @@ export class PresentationObjectController {
     this.root.rotation.y += this.rotationEnabled ? 0.012 : 0.003;
     this.root.position.y = 0.42 + Math.sin(seconds * 1.4) * 0.035;
   }
+}
+
+function getPartDimensions(objectId: string, index: number): { width: number; height: number; depth: number } {
+  if (objectId === "algorithm_sort") {
+    return { width: 0.42, height: [0.56, 0.94, 1.28][index] ?? 0.52, depth: 0.42 };
+  }
+
+  return { width: 0.9, height: 0.32, depth: 0.5 };
+}
+
+function getPartPosition(objectId: string, index: number): Vector3 {
+  if (objectId === "algorithm_stack") {
+    return new Vector3(0, 0.28 + index * 0.38, 0);
+  }
+
+  if (objectId === "algorithm_ring_buffer") {
+    const angles = [-2.2, 0, 2.2];
+    const angle = angles[index] ?? 0;
+    return new Vector3(Math.cos(angle) * 0.72, 0.58 + Math.sin(angle) * 0.55, 0);
+  }
+
+  if (objectId === "algorithm_sort") {
+    return new Vector3(-0.62 + index * 0.62, 0.24 + ([0.56, 0.94, 1.28][index] ?? 0.52) / 2, 0);
+  }
+
+  return new Vector3(-0.72 + index * 0.72, 0.7, 0);
 }

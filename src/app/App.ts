@@ -12,7 +12,8 @@ import { parseMarkdownToCues } from "../presentation/markdownCueParser";
 import { applyPresentationComposition } from "../presentation/presentationComposer";
 import { createPresentationTransitionCoordinator, type PresentationTransitionCoordinator } from "../presentation/transitionCoordinator";
 import { createStageScene, type StageScene } from "../scene/createScene";
-import { createUiRenderer, getSlideLayerHost, getStageCanvas, getStaticIllustrationHost, getSubtitleLayerHost } from "../ui/renderUi";
+import { createUiRenderer, getAlgorithm2DHost, getSlideLayerHost, getStageCanvas, getStaticIllustrationHost, getSubtitleLayerHost } from "../ui/renderUi";
+import { createAlgorithm2DLayer, type Algorithm2DLayer } from "../algorithm2d/algorithm2dLayer";
 import { createSlideLayer, type SlideLayer } from "../slides/slideLayer";
 import { createSubtitleLayer, type SubtitleLayer } from "../subtitles/subtitleLayer";
 import { getLive2DConfig } from "../live2d/config";
@@ -35,6 +36,7 @@ export class App {
   private stageScene: StageScene | null = null;
   private slideLayer: SlideLayer | null = null;
   private subtitleLayer: SubtitleLayer | null = null;
+  private algorithm2dLayer: Algorithm2DLayer | null = null;
   private live2dLayer: Live2DPresenterLayer | null = null;
   private imagePresenterLayer: ImagePresenterLayer | null = null;
   private staticIllustrationPresenter: StaticIllustrationPresenter | null = null;
@@ -101,6 +103,7 @@ export class App {
     this.stageScene = createStageScene(getStageCanvas(this.root));
     this.slideLayer = createSlideLayer(getSlideLayerHost(this.root));
     this.subtitleLayer = createSubtitleLayer(getSubtitleLayerHost(this.root));
+    this.algorithm2dLayer = createAlgorithm2DLayer(getAlgorithm2DHost(this.root));
     const live2dHost = this.root.querySelector<HTMLElement>("#live2d-host");
     if (live2dHost) {
       void createLive2DPresenterLayer(live2dHost, getLive2DConfig(), (_state, message) => {
@@ -140,6 +143,7 @@ export class App {
       ui.update(snapshot);
       this.slideLayer?.update(snapshot);
       this.subtitleLayer?.update(snapshot);
+      this.algorithm2dLayer?.update(snapshot);
       this.stageScene?.applySectionVisuals(
         snapshot.resolvedDirection.scenePreset,
         snapshot.resolvedDirection.camera,
@@ -223,6 +227,7 @@ export class App {
     this.live2dLayer?.dispose();
     this.slideLayer?.dispose();
     this.subtitleLayer?.dispose();
+    this.algorithm2dLayer?.dispose();
     this.imagePresenterLayer?.dispose();
     this.staticIllustrationPresenter?.dispose();
     this.endingCredits?.dispose();
