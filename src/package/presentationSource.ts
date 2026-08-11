@@ -4,7 +4,7 @@ import type { PresentationPackageV1 } from "./types";
 const stageHandoffKey = "presenta-stage-3d.stage-handoff";
 
 export function getPresentationPackageUrl(url = new URL(window.location.href)): string {
-  return url.searchParams.get("presentation") ?? import.meta.env.VITE_PRESENTATION_URL ?? "/presentations/showcase.presentation.json";
+  return url.searchParams.get("presentation") ?? import.meta.env.VITE_PRESENTATION_URL ?? "/presentations/demo/lt-showcase/presentation.json";
 }
 
 export function handoffPresentationToStage(presentation: PresentationPackageV1): void {

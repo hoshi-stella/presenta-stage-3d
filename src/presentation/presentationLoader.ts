@@ -21,7 +21,7 @@ export type PresentationLoadResult =
       sourceUrl: string;
     };
 
-const defaultPresentationUrl = "/presentations/lt-demo/presentation.json";
+const defaultPresentationUrl = "/presentations/samples/legacy-lt-demo/presentation.json";
 
 const slideLayouts = new Set<SlideLayout>(["title", "content", "image", "split", "code"]);
 const cueKinds = new Set<CueKind>([

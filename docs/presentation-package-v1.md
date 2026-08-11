@@ -40,14 +40,14 @@ Assets are marked `local-only`, `private`, `public`, or `public-with-credit`. `l
 
 At startup the player checks, in order:
 
-1. `?presentation=/presentations/showcase.presentation.json`
+1. `?presentation=/presentations/demo/lt-showcase/presentation.json`
 2. `VITE_PRESENTATION_URL`
-3. `/presentations/showcase.presentation.json`
+3. `/presentations/demo/lt-showcase/presentation.json`
 4. the built-in TypeScript demo
 
 Use **Load Package** in the Presenter Console to import a JSON file for the current browser session. It validates and immediately replaces the active slides and cues; a failed import keeps the current presentation intact. **Export Package** downloads validated JSON with a safe filename. Export never writes local assets into Git.
 
-The bundled LT package is [showcase.presentation.json](../public/presentations/showcase.presentation.json). The legacy [lt-demo/presentation.json](../public/presentations/lt-demo/presentation.json) remains temporarily as the pre-v1 document format reference.
+The bundled LT package is [demo/lt-showcase/presentation.json](../public/presentations/demo/lt-showcase/presentation.json). The legacy [samples/legacy-lt-demo/presentation.json](../public/presentations/samples/legacy-lt-demo/presentation.json) remains temporarily as the pre-v1 document format reference.
 
 ## Validation and migration
 

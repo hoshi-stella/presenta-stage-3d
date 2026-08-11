@@ -16,3 +16,24 @@ item/*.unitypackage
 public/assets-local/**
 !public/assets-local/
 !public/assets-local/.gitkeep
+
+# User-created packages, uploaded media, and local working data must never be committed.
+public/uploads/**
+!public/uploads/
+!public/uploads/.gitkeep
+
+public/user-content/**
+!public/user-content/
+!public/user-content/.gitkeep
+
+data/local/**
+!data/local/
+!data/local/.gitkeep
+
+# Only curated demo and sample presentation packages are committed.
+public/presentations/**
+!public/presentations/
+!public/presentations/demo/
+!public/presentations/demo/**
+!public/presentations/samples/
+!public/presentations/samples/**
