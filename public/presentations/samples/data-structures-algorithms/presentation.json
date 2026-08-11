@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "presentation": {
+    "id": "sample-data-structures-algorithms",
+    "title": "データ構造とアルゴリズムを、操作から選ぶ",
+    "subtitle": "Stack / Queue / Buffer / Sort / 計算量",
+    "description": "Presenta Studio用の、データ構造とアルゴリズムを題材にした再利用可能な技術発表サンプルです。",
+    "author": { "name": "presenta-stage-3d sample" },
+    "language": "ja",
+    "tags": ["sample", "data-structures", "algorithms"],
+    "estimatedDurationMs": 420000
+  },
+  "slides": [
+    {
+      "id": "slide_title",
+      "layout": "title",
+      "title": "データ構造とアルゴリズムを、操作から選ぶ",
+      "subtitle": "Stack / Queue / Buffer / Sort / 計算量",
+      "body": "速さのためだけではなく、必要な操作を安全に表現するための選択です。"
+    },
+    {
+      "id": "slide_problem",
+      "layout": "content",
+      "title": "まず考えるのは、何をしたいか",
+      "bullets": [
+        "末尾に追加したい",
+        "先頭から順に取り出したい",
+        "最後に追加したものを戻したい",
+        "常に小さい順で扱いたい"
+      ],
+      "footer": "データ構造は、よく行う操作を得意にするための形です。"
+    },
+    {
+      "id": "slide_complexity",
+      "layout": "grid",
+      "title": "計算量は、入力が増えたときの伸び方を見る",
+      "columns": [
+        { "title": "O(1)", "body": "要素数に関係なく、ほぼ一定" },
+        { "title": "O(log n)", "body": "半分ずつ絞り込む" },
+        { "title": "O(n)", "body": "一度全体を見る" },
+        { "title": "O(n log n)", "body": "実用的な比較ソートの代表" },
+        { "title": "O(n^2)", "body": "全組み合わせを比べると増えやすい" }
+      ],
+      "footer": "計算量は目安です。実際にはデータ量、メモリ、実装、キャッシュも効きます。"
+    },
+    {
+      "id": "slide_stack",
+      "layout": "split",
+      "title": "Stack: 最後に入れたものを、最初に取り出す",
+      "body": "LIFO (Last In, First Out)。直前の状態へ戻る操作と相性がよい構造です。",
+      "columns": [
+        { "title": "得意な操作", "bullets": ["push: 上に積む", "pop: 一番上を取り出す", "peek: 一番上を見る"] },
+        { "title": "身近な例", "bullets": ["Undo / Redo", "関数呼び出し", "ブラウザの戻る履歴"] }
+      ]
+    },
+    {
+      "id": "slide_queue_buffer",
+      "layout": "split",
+      "title": "Queue と Buffer: 到着順に流し、速度差を吸収する",
+      "body": "QueueはFIFO (First In, First Out)。Bufferは生産側と消費側のペース差を受け止める場所です。",
+      "columns": [
+        { "title": "Queue", "bullets": ["enqueue: 後ろへ追加", "dequeue: 前から取り出す", "受付、ジョブ、メッセージ"] },
+        { "title": "Ring Buffer", "bullets": ["固定サイズで循環", "古い要素を捨てるか拒否するか決める", "音声、ログ、ストリーム"] }
+      ]
+    },
+    {
+      "id": "slide_sort",
+      "layout": "architecture",
+      "title": "ソートは、データの性質で選ぶ",
+      "columns": [
+        { "title": "ほぼ並んでいる", "body": "挿入ソートは小規模・ほぼ整列済みで扱いやすい" },
+        { "title": "安定順序が必要", "body": "マージソートは安定だが追加メモリを使う" },
+        { "title": "平均的に速くしたい", "body": "クイックソート系は実用的だが最悪ケースに注意" },
+        { "title": "比較しない", "body": "値の範囲が限定されるならカウント系も選択肢" }
+      ],
+      "footer": "多くの言語の標準ライブラリは、条件に応じて実用的な実装を選んでいます。"
+    },
+    {
+      "id": "slide_sort_code",
+      "layout": "code",
+      "title": "先に、標準のsortを使う理由を説明できるようにする",
+      "code": {
+        "language": "ts",
+        "value": "const byCreatedAt = items.toSorted(\n  (left, right) => left.createdAt.localeCompare(right.createdAt)\n);\n\n// 仕様: createdAt 昇順\n// コスト: おおむね O(n log n) を期待\n// 注意: 元の配列は変更しない"
+      },
+      "footer": "アルゴリズムを自作する前に、順序・安定性・破壊的変更の有無を仕様として決めます。"
+    },
+    {
+      "id": "slide_summary",
+      "layout": "minimal",
+      "title": "結論: 操作、制約、データ量の順で選ぶ",
+      "bullets": [
+        "直前へ戻るならStack",
+        "到着順に処理するならQueue",
+        "速度差を吸収するならBuffer",
+        "並び替えはデータの性質と要求で選ぶ",
+        "計算量は、設計を比較する共通言語"
+      ],
+      "footer": "まずは操作を言葉にすると、候補となる構造が絞れます。"
+    }
+  ],
+  "cues": [
+    {
+      "id": "cue_title",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "今日は、データ構造とアルゴリズムを、名前ではなく必要な操作から選ぶ話をします。",
+      "note": "導入。用語暗記ではなく、設計判断へ繋げると伝える。",
+      "estimatedDurationMs": 30000,
+      "slideRef": "slide_title",
+      "direction": { "intent": "neutral", "intensity": "low" },
+      "after": { "mode": "wait_for_presenter" }
+    },
+    {
+      "id": "cue_problem",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "構造を選ぶ前に、追加、取り出し、検索、並び替えのどれを頻繁に行うかを確認します。",
+      "estimatedDurationMs": 45000,
+      "slideRef": "slide_problem",
+      "direction": { "intent": "question", "intensity": "low" },
+      "after": { "mode": "wait_for_presenter" }
+    },
+    {
+      "id": "cue_complexity",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "計算量は、入力が増えたときに処理時間がどんな伸び方をするかを比べるためのものです。",
+      "estimatedDurationMs": 60000,
+      "slideRef": "slide_complexity",
+      "direction": { "intent": "emphasis", "intensity": "medium" },
+      "after": { "mode": "wait_for_presenter" }
+    },
+    {
+      "id": "cue_stack",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "Stackは最後に入れたものを先に取り出します。Undoや関数呼び出しのように、直近の状態へ戻る場面で自然に使えます。",
+      "estimatedDurationMs": 60000,
+      "slideRef": "slide_stack",
+      "direction": { "intent": "supplement", "intensity": "low" },
+      "after": { "mode": "wait_for_presenter" }
+    },
+    {
+      "id": "cue_queue_buffer",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "Queueは先に来たものから処理します。Bufferを間に置くと、作る速度と処理する速度が違っても全体を安定させられます。",
+      "estimatedDurationMs": 60000,
+      "slideRef": "slide_queue_buffer",
+      "direction": { "intent": "deep_dive", "intensity": "medium" },
+      "after": { "mode": "wait_for_presenter" }
+    },
+    {
+      "id": "cue_sort",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "ソートは一種類を覚えるより、データがほぼ並んでいるか、安定性が要るか、追加メモリを使えるかで選ぶ方が実務的です。",
+      "estimatedDurationMs": 75000,
+      "slideRef": "slide_sort",
+      "direction": { "intent": "deep_dive", "intensity": "medium" },
+      "after": { "mode": "wait_for_presenter" }
+    },
+    {
+      "id": "cue_sort_code",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "まずは標準ライブラリを使い、どんな順序にするかと、元の配列を変えてよいかを仕様として残します。",
+      "estimatedDurationMs": 45000,
+      "slideRef": "slide_sort_code",
+      "direction": { "intent": "emphasis", "intensity": "low" },
+      "after": { "mode": "wait_for_presenter" }
+    },
+    {
+      "id": "cue_summary",
+      "kind": "summary",
+      "speaker": "presenter",
+      "text": "必要な操作、制約、データ量の順に考えると、Stack、Queue、Buffer、ソートの使い分けが設計として説明できます。",
+      "estimatedDurationMs": 45000,
+      "slideRef": "slide_summary",
+      "direction": { "intent": "summary", "intensity": "medium" },
+      "after": { "mode": "stop" }
+    }
+  ],
+  "characters": [
+    { "id": "presenter", "displayName": "Presenter", "roles": ["presenter"] }
+  ],
+  "assets": [],
+  "directionPresets": [],
+  "settings": {
+    "defaultProfile": "classic_slide",
+    "defaultLayers": ["slide", "subtitle"],
+    "fallbackProfile": "classic_slide",
+    "mode": "manual",
+    "aspectRatio": "16:9",
+    "subtitle": { "enabled": true, "maxLines": 3 }
+  },
+  "exports": {
+    "enableSlideView": true,
+    "enableReadingView": true,
+    "enableReplayView": true,
+    "publicAssetsOnly": true,
+    "includeSpeakerNotes": false,
+    "includeCredits": true
+  },
+  "publication": {
+    "public": true,
+    "notesPrivate": true,
+    "replayViewEnabled": true,
+    "lifecycle": "published"
+  }
+}
