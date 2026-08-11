@@ -23,6 +23,7 @@ const allLayers: PresentationLayer[] = [
   "live2d",
   "stage3d",
   "effects",
+  "algorithm2d",
   "ending_credits"
 ];
 
@@ -31,6 +32,7 @@ const defaultLayouts: Record<LayoutPreset, PresentationLayer[]> = {
   slide_with_caption: ["slide", "subtitle"],
   slide_with_manju: ["slide", "subtitle", "manju"],
   slide_with_character: ["slide", "subtitle", "static_illustration"],
+  slide_with_algorithm2d: ["slide", "subtitle", "algorithm2d"],
   live2d_focus: ["slide", "subtitle", "live2d"],
   dialogue_split: ["slide", "subtitle", "manju", "static_illustration"],
   stage_focus: ["stage3d", "effects"],

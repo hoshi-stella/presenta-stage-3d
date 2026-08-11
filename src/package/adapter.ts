@@ -14,8 +14,8 @@ const runtimeLayouts = new Set<SlideLayout>(["title", "content", "image", "split
 const runtimeCharacters = new Set<CharacterId>(["rei", "mikoto", "dummy"]);
 const runtimeIntents = new Set<DirectionIntent>(["neutral", "emphasis", "question", "doubt", "supplement", "reaction", "tsukkomi", "deep_dive", "warning", "summary", "transition", "celebration"]);
 const runtimeProfiles = new Set<PresentationProfile>(["classic_slide", "manju_commentary", "live2d_talk", "stage3d", "mixed_dialogue", "technical_overview", "ending"]);
-const runtimeLayers = new Set<PresentationLayer>(["slide", "subtitle", "manju", "static_illustration", "live2d", "stage3d", "effects", "ending_credits"]);
-const runtimeLayoutsForPresentation = new Set<LayoutPreset>(["slide_only", "slide_with_caption", "slide_with_manju", "slide_with_character", "live2d_focus", "dialogue_split", "stage_focus", "live2d_stage_dialogue", "stage_full", "stage_with_overlay"]);
+const runtimeLayers = new Set<PresentationLayer>(["slide", "subtitle", "manju", "static_illustration", "live2d", "stage3d", "effects", "algorithm2d", "ending_credits"]);
+const runtimeLayoutsForPresentation = new Set<LayoutPreset>(["slide_only", "slide_with_caption", "slide_with_manju", "slide_with_character", "slide_with_algorithm2d", "live2d_focus", "dialogue_split", "stage_focus", "live2d_stage_dialogue", "stage_full", "stage_with_overlay"]);
 
 export function adaptPresentationPackageToRuntime(presentation: PresentationPackageV1): RuntimePresentationData {
   return {

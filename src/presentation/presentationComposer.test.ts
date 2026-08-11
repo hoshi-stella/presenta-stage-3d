@@ -23,4 +23,14 @@ describe("presentation composition", () => {
 
     expect(resolvePresentationComposition(stageFullCue).activeLayers).toEqual(["stage3d", "effects"]);
   });
+
+  it("keeps the 2D algorithm visualizer constrained to slide and subtitle cues", () => {
+    const cues = adaptPresentationPackageToRuntime(createDefaultPresentation()).cues;
+    const algorithmCue = {
+      ...cues[0],
+      presentation: { layout: "slide_with_algorithm2d" as const }
+    };
+
+    expect(resolvePresentationComposition(algorithmCue).activeLayers).toEqual(["slide", "subtitle", "algorithm2d"]);
+  });
 });

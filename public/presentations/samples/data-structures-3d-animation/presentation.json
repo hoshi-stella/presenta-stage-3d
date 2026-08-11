@@ -1,0 +1,521 @@
+{
+  "schemaVersion": 1,
+  "presentation": {
+    "id": "sample-data-structures-3d-animation",
+    "title": "データ構造とアルゴリズム: 3Dアニメーション版",
+    "subtitle": "比較用サンプル 3/3 | Slide + Babylon.js stage",
+    "description": "Cueに合わせてBabylon.js上の手続きオブジェクトを切り替え、空間上で状態変化を説明する比較用サンプルです。",
+    "author": {
+      "name": "presenta-stage-3d sample"
+    },
+    "language": "ja",
+    "tags": [
+      "sample",
+      "data-structures",
+      "algorithms",
+      "sample-data-structures-3d-animation"
+    ],
+    "estimatedDurationMs": 535000
+  },
+  "slides": [
+    {
+      "id": "slide_title",
+      "layout": "title",
+      "title": "データ構造とアルゴリズムを、操作から選ぶ",
+      "subtitle": "Stack / Queue / Buffer / Sort / 計算量",
+      "body": "速さのためだけではなく、必要な操作を安全に表現するための選択です。"
+    },
+    {
+      "id": "slide_problem",
+      "layout": "content",
+      "title": "まず考えるのは、何をしたいか",
+      "bullets": [
+        "末尾に追加したい",
+        "先頭から順に取り出したい",
+        "最後に追加したものを戻したい",
+        "常に小さい順で扱いたい"
+      ],
+      "footer": "データ構造は、よく行う操作を得意にするための形です。"
+    },
+    {
+      "id": "slide_complexity",
+      "layout": "grid",
+      "title": "計算量は、入力が増えたときの伸び方を見る",
+      "columns": [
+        {
+          "title": "O(1)",
+          "body": "要素数に関係なく、ほぼ一定"
+        },
+        {
+          "title": "O(log n)",
+          "body": "半分ずつ絞り込む"
+        },
+        {
+          "title": "O(n)",
+          "body": "一度全体を見る"
+        },
+        {
+          "title": "O(n log n)",
+          "body": "実用的な比較ソートの代表"
+        },
+        {
+          "title": "O(n^2)",
+          "body": "全組み合わせを比べると増えやすい"
+        }
+      ],
+      "footer": "計算量は目安です。実際にはデータ量、メモリ、実装、キャッシュも効きます。"
+    },
+    {
+      "id": "slide_animation_map",
+      "layout": "grid",
+      "title": "データ構造は、動きにすると役割が見えやすい",
+      "columns": [
+        {
+          "title": "Stack",
+          "body": "箱を上に積み、popで一番上だけを取り出す"
+        },
+        {
+          "title": "Queue",
+          "body": "左から到着し、右へ順番に流れていく"
+        },
+        {
+          "title": "Ring Buffer",
+          "body": "固定枠をポインタが周回し、満杯時の扱いを示す"
+        },
+        {
+          "title": "Sort",
+          "body": "比較中の要素を強調し、交換・分割・統合を動かす"
+        }
+      ],
+      "footer": "操作の前後差分を見せるだけで、2Dでも3Dでも説明の負荷を下げられます。"
+    },
+    {
+      "id": "slide_stack",
+      "layout": "split",
+      "title": "Stack: 最後に入れたものを、最初に取り出す",
+      "body": "LIFO (Last In, First Out)。直前の状態へ戻る操作と相性がよい構造です。",
+      "columns": [
+        {
+          "title": "得意な操作",
+          "bullets": [
+            "push: 上に積む",
+            "pop: 一番上を取り出す",
+            "peek: 一番上を見る"
+          ]
+        },
+        {
+          "title": "身近な例",
+          "bullets": [
+            "Undo / Redo",
+            "関数呼び出し",
+            "ブラウザの戻る履歴"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "slide_queue_buffer",
+      "layout": "split",
+      "title": "Queue と Buffer: 到着順に流し、速度差を吸収する",
+      "body": "QueueはFIFO (First In, First Out)。Bufferは生産側と消費側のペース差を受け止める場所です。",
+      "columns": [
+        {
+          "title": "Queue",
+          "bullets": [
+            "enqueue: 後ろへ追加",
+            "dequeue: 前から取り出す",
+            "受付、ジョブ、メッセージ"
+          ]
+        },
+        {
+          "title": "Ring Buffer",
+          "bullets": [
+            "固定サイズで循環",
+            "古い要素を捨てるか拒否するか決める",
+            "音声、ログ、ストリーム"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "slide_sort",
+      "layout": "architecture",
+      "title": "ソートは、データの性質で選ぶ",
+      "columns": [
+        {
+          "title": "ほぼ並んでいる",
+          "body": "挿入ソートは小規模・ほぼ整列済みで扱いやすい"
+        },
+        {
+          "title": "安定順序が必要",
+          "body": "マージソートは安定だが追加メモリを使う"
+        },
+        {
+          "title": "平均的に速くしたい",
+          "body": "クイックソート系は実用的だが最悪ケースに注意"
+        },
+        {
+          "title": "比較しない",
+          "body": "値の範囲が限定されるならカウント系も選択肢"
+        }
+      ],
+      "footer": "多くの言語の標準ライブラリは、条件に応じて実用的な実装を選んでいます。"
+    },
+    {
+      "id": "slide_sort_animation",
+      "layout": "split",
+      "title": "ソートは、比較と状態変化を分けて見せる",
+      "body": "棒やカードの高さを値として扱うと、アルゴリズムごとの違いを同じ舞台で比較できます。",
+      "columns": [
+        {
+          "title": "2Dで見せる",
+          "bullets": [
+            "比較する2要素を色で強調",
+            "交換・挿入を横移動で表示",
+            "比較回数と交換回数をカウンタ表示"
+          ]
+        },
+        {
+          "title": "3Dで見せる",
+          "bullets": [
+            "値を高さや奥行きへ対応",
+            "分割範囲を床や枠で表現",
+            "カメラで注目範囲を寄る"
+          ]
+        }
+      ],
+      "footer": "演出は理解を補助するために使い、速さや正しさの説明そのものはCueの文脈に残します。"
+    },
+    {
+      "id": "slide_sort_code",
+      "layout": "code",
+      "title": "先に、標準のsortを使う理由を説明できるようにする",
+      "code": {
+        "language": "ts",
+        "value": "const byCreatedAt = items.toSorted(\n  (left, right) => left.createdAt.localeCompare(right.createdAt)\n);\n\n// 仕様: createdAt 昇順\n// コスト: おおむね O(n log n) を期待\n// 注意: 元の配列は変更しない"
+      },
+      "footer": "アルゴリズムを自作する前に、順序・安定性・破壊的変更の有無を仕様として決めます。"
+    },
+    {
+      "id": "slide_summary",
+      "layout": "minimal",
+      "title": "結論: 操作、制約、データ量の順で選ぶ",
+      "bullets": [
+        "直前へ戻るならStack",
+        "到着順に処理するならQueue",
+        "速度差を吸収するならBuffer",
+        "並び替えはデータの性質と要求で選ぶ",
+        "計算量は、設計を比較する共通言語"
+      ],
+      "footer": "まずは操作を言葉にすると、候補となる構造が絞れます。"
+    }
+  ],
+  "cues": [
+    {
+      "id": "cue_title",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "今日は、データ構造とアルゴリズムを、名前ではなく必要な操作から選ぶ話をします。",
+      "note": "導入。用語暗記ではなく、設計判断へ繋げると伝える。",
+      "estimatedDurationMs": 30000,
+      "slideRef": "slide_title",
+      "direction": {
+        "intent": "neutral",
+        "intensity": "low"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_with_caption",
+        "layers": [
+          "slide",
+          "subtitle"
+        ],
+        "subtitle": true
+      }
+    },
+    {
+      "id": "cue_problem",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "構造を選ぶ前に、追加、取り出し、検索、並び替えのどれを頻繁に行うかを確認します。",
+      "estimatedDurationMs": 45000,
+      "slideRef": "slide_problem",
+      "direction": {
+        "intent": "question",
+        "intensity": "low"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_with_caption",
+        "layers": [
+          "slide",
+          "subtitle"
+        ],
+        "subtitle": true
+      }
+    },
+    {
+      "id": "cue_complexity",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "計算量は、入力が増えたときに処理時間がどんな伸び方をするかを比べるためのものです。",
+      "estimatedDurationMs": 60000,
+      "slideRef": "slide_complexity",
+      "direction": {
+        "intent": "emphasis",
+        "intensity": "medium"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_with_caption",
+        "layers": [
+          "slide",
+          "subtitle"
+        ],
+        "subtitle": true
+      }
+    },
+    {
+      "id": "cue_animation_map",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "この題材は、操作の変化そのものをアニメーションにできます。Stackなら積み上げ、Queueなら流れ、Ring Bufferなら循環、ソートなら比較と交換です。",
+      "estimatedDurationMs": 50000,
+      "slideRef": "slide_animation_map",
+      "direction": {
+        "intent": "emphasis",
+        "intensity": "medium"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_with_caption",
+        "layers": [
+          "slide",
+          "subtitle"
+        ],
+        "subtitle": true
+      }
+    },
+    {
+      "id": "cue_stack",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "Stackは最後に入れたものを先に取り出します。Undoや関数呼び出しのように、直近の状態へ戻る場面で自然に使えます。",
+      "estimatedDurationMs": 60000,
+      "slideRef": "slide_stack",
+      "direction": {
+        "intent": "supplement",
+        "intensity": "low"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "stage3d",
+        "layout": "stage_with_overlay",
+        "layers": [
+          "slide",
+          "subtitle",
+          "stage3d",
+          "effects"
+        ],
+        "subtitle": true
+      },
+      "stage": {
+        "objectRef": "algorithm_stack",
+        "objectAction": "focus_part"
+      }
+    },
+    {
+      "id": "cue_queue_buffer",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "Queueは先に来たものから処理します。Bufferを間に置くと、作る速度と処理する速度が違っても全体を安定させられます。",
+      "estimatedDurationMs": 60000,
+      "slideRef": "slide_queue_buffer",
+      "direction": {
+        "intent": "deep_dive",
+        "intensity": "medium"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "stage3d",
+        "layout": "stage_with_overlay",
+        "layers": [
+          "slide",
+          "subtitle",
+          "stage3d",
+          "effects"
+        ],
+        "subtitle": true
+      },
+      "stage": {
+        "objectRef": "algorithm_ring_buffer",
+        "objectAction": "focus_part"
+      }
+    },
+    {
+      "id": "cue_sort",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "ソートは一種類を覚えるより、データがほぼ並んでいるか、安定性が要るか、追加メモリを使えるかで選ぶ方が実務的です。",
+      "estimatedDurationMs": 75000,
+      "slideRef": "slide_sort",
+      "direction": {
+        "intent": "deep_dive",
+        "intensity": "medium"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "stage3d",
+        "layout": "stage_with_overlay",
+        "layers": [
+          "slide",
+          "subtitle",
+          "stage3d",
+          "effects"
+        ],
+        "subtitle": true
+      },
+      "stage": {
+        "objectRef": "algorithm_sort",
+        "objectAction": "focus_part"
+      }
+    },
+    {
+      "id": "cue_sort_animation",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "ソートを見せるなら、比較中の要素、動かした要素、確定した範囲を分けて表示します。同じデータを2Dのカードでも3Dの棒でも表せます。",
+      "estimatedDurationMs": 65000,
+      "slideRef": "slide_sort_animation",
+      "direction": {
+        "intent": "deep_dive",
+        "intensity": "medium"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "stage3d",
+        "layout": "stage_with_overlay",
+        "layers": [
+          "slide",
+          "subtitle",
+          "stage3d",
+          "effects"
+        ],
+        "subtitle": true
+      },
+      "stage": {
+        "objectRef": "algorithm_sort",
+        "objectAction": "focus_part"
+      }
+    },
+    {
+      "id": "cue_sort_code",
+      "kind": "talk",
+      "speaker": "presenter",
+      "text": "まずは標準ライブラリを使い、どんな順序にするかと、元の配列を変えてよいかを仕様として残します。",
+      "estimatedDurationMs": 45000,
+      "slideRef": "slide_sort_code",
+      "direction": {
+        "intent": "emphasis",
+        "intensity": "low"
+      },
+      "after": {
+        "mode": "wait_for_presenter"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_with_caption",
+        "layers": [
+          "slide",
+          "subtitle"
+        ],
+        "subtitle": true
+      }
+    },
+    {
+      "id": "cue_summary",
+      "kind": "summary",
+      "speaker": "presenter",
+      "text": "必要な操作、制約、データ量の順に考えると、Stack、Queue、Buffer、ソートの使い分けが設計として説明できます。",
+      "estimatedDurationMs": 45000,
+      "slideRef": "slide_summary",
+      "direction": {
+        "intent": "summary",
+        "intensity": "medium"
+      },
+      "after": {
+        "mode": "stop"
+      },
+      "presentation": {
+        "profile": "classic_slide",
+        "layout": "slide_with_caption",
+        "layers": [
+          "slide",
+          "subtitle"
+        ],
+        "subtitle": true
+      }
+    }
+  ],
+  "characters": [
+    {
+      "id": "presenter",
+      "displayName": "Presenter",
+      "roles": [
+        "presenter"
+      ]
+    }
+  ],
+  "assets": [],
+  "directionPresets": [],
+  "settings": {
+    "defaultProfile": "stage3d",
+    "defaultLayers": [
+      "slide",
+      "subtitle",
+      "stage3d",
+      "effects"
+    ],
+    "fallbackProfile": "classic_slide",
+    "mode": "manual",
+    "aspectRatio": "16:9",
+    "subtitle": {
+      "enabled": true,
+      "maxLines": 3
+    }
+  },
+  "exports": {
+    "enableSlideView": true,
+    "enableReadingView": true,
+    "enableReplayView": true,
+    "publicAssetsOnly": true,
+    "includeSpeakerNotes": false,
+    "includeCredits": true
+  },
+  "publication": {
+    "public": true,
+    "notesPrivate": true,
+    "replayViewEnabled": true,
+    "lifecycle": "published"
+  }
+}

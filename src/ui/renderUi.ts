@@ -43,6 +43,7 @@ export function createUiRenderer(root: HTMLElement, handlers: UiHandlers): UiRen
         <canvas id="stage-canvas" aria-label="3D presentation stage"></canvas>
         <div id="slide-layer-host" class="slide-layer-host" aria-live="polite"></div>
         <div id="subtitle-layer-host" class="subtitle-layer-host"></div>
+        <div id="algorithm-2d-host" class="algorithm-2d-host" aria-hidden="true"></div>
         <div id="live2d-host" class="live2d-host" aria-hidden="true"></div>
         <div id="image-presenter-host" class="image-presenter-host" aria-hidden="true"></div>
         <div id="static-illustration-host" class="static-illustration-host" aria-hidden="true"></div>
@@ -193,6 +194,10 @@ export function getSlideLayerHost(root: HTMLElement): HTMLElement {
 
 export function getSubtitleLayerHost(root: HTMLElement): HTMLElement {
   return requireElement(root, "#subtitle-layer-host");
+}
+
+export function getAlgorithm2DHost(root: HTMLElement): HTMLElement {
+  return requireElement(root, "#algorithm-2d-host");
 }
 
 function requireElement(root: HTMLElement, selector: string): HTMLElement {
